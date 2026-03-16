@@ -1,0 +1,312 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+GrayGuard is a productivity and digital wellness app that blocks selected mobile apps until the user completes a task. The mobile app is the enforcement layer — it blocks apps via native Android APIs and displays QR codes for the web app to scan for unblocking.
+
+The mobile app has two runtime layers: React Native/Expo (UI + API) and Kotlin (blocking enforcement). The Kotlin layer MUST survive the React Native app being killed. These are architecturally independent — React Native is a remote control, Kotlin is the engine.
+
+**Android only. iOS is not in scope for MVP.** iOS and Web targets exist in Expo config but blocking features are Android-only.
+
+Built with Expo (SDK 54) and React Native 0.81 using React 19 with the experimental React Compiler enabled. Uses custom dev client (`expo-dev-client`) — Expo Go is NOT supported due to native Kotlin modules.
+
+## Common Commands
+
+- `npm start` — Start Expo dev server
+- `npm run android` — Run on Android (custom dev client)
+- `npm run ios` — Run on iOS
+- `npm run web` — Run on web
+- `npx expo lint` — Run ESLint
+- `npx expo prebuild` — Generate native android/ directory for Kotlin module development
+- `node ./scripts/reset-project.js` — Reset project state
+
+## Architecture
+
+### The Critical Boundary: RN Dies, Kotlin Lives
+
+This is the most important rule in the entire project. When the user force-closes the app, React Native is destroyed. Blocking MUST continue.
+
+- The Kotlin `BlockerService` is a foreground service. Android keeps it alive independently.
+- All blocking state is persisted in SharedPreferences on the Kotlin side. NOT in React Native state, NOT in AsyncStorage, NOT in Zustand, NOT in expo-secure-store.
+- When RN calls `startBlocking()`, Kotlin writes the config to SharedPreferences and starts the foreground service. From that point, the service is self-sufficient.
+- On device reboot, `BootReceiver` checks SharedPreferences for an active session and restarts `BlockerService` automatically. No React Native involvement.
+- React Native is a remote control. Kotlin is the engine. Never reverse this relationship.
+
+### Two-Layer Architecture
+
+**React Native/Expo layer** — handles all UI, API communication, routing, and state management. Standard Expo app. Dies when force-closed.
+
+**Kotlin native layer** — handles all Android system API interactions: UsageStatsManager, AccessibilityService, system overlay windows, foreground service. Runs independently. Survives app kill and device reboot.
+
+These layers communicate through a narrow, explicit bridge. React Native NEVER touches Android system APIs directly. Kotlin NEVER makes API calls to the backend.
+
+### Routing
+
+File-based routing via Expo Router. Routes live in `app/`. The root layout (`app/_layout.tsx`) wraps everything in providers and hides headers globally.
+
+Route groups:
+
+- `(auth)/*` — public routes: login, signup
+- `(main)/*` — protected routes: tabs, task management, sessions
+- `(setup)/*` — permission setup flow (shown on first launch)
+
+Protected routes redirect unauthenticated users to `(auth)/login` via the auth context + `useSegments()` pattern.
+
+### Authentication Flow
+
+`context/AuthContext.tsx` manages auth state via React Context. Tokens are stored encrypted in `expo-secure-store` (key: `user_token`). Route protection is automatic — `useSegments()` redirects unauthenticated users to auth pages and authenticated users away from them. The `useAuth()` hook exposes `login(token)`, `logout()`, and `isLoading`.
+
+Auth lives in React Context because it integrates with Expo Router's segment-based redirect pattern. This is the ONE exception to the "no React Context for state" rule. All other server state goes through TanStack Query.
+
+### Server State — TanStack Query
+
+ALL data from the backend (except auth token) goes through TanStack Query. No exceptions.
+
+- Query hooks live in `hooks/queries/` and wrap plain API functions from `services/api/`.
+- Mutations MUST invalidate related queries. When a task is created, invalidate the task list. When a session is completed, invalidate both session list and session detail.
+- Active session monitoring uses `refetchInterval: 10_000` (10 seconds). Do NOT use WebSockets.
+- Query keys follow the pattern: `['tasks']`, `['tasks', taskId]`, `['sessions']`, `['sessions', sessionId]`.
+- NEVER duplicate server state into Zustand, AsyncStorage, or component state.
+
+### Client State — Zustand
+
+Zustand owns ONLY client-local UI state. Examples: selected apps in task creation flow, permission wizard step, QR display countdown. If data comes from the backend, it goes through TanStack Query, not Zustand.
+
+### API Layer
+
+`services/api/client.ts` exports an Axios instance (`apiClient`) with:
+
+- **Request interceptor**: injects `Authorization: Bearer` header from expo-secure-store
+- **Response interceptor**: catches 401s and triggers auto-logout + redirect
+- Base URL from environment config (do NOT hardcode in production)
+- 10s timeout
+
+Domain service files (`services/api/tasks.ts`, `services/api/sessions.ts`, `services/api/auth.ts`) export plain async functions that return typed data, NOT raw axios responses.
+
+These functions are called by query hooks, NOT by screens/components directly.
+
+### Native Bridge API
+
+The bridge between React Native and Kotlin. Defined in `modules/blocker/` (Expo Modules API) or `native/BlockerModule.ts` + Kotlin side.
+
+Exposes these functions and ONLY these functions:
+
+```
+startBlocking(packageNames: string[], sessionId: string) → void
+stopBlocking()                                            → void
+isBlocking()                                              → boolean
+getBlockedApps()                                          → string[]
+getActiveSessionId()                                      → string | null
+getInstalledApps()                                        → AppInfo[]
+hasRequiredPermissions()                                  → PermissionStatus
+requestUsageStatsPermission()                             → void
+requestOverlayPermission()                                → void
+requestAccessibilityPermission()                          → void
+```
+
+Events from Kotlin to RN:
+
+- `onBlockedAppDetected` — fired when a blocked app is opened
+- `onServiceStopped` — fired if the foreground service is killed by the system
+
+The `useBlocker()` hook in `hooks/useBlocker.ts` wraps this bridge for React components.
+
+Do NOT expand the bridge without careful consideration. Every method added is cross-language maintenance cost.
+
+### Theming
+
+`constants/theme.ts` defines a dark-first design system. Primary accent is Electric Blue (`#2563EB`), with Neon Cyan, Rose Alert, and Success Teal as secondary colors. All components consume `Colors.dark`.
+
+### Components
+
+Reusable, stateless, theme-aware components in `components/`:
+
+- `components/ui/` — generic: Button, Card, Input, etc.
+- `components/domain/` — GrayGuard-specific: TaskCard, SessionTimer, AppSelector, QrDisplay
+
+UI components receive data via props only. Domain components can use query hooks and useBlocker.
+
+## Project Structure
+
+```
+app/
+├── _layout.tsx                    # Root layout, providers
+├── (auth)/
+│   ├── _layout.tsx
+│   ├── login.tsx
+│   └── signup.tsx
+├── (setup)/
+│   ├── _layout.tsx
+│   └── permissions.tsx            # Permission setup wizard
+├── (main)/
+│   ├── _layout.tsx                # Tab layout
+│   ├── (tabs)/
+│   │   ├── tasks/
+│   │   │   ├── index.tsx          # Task list
+│   │   │   ├── new.tsx            # Create task
+│   │   │   └── [taskId].tsx       # Task detail
+│   │   ├── session/
+│   │   │   ├── index.tsx          # Active session
+│   │   │   ├── history.tsx        # Past sessions
+│   │   │   └── qr.tsx             # QR display
+│   │   └── settings.tsx
+components/
+├── ui/                            # Generic reusable components
+└── domain/                        # GrayGuard-specific components
+context/
+└── AuthContext.tsx                 # Auth state + Expo Router integration
+hooks/
+├── queries/
+│   ├── useTasks.ts
+│   ├── useSessions.ts
+│   └── useAuth.ts                 # TanStack Query wrapper for user data (NOT token management)
+├── useBlocker.ts                  # Native bridge hook
+└── usePermissions.ts              # Permission status hook
+services/
+└── api/
+    ├── client.ts                  # Axios instance, interceptors
+    ├── tasks.ts                   # Task CRUD
+    ├── sessions.ts                # Session lifecycle, QR token request
+    └── auth.ts                    # Login, signup, logout
+store/
+└── uiStore.ts                     # Zustand — UI-only state
+types/
+├── task.ts
+├── session.ts
+├── blocker.ts                     # AppInfo, PermissionStatus, bridge types
+└── api.ts
+constants/
+└── theme.ts
+android/app/src/main/java/com/grayguard/
+├── blocker/
+│   ├── BlockerService.kt          # Foreground service — the core runtime
+│   ├── AppMonitor.kt              # UsageStatsManager polling loop
+│   ├── BlockerOverlay.kt          # TYPE_APPLICATION_OVERLAY window
+│   └── BlockerState.kt            # SharedPreferences read/write
+├── bridge/
+│   ├── BlockerModule.kt           # Expo/RN native module
+│   └── BlockerPackage.kt          # Package registration
+└── receiver/
+    └── BootReceiver.kt            # Restart blocking on device reboot
+```
+
+## Kotlin Native Layer
+
+### BlockerService (foreground service)
+
+- Runs as a foreground service with a persistent notification showing "GrayGuard is protecting your focus."
+- Starts when RN calls `startBlocking()`. Reads blocked package names and session ID from SharedPreferences.
+- Contains the main loop: polls UsageStatsManager via AppMonitor every 500ms-1s to detect foreground app.
+- If foreground app is in the blocked list, triggers BlockerOverlay.
+- Stops ONLY when RN calls `stopBlocking()` (after successful QR scan on web app) or backend sends push notification to unblock.
+- Must handle: service killed by system (restart via START_STICKY), low memory, Doze mode.
+
+### AppMonitor
+
+- Uses UsageStatsManager to query foreground app.
+- Polling interval: 500ms-1s. Do NOT use AccessibilityService for detection — use it only for the overlay.
+- Requires PACKAGE_USAGE_STATS permission (granted via Settings, not runtime dialog).
+
+### BlockerOverlay
+
+- Uses TYPE_APPLICATION_OVERLAY to show a full-screen overlay when a blocked app is detected.
+- Overlay displays: "This app is blocked. Return to GrayGuard to check your session."
+- Requires SYSTEM_ALERT_WINDOW permission.
+- Overlay must be dismissable only by returning to GrayGuard or the home screen. It should NOT have a close button.
+
+### BlockerState
+
+- Wrapper around SharedPreferences for reading/writing blocking state.
+- Stores: `isActive` (boolean), `blockedPackages` (Set<String>), `sessionId` (String), `startedAt` (Long).
+- This is the source of truth for the Kotlin layer. If SharedPreferences says blocking is active, the service blocks. Period.
+
+### BootReceiver
+
+- BroadcastReceiver registered for BOOT_COMPLETED.
+- On boot: reads BlockerState. If `isActive` is true, starts BlockerService.
+- Registered in AndroidManifest.xml, not programmatically.
+
+## Permissions Setup Flow
+
+The app requires three special Android permissions. Each requires navigating to Android Settings — they cannot be granted via runtime dialog.
+
+1. **Usage Stats Access** (PACKAGE_USAGE_STATS) — needed to detect foreground app
+2. **Overlay Permission** (SYSTEM_ALERT_WINDOW) — needed to show blocking overlay
+3. **Accessibility Service** — needed for reliable overlay display and blocking enforcement
+
+The `(setup)/permissions.tsx` screen walks the user through each sequentially. It checks status after the user returns from Settings and only allows proceeding when all three are granted. The `usePermissions()` hook polls `hasRequiredPermissions()` from the native module.
+
+This screen MUST be shown on first launch before the user can create any tasks or start any sessions.
+
+## QR Display Flow
+
+1. Active session is running, minimum time has elapsed (known via backend polling or push notification)
+2. User navigates to `(main)/(tabs)/session/qr.tsx`
+3. Screen calls `POST /sessions/:id/qr-token` via `useRequestQrToken()` mutation
+4. Backend validates: session active, minimum time elapsed, returns token string
+5. RN renders token as QR code using react-native-qrcode-svg
+6. QR displayed with 60-second countdown timer
+7. When timer expires, QR is discarded. User can request a new one.
+8. Token is held in component state ONLY — never persisted, never stored.
+
+QR generation is entirely in React Native. Kotlin is NOT involved in QR generation, token requests, or display.
+
+## Key Conventions
+
+- **Path alias**: `@/` maps to project root (configured in both `tsconfig.json` and `babel.config.js` module-resolver)
+- **TypeScript strict mode** is enabled
+- **Dark theme is primary** — design and test dark mode first
+- **Portrait orientation only** (set in `app.json`)
+- **New Architecture** is enabled (`newArchEnabled: true`)
+- **Custom dev client required** — Expo Go does not support native Kotlin modules
+
+## Coding Standards
+
+### TypeScript
+
+- Strict mode enabled. No `any` types except when interfacing with native modules or third-party libraries.
+- Define API response types in `types/`. Never inline response types.
+- Bridge types (AppInfo, PermissionStatus) live in `types/blocker.ts`.
+- Use discriminated unions for session status: `'active' | 'completed' | 'cancelled'`.
+- Prefer `interface` for object shapes, `type` for unions and utility types.
+
+### Kotlin
+
+- Use Kotlin idioms. No Java patterns in Kotlin code.
+- All SharedPreferences access goes through BlockerState — never read/write directly elsewhere.
+- Use coroutines for async work in the foreground service, not threads.
+- Keep the bridge module thin — translate between RN types and Kotlin types, not business logic.
+- Log important state transitions (service started, blocked app detected, overlay shown) for debugging.
+
+### Forms & Validation
+
+- No form libraries. All forms use plain controlled inputs with `useState`.
+- Validate input data with Zod `schema.safeParse(data)` before calling API mutations.
+- Show validation errors inline next to the relevant input field.
+- Keep form state local to the component — do not put form input values in Zustand.
+
+### Error Handling
+
+- API errors caught by axios interceptor for 401s (triggers logout via AuthContext).
+- Native module errors (permissions denied, service failed to start) must surface to the user via clear UI messages, not silent failures.
+- The QR flow must handle: backend rejects token request (time not elapsed), network error during token request, token display timeout.
+- If BlockerService is killed by the system, it must restart via START_STICKY and emit an event to RN if the app is open.
+
+## Do NOT
+
+- Do NOT let Kotlin make API calls to the backend. All API communication goes through React Native.
+- Do NOT store blocking state in React Native (AsyncStorage, Zustand, or component state). SharedPreferences on the Kotlin side is the source of truth.
+- Do NOT use AccessibilityService for app detection. Use UsageStatsManager. AccessibilityService is for the overlay only.
+- Do NOT put a close/dismiss button on the blocking overlay. The user must leave the blocked app.
+- Do NOT generate QR codes in Kotlin. QR display is entirely a React Native responsibility.
+- Do NOT install or use any form library (React Hook Form, Formik, etc.). Use plain controlled inputs with useState. Validate with Zod.
+- Do NOT use React Context for state management EXCEPT for auth (AuthContext integrates with Expo Router). All other server state goes through TanStack Query.
+- Do NOT make the timer authoritative on the client. The backend owns time.
+- Do NOT cache QR tokens. They are single-use, expire in 60 seconds, held in component state only.
+- Do NOT add Redux, MobX, or Jotai. Zustand is the only client state library.
+- Do NOT put API calls directly in screens. They go through the services/api/ → hooks/queries/ chain.
+- Do NOT expand the native bridge without careful consideration. Every method is cross-language maintenance cost.
+- Do NOT use Expo Go for development. Custom dev client is required for native Kotlin modules.
+- Do NOT hardcode the API base URL. Use environment config.

@@ -3,24 +3,57 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
-import { Link, useRouter } from 'expo-router'
+import { authService } from '@/services/api/auth'
+import { Link } from 'expo-router'
 import React, { useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { z } from 'zod'
+
+const loginSchema = z.object({
+	email: z.string().email('Please enter a valid email'),
+	password: z.string().min(1, 'Password is required'),
+})
 
 export default function LoginScreen() {
 	const theme = Colors.dark
-	const router = useRouter()
 	const { login } = useAuth()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
+	const [errors, setErrors] = useState<Record<string, string>>({})
+	const [apiError, setApiError] = useState('')
+	const [isLoading, setIsLoading] = useState(false)
 
-	const handleLogin = () => {
-		// Implement JWT Login logic here
-		const fakeJwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'
-		login(fakeJwtToken)
+	const handleLogin = async () => {
+		setErrors({})
+		setApiError('')
 
-		console.log('Logging in with', email, password)
-		router.replace('/') // Go to Dashboard on success
+		const result = loginSchema.safeParse({ email, password })
+		if (!result.success) {
+			const fieldErrors: Record<string, string> = {}
+			for (const issue of result.error.issues) {
+				const key = issue.path[0] as string
+				if (!fieldErrors[key]) fieldErrors[key] = issue.message
+			}
+			setErrors(fieldErrors)
+			return
+		}
+
+		setIsLoading(true)
+		try {
+			const data = await authService.login(email, password)
+			login(data.token)
+		} catch (err: any) {
+			const code = err.response?.data?.error
+			if (code === 'INVALID_CREDENTIALS') {
+				setApiError('Invalid email or password.')
+			} else if (code === 'ACCOUNT_DEACTIVATED') {
+				setApiError('Your account has been deactivated.')
+			} else {
+				setApiError('Something went wrong. Please try again.')
+			}
+		} finally {
+			setIsLoading(false)
+		}
 	}
 
 	return (
@@ -31,6 +64,12 @@ export default function LoginScreen() {
 			</View>
 
 			<View style={styles.form}>
+				{apiError ? (
+					<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
+						<Text style={[styles.errorBannerText, { color: theme.accent }]}>{apiError}</Text>
+					</View>
+				) : null}
+
 				<AuthInput
 					label='Email Address'
 					placeholder='user@grayguard.com'
@@ -39,6 +78,8 @@ export default function LoginScreen() {
 					value={email}
 					onChangeText={setEmail}
 				/>
+				{errors.email ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.email}</Text> : null}
+
 				<AuthInput
 					label='Password'
 					placeholder='••••••••'
@@ -46,6 +87,7 @@ export default function LoginScreen() {
 					value={password}
 					onChangeText={setPassword}
 				/>
+				{errors.password ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.password}</Text> : null}
 
 				<View style={styles.forgotContainer}>
 					<Link
@@ -60,6 +102,7 @@ export default function LoginScreen() {
 				<PrimaryButton
 					title='Sign In'
 					onPress={handleLogin}
+					isLoading={isLoading}
 				/>
 
 				<View style={styles.divider}>
@@ -100,4 +143,7 @@ const styles = StyleSheet.create({
 	line: { flex: 1, height: 1 },
 	orText: { marginHorizontal: 16, fontSize: 12, fontWeight: '600' },
 	footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
+	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
+	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
+	fieldError: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
 })

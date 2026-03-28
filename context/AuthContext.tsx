@@ -1,4 +1,4 @@
-import { useRouter, useSegments } from 'expo-router'
+import { useNavigationContainerRef, useRouter, useSegments } from 'expo-router'
 import * as SecureStore from 'expo-secure-store'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [isLoading, setIsLoading] = useState(true)
 	const router = useRouter()
 	const segments = useSegments()
+	const navigationRef = useNavigationContainerRef()
 
 	// 1. Check for token on App Start
 	useEffect(() => {
@@ -45,17 +46,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	// 2. Protect Routes (The Redirect Logic)
 	useEffect(() => {
 		if (isLoading) return
+		if (!navigationRef.isReady()) return
 
 		const inAuthGroup = segments[0] === 'auth'
 
 		if (!token && !inAuthGroup) {
-			// No token, redirect to login
 			router.replace('/auth/login')
 		} else if (token && inAuthGroup) {
-			// Has token, but on login page -> redirect to main
 			router.replace('/main')
 		}
-	}, [token, segments, isLoading])
+	}, [token, segments, isLoading, navigationRef.isReady()])
 
 	// 3. Login Action
 	const login = async (newToken: string) => {

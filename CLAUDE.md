@@ -12,6 +12,10 @@ The mobile app has two runtime layers: React Native/Expo (UI + API) and Kotlin (
 
 Built with Expo (SDK 54) and React Native 0.81 using React 19 with the experimental React Compiler enabled. Uses custom dev client (`expo-dev-client`) — Expo Go is NOT supported due to native Kotlin modules.
 
+## API Documentation
+
+Backend API docs are in `docs/API.md`. All auth endpoints, request/response shapes, error codes, and validation rules are documented there. Refer to it when implementing or modifying API service functions.
+
 ## Common Commands
 
 - `npm start` — Start Expo dev server

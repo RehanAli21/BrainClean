@@ -1,37 +1,25 @@
+import type { AuthResponse, ForgotPasswordResponse, ResetPasswordResponse } from '@/types/auth';
 import apiClient from './client';
 
-// 1. Define Types for Inputs/Outputs
-export interface LoginResponse {
-    token: string;
-    user: {
-        id: string;
-        email: string;
-        name: string;
-    };
-}
-
-export interface RegisterPayload {
-    email: string;
-    password: string;
-    fullName: string;
-}
-
-// 2. Export functions that return the PROMISE
 export const authService = {
 
-    login: async (email: string, password: string) => {
-        // Post data and return ONLY the data part
-        const response = await apiClient.post<LoginResponse>('/auth/login', { email, password });
-        return response.data;
-    },
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>('/auth/login', { email, password });
+    return response.data;
+  },
 
-    register: async (payload: RegisterPayload) => {
-        const response = await apiClient.post<LoginResponse>('/auth/register', payload);
-        return response.data;
-    },
+  signup: async (email: string, username: string, password: string): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>('/auth/signup', { email, username, password });
+    return response.data;
+  },
 
-    logout: async () => {
-        // If backend needs to invalidate token
-        return apiClient.post('/auth/logout');
-    }
+  forgotPassword: async (email: string): Promise<ForgotPasswordResponse> => {
+    const response = await apiClient.post<ForgotPasswordResponse>('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  resetPassword: async (token: string, newPassword: string): Promise<ResetPasswordResponse> => {
+    const response = await apiClient.post<ResetPasswordResponse>('/auth/reset-password', { token, newPassword });
+    return response.data;
+  },
 };

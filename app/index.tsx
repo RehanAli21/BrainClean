@@ -32,7 +32,7 @@ export default function Index() {
 	}
 
 	if (token) {
-		return <Redirect href='/main' />
+		return <Redirect href='/(main)/(tabs)/tasks' />
 	}
 
 	const handleLogin = async () => {

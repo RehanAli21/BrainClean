@@ -121,7 +121,17 @@ Do NOT expand the bridge without careful consideration. Every method added is cr
 
 ### Theming
 
-`constants/theme.ts` defines a dark-first design system. Primary accent is Electric Blue (`#2563EB`), with Neon Cyan, Rose Alert, and Success Teal as secondary colors. All components consume `Colors.dark`.
+The complete color scheme, typography scale, spacing tokens, component tokens, and CSS custom properties for web are documented in `docs/COLOR_SCHEME.md`. This is the single source of truth for design decisions shared between mobile and web. Refer to it when building any UI — mobile or web.
+
+`constants/theme.ts` implements the mobile side. All components consume `Colors.dark` (dark mode is primary). Key values:
+
+- **Bases**: Deep Void `#050508` (background), Surface `#12121A` (cards), Border `#272735` (dividers)
+- **Accents**: Electric Blue `#2563EB` (primary), Neon Cyan `#06B6D4` (tint/tab active), Rose Alert `#F43F5E` (error/destructive), Success Teal `#10B981` (success)
+- **Text**: White `#FFFFFF` (primary), Mist `#A1A1AA` (secondary/icons)
+- **Sizing**: Buttons 52px height, inputs 50px, FAB 56x56, all with 12px border-radius
+- **Shadows**: Primary blue glow (`rgba(37,99,235,0.3)`) on CTAs and FAB
+
+For the web app, use the CSS custom properties defined in `docs/COLOR_SCHEME.md` to maintain visual consistency across platforms.
 
 ### Components
 

@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		if (!token && !inAuthGroup) {
 			router.replace('/auth/login')
 		} else if (token && inAuthGroup) {
-			router.replace('/main')
+			router.replace('/(main)/(tabs)/tasks')
 		}
 	}, [token, segments, isLoading, navigationRef.isReady()])
 
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const login = async (newToken: string) => {
 		await SecureStore.setItemAsync('user_token', newToken)
 		setToken(newToken)
-		router.replace('/main')
+		router.replace('/(main)/(tabs)/tasks')
 	}
 
 	// 4. Logout Action

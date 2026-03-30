@@ -22,8 +22,8 @@ export const taskService = {
     await apiClient.delete(`/tasks/${id}`);
   },
 
-  complete: async (id: string): Promise<Task> => {
-    const response = await apiClient.patch<Task>(`/tasks/${id}/complete`);
+  start: async (id: string): Promise<Task> => {
+    const response = await apiClient.patch<Task>(`/tasks/${id}/start`);
     return response.data;
   },
 };

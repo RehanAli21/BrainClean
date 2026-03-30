@@ -1,8 +1,8 @@
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { Colors } from '@/constants/theme';
 import {
-  useCompleteTaskMutation,
   useDeleteTaskMutation,
+  useStartTaskMutation,
   useTaskQuery,
 } from '@/hooks/queries/useTasks';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -41,19 +41,23 @@ export default function TaskDetailScreen() {
   const router = useRouter();
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
   const { data: task, isLoading, isError } = useTaskQuery(taskId!);
-  const completeMutation = useCompleteTaskMutation();
+  const startMutation = useStartTaskMutation();
   const deleteMutation = useDeleteTaskMutation();
   const [apiError, setApiError] = useState('');
 
-  const handleComplete = () => {
+  const handleStart = () => {
     setApiError('');
-    completeMutation.mutate(taskId!, {
+    startMutation.mutate(taskId!, {
       onError: (err: any) => {
         const code = err.response?.data?.error;
-        if (code === 'TASK_ALREADY_COMPLETED') {
-          setApiError('This task is already completed.');
+        if (code === 'ACTIVE_TASK_EXISTS') {
+          setApiError('Another task is already active.');
+        } else if (code === 'TASK_ALREADY_STARTED') {
+          setApiError('This task has already been started.');
+        } else if (code === 'TASK_ALREADY_COMPLETED') {
+          setApiError('This task has already been completed.');
         } else {
-          setApiError('Failed to complete task. Please try again.');
+          setApiError('Failed to start task. Please try again.');
         }
       },
     });
@@ -68,7 +72,14 @@ export default function TaskDetailScreen() {
         onPress: () => {
           deleteMutation.mutate(taskId!, {
             onSuccess: () => router.back(),
-            onError: () => setApiError('Failed to delete task. Please try again.'),
+            onError: (err: any) => {
+              const code = err.response?.data?.error;
+              if (code === 'ACTIVE_TASK_EXISTS') {
+                setApiError('Cannot delete an active task.');
+              } else {
+                setApiError('Failed to delete task. Please try again.');
+              }
+            },
           });
         },
       },
@@ -100,6 +111,9 @@ export default function TaskDetailScreen() {
     );
   }
 
+  const isPending = !task.started && !task.completed;
+  const isActive = task.started && !task.completed;
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
@@ -128,19 +142,28 @@ export default function TaskDetailScreen() {
 
         <View style={styles.row}>
           <Ionicons
-            name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
+            name={task.completed ? 'checkmark-circle' : task.started ? 'radio-button-on' : 'ellipse-outline'}
             size={18}
-            color={task.completed ? '#10B981' : theme.icon}
+            color={task.completed ? '#10B981' : task.started ? theme.primary : theme.icon}
           />
           <Text
             style={[
               styles.detailText,
-              { color: task.completed ? '#10B981' : theme.icon },
+              { color: task.completed ? '#10B981' : task.started ? theme.primary : theme.icon },
             ]}
           >
-            {task.completed ? 'Completed' : 'Pending'}
+            {task.completed ? 'Completed' : task.started ? 'Active' : 'Pending'}
           </Text>
         </View>
+
+        {task.startedAt ? (
+          <View style={styles.row}>
+            <Ionicons name="play-circle-outline" size={18} color={theme.icon} />
+            <Text style={[styles.detailText, { color: theme.icon }]}>
+              Started {formatDate(task.startedAt)}
+            </Text>
+          </View>
+        ) : null}
 
         {task.completedAt ? (
           <View style={styles.row}>
@@ -162,26 +185,37 @@ export default function TaskDetailScreen() {
       </View>
 
       <View style={styles.actions}>
-        {!task.completed ? (
+        {isPending ? (
           <PrimaryButton
-            title="Mark Complete"
-            onPress={handleComplete}
-            isLoading={completeMutation.isPending}
+            title="Start Task"
+            onPress={handleStart}
+            isLoading={startMutation.isPending}
           />
         ) : null}
 
-        <TouchableOpacity
-          style={[styles.deleteButton, { borderColor: theme.accent }]}
-          onPress={handleDelete}
-          activeOpacity={0.7}
-          disabled={deleteMutation.isPending}
-        >
-          {deleteMutation.isPending ? (
-            <ActivityIndicator size="small" color={theme.accent} />
-          ) : (
-            <Text style={[styles.deleteButtonText, { color: theme.accent }]}>Delete Task</Text>
-          )}
-        </TouchableOpacity>
+        {isActive ? (
+          <View style={[styles.infoBanner, { backgroundColor: theme.primary + '1A' }]}>
+            <Ionicons name="lock-closed-outline" size={16} color={theme.primary} />
+            <Text style={[styles.infoBannerText, { color: theme.primary }]}>
+              Task is active. Complete it via QR scan on the web app.
+            </Text>
+          </View>
+        ) : null}
+
+        {isPending ? (
+          <TouchableOpacity
+            style={[styles.deleteButton, { borderColor: theme.accent }]}
+            onPress={handleDelete}
+            activeOpacity={0.7}
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? (
+              <ActivityIndicator size="small" color={theme.accent} />
+            ) : (
+              <Text style={[styles.deleteButtonText, { color: theme.accent }]}>Delete Task</Text>
+            )}
+          </TouchableOpacity>
+        ) : null}
       </View>
     </View>
   );
@@ -209,6 +243,8 @@ const styles = StyleSheet.create({
   detailText: { fontSize: 15, marginLeft: 10 },
   divider: { height: 1, marginVertical: 12 },
   actions: { marginTop: 24, gap: 12 },
+  infoBanner: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8, gap: 8 },
+  infoBannerText: { fontSize: 14, fontWeight: '500', flex: 1 },
   deleteButton: {
     borderWidth: 1,
     borderRadius: 12,

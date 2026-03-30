@@ -37,10 +37,10 @@ export function useDeleteTaskMutation() {
   });
 }
 
-export function useCompleteTaskMutation() {
+export function useStartTaskMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => taskService.complete(id),
+    mutationFn: (id: string) => taskService.start(id),
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', id] });

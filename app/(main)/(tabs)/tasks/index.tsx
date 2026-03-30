@@ -22,8 +22,15 @@ function formatDuration(seconds: number): string {
   return remainMins > 0 ? `${hrs}h ${remainMins}m` : `${hrs}h`;
 }
 
+function getTaskStatus(task: Task) {
+  if (task.completed) return { icon: 'checkmark-circle' as const, color: '#10B981', label: 'Completed' };
+  if (task.started) return { icon: 'radio-button-on' as const, color: '#2563EB', label: 'Active' };
+  return { icon: 'ellipse-outline' as const, color: '#A1A1AA', label: 'Pending' };
+}
+
 function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
   const theme = Colors.dark;
+  const status = getTaskStatus(task);
   return (
     <TouchableOpacity
       style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -46,11 +53,7 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
             {formatDuration(task.minimumDurationSeconds)}
           </Text>
         </View>
-        <Ionicons
-          name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
-          size={24}
-          color={task.completed ? '#10B981' : theme.icon}
-        />
+        <Ionicons name={status.icon} size={24} color={status.color} />
       </View>
     </TouchableOpacity>
   );
@@ -61,6 +64,7 @@ export default function TaskListScreen() {
   const router = useRouter();
   const { logout } = useAuth();
   const { data: tasks, isLoading, isError, refetch } = useTasksQuery();
+  const hasActiveTask = tasks?.some((t) => t.started && !t.completed) ?? false;
 
   const renderItem = ({ item }: { item: Task }) => (
     <TaskCard
@@ -108,13 +112,15 @@ export default function TaskListScreen() {
         />
       )}
 
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: theme.primary }]}
-        onPress={() => router.push('/(main)/(tabs)/tasks/new')}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
+      {hasActiveTask ? null : (
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: theme.primary }]}
+          onPress={() => router.push('/(main)/(tabs)/tasks/new')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={28} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

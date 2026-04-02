@@ -20,7 +20,8 @@
 			},
 			"edgeToEdgeEnabled": true,
 			"predictiveBackGestureEnabled": false,
-			"package": "com.anonymous.Grayguard"
+			"package": "com.anonymous.Grayguard",
+			"permissions": ["android.permission.QUERY_ALL_PACKAGES"]
 		},
 		"web": {
 			"output": "static",

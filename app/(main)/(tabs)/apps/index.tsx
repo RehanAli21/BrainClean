@@ -1,17 +1,54 @@
 import { Colors } from '@/constants/theme';
 import { getInstalledApps } from '@/modules/blocker';
+import { useUiStore } from '@/store/uiStore';
 import type { AppInfo } from '@/types/blocker';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
+
+function AppRow({ app }: { app: AppInfo }) {
+  const theme = Colors.dark;
+  const isSelected = useUiStore((s) => s.selectedApps.includes(app.packageName));
+  const toggleApp = useUiStore((s) => s.toggleApp);
+
+  return (
+    <View style={[styles.appRow, { borderBottomColor: theme.border }]}>
+      {app.icon ? (
+        <Image
+          source={{ uri: `data:image/png;base64,${app.icon}` }}
+          style={styles.appIcon}
+        />
+      ) : (
+        <View style={[styles.appIconPlaceholder, { backgroundColor: theme.surface }]}>
+          <Ionicons name="cube-outline" size={20} color={theme.icon} />
+        </View>
+      )}
+      <View style={styles.appInfo}>
+        <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>
+          {app.appName}
+        </Text>
+        <Text style={[styles.packageName, { color: theme.icon }]} numberOfLines={1}>
+          {app.packageName}
+        </Text>
+      </View>
+      <Switch
+        value={isSelected}
+        onValueChange={() => toggleApp(app.packageName)}
+        trackColor={{ false: theme.border, true: theme.primary }}
+        thumbColor="#FFFFFF"
+      />
+    </View>
+  );
+}
 
 export default function AppsScreen() {
   const theme = Colors.dark;
@@ -19,6 +56,7 @@ export default function AppsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const selectedCount = useUiStore((s) => s.selectedApps.length);
 
   useEffect(() => {
     loadApps();
@@ -47,39 +85,13 @@ export default function AppsScreen() {
     );
   }, [apps, search]);
 
-  const renderItem = useCallback(
-    ({ item }: { item: AppInfo }) => (
-      <View style={[styles.appRow, { borderBottomColor: theme.border }]}>
-        {item.icon ? (
-          <Image
-            source={{ uri: `data:image/png;base64,${item.icon}` }}
-            style={styles.appIcon}
-          />
-        ) : (
-          <View style={[styles.appIconPlaceholder, { backgroundColor: theme.surface }]}>
-            <Ionicons name="cube-outline" size={20} color={theme.icon} />
-          </View>
-        )}
-        <View style={styles.appInfo}>
-          <Text style={[styles.appName, { color: theme.text }]} numberOfLines={1}>
-            {item.appName}
-          </Text>
-          <Text style={[styles.packageName, { color: theme.icon }]} numberOfLines={1}>
-            {item.packageName}
-          </Text>
-        </View>
-      </View>
-    ),
-    [theme],
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>Apps</Text>
-        {!isLoading && apps.length > 0 ? (
-          <Text style={[styles.count, { color: theme.icon }]}>{apps.length} installed</Text>
-        ) : null}
+        <Text style={[styles.count, { color: theme.icon }]}>
+          {selectedCount > 0 ? `${selectedCount} selected` : !isLoading && apps.length > 0 ? `${apps.length} installed` : ''}
+        </Text>
       </View>
 
       <View
@@ -129,7 +141,7 @@ export default function AppsScreen() {
         <FlatList
           data={filteredApps}
           keyExtractor={(item) => item.packageName}
-          renderItem={renderItem}
+          renderItem={({ item }) => <AppRow app={item} />}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         />

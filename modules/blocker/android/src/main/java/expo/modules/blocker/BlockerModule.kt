@@ -92,7 +92,8 @@ class BlockerModule : Module() {
         Function("hasRequiredPermissions") {
             val context = appContext.reactContext ?: return@Function mapOf(
                 "usageStats" to false,
-                "overlay" to false
+                "overlay" to false,
+                "accessibility" to false
             )
 
             val appOps = context.getSystemService(AppOpsManager::class.java)
@@ -112,10 +113,12 @@ class BlockerModule : Module() {
             }
 
             val overlayGranted = Settings.canDrawOverlays(context)
+            val accessibilityGranted = BlockerAccessibilityService.isEnabled(context)
 
             mapOf(
                 "usageStats" to usageStatsGranted,
-                "overlay" to overlayGranted
+                "overlay" to overlayGranted,
+                "accessibility" to accessibilityGranted
             )
         }
 
@@ -133,6 +136,14 @@ class BlockerModule : Module() {
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:${context.packageName}")
             ).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }
+
+        Function("requestAccessibilityPermission") {
+            val context = appContext.reactContext ?: return@Function Unit
+            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)

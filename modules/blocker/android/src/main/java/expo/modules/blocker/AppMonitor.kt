@@ -10,13 +10,17 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
 
 class AppMonitor {
     private var monitorJob: Job? = null
     private var scope: CoroutineScope? = null
     private var blockedPackages: Set<String> = emptySet()
     private var ownPackage: String = ""
-    private var lastDetectedBlocked: String? = null
+    @Volatile
+    private var overlayShowing: Boolean = false
+    private var onBlockedAppDetected: ((String) -> Unit)? = null
+    private var onBlockedAppLeft: (() -> Unit)? = null
 
     fun start(
         context: Context,
@@ -27,7 +31,9 @@ class AppMonitor {
         stop()
         blockedPackages = packages
         ownPackage = context.packageName
-        lastDetectedBlocked = null
+        overlayShowing = false
+        this.onBlockedAppDetected = onBlockedAppDetected
+        this.onBlockedAppLeft = onBlockedAppLeft
         scope = CoroutineScope(Dispatchers.Default)
 
         monitorJob = scope?.launch {
@@ -42,20 +48,8 @@ class AppMonitor {
             while (isActive) {
                 try {
                     val foregroundPackage = getForegroundPackage(usageStatsManager)
-
-                    if (foregroundPackage != null && blockedPackages.contains(foregroundPackage)) {
-                        if (lastDetectedBlocked != foregroundPackage) {
-                            lastDetectedBlocked = foregroundPackage
-                            onBlockedAppDetected(foregroundPackage)
-                        }
-                    } else if (lastDetectedBlocked != null) {
-                        // Ignore our own package — overlay is part of GrayGuard's process,
-                        // so when overlay shows, UsageStats may report our package as foreground.
-                        // Only clear the blocked state when a genuinely different app is in front.
-                        if (foregroundPackage != null && foregroundPackage != ownPackage) {
-                            lastDetectedBlocked = null
-                            onBlockedAppLeft()
-                        }
+                    if (foregroundPackage != null) {
+                        onForegroundAppChanged(foregroundPackage)
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error polling foreground app", e)
@@ -66,11 +60,34 @@ class AppMonitor {
         }
     }
 
+    /**
+     * Called by both the UsageStats polling loop and BlockerAccessibilityService.
+     * Unified detection logic: check if the package is blocked and show/hide overlay.
+     */
+    fun onForegroundAppChanged(packageName: String) {
+        // Ignore our own package — overlay is part of GrayGuard's process
+        if (packageName == ownPackage) return
+
+        if (blockedPackages.contains(packageName)) {
+            if (!overlayShowing) {
+                overlayShowing = true
+                onBlockedAppDetected?.invoke(packageName)
+            }
+        } else {
+            if (overlayShowing) {
+                overlayShowing = false
+                onBlockedAppLeft?.invoke()
+            }
+        }
+    }
+
     fun stop() {
         monitorJob?.cancel()
         monitorJob = null
         scope = null
-        lastDetectedBlocked = null
+        overlayShowing = false
+        onBlockedAppDetected = null
+        onBlockedAppLeft = null
     }
 
     fun isRunning(): Boolean = monitorJob?.isActive == true
@@ -81,7 +98,7 @@ class AppMonitor {
 
     private fun getForegroundPackage(usageStatsManager: UsageStatsManager): String? {
         val now = System.currentTimeMillis()
-        val events = usageStatsManager.queryEvents(now - 2000, now)
+        val events = usageStatsManager.queryEvents(now - EVENT_WINDOW_MS, now)
         val event = UsageEvents.Event()
         var lastForegroundPackage: String? = null
 
@@ -97,6 +114,10 @@ class AppMonitor {
 
     companion object {
         private const val TAG = "AppMonitor"
-        private const val POLL_INTERVAL_MS = 500L
+        private const val POLL_INTERVAL_MS = 2000L
+        private const val EVENT_WINDOW_MS = 10000L
+
+        /** Static reference for BlockerAccessibilityService to push events */
+        val instance = AtomicReference<AppMonitor?>(null)
     }
 }

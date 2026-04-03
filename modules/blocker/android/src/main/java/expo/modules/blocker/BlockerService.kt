@@ -55,6 +55,9 @@ class BlockerService : Service() {
             }
         )
 
+        // Expose AppMonitor so BlockerAccessibilityService can push events to it
+        AppMonitor.instance.set(appMonitor)
+
         // Poll backend to detect task completion
         val authToken = state.getAuthToken()
         val baseUrl = state.getBaseUrl()
@@ -99,6 +102,7 @@ class BlockerService : Service() {
 
     override fun onDestroy() {
         Log.i(TAG, "BlockerService destroyed")
+        AppMonitor.instance.set(null)
         appMonitor.stop()
         taskStatusChecker.stop()
         maxTimeRunnable?.let { mainHandler.removeCallbacks(it) }

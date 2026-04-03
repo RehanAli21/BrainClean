@@ -46,6 +46,10 @@ export function requestOverlayPermission(): void {
   BlockerModule.requestOverlayPermission();
 }
 
+export function requestAccessibilityPermission(): void {
+  BlockerModule.requestAccessibilityPermission();
+}
+
 export function addBlockedAppListener(
   callback: (event: { packageName: string }) => void,
 ): EventSubscription {

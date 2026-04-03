@@ -28,7 +28,10 @@ export default function Index() {
 	if (isLoading || permissionsLoading) {
 		return (
 			<View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
-				<ActivityIndicator size='large' color={theme.primary} />
+				<ActivityIndicator
+					size='large'
+					color={theme.primary}
+				/>
 			</View>
 		)
 	}
@@ -59,7 +62,7 @@ export default function Index() {
 		setIsSubmitting(true)
 		try {
 			const data = await authService.login(email, password)
-			login(data.token)
+			login(data.token, data.user.email)
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'INVALID_CREDENTIALS') {
@@ -136,7 +139,7 @@ export default function Index() {
 			</View>
 
 			<View style={styles.footer}>
-				<Text style={{ color: theme.icon }}>Don't have an account? </Text>
+				<Text style={{ color: theme.icon }}>Don{"'"}t have an account? </Text>
 				<Link
 					href='/auth/signup'
 					asChild>

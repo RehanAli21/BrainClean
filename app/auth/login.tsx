@@ -41,7 +41,7 @@ export default function LoginScreen() {
 		setIsLoading(true)
 		try {
 			const data = await authService.login(email, password)
-			login(data.token)
+			login(data.token, data.user.email)
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'INVALID_CREDENTIALS') {
@@ -118,7 +118,7 @@ export default function LoginScreen() {
 			</View>
 
 			<View style={styles.footer}>
-				<Text style={{ color: theme.icon }}>Don't have an account? </Text>
+				<Text style={{ color: theme.icon }}>Don{"'"}t have an account? </Text>
 				<Link
 					href='/auth/signup'
 					asChild>

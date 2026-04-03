@@ -1,6 +1,5 @@
 import { TASK_POLL_INTERVAL_MS } from '@/constants/config';
 import { Colors } from '@/constants/theme';
-import { useAuth } from '@/context/AuthContext';
 import { useTasksQuery } from '@/hooks/queries/useTasks';
 import { useBlocker } from '@/hooks/useBlocker';
 import type { Task } from '@/types/task';
@@ -64,7 +63,6 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 export default function TaskListScreen() {
   const theme = Colors.dark;
   const router = useRouter();
-  const { logout } = useAuth();
   const { data: tasks, isLoading, isError, refetch } = useTasksQuery();
   const { isBlocking, stopBlocking } = useBlocker();
   const hasActiveTask = tasks?.some((t) => t.started && !t.completed) ?? false;
@@ -100,9 +98,6 @@ export default function TaskListScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>Tasks</Text>
-        <TouchableOpacity onPress={logout}>
-          <Ionicons name="log-out-outline" size={24} color={theme.icon} />
-        </TouchableOpacity>
       </View>
 
       {isLoading ? (

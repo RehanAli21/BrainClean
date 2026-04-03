@@ -1,9 +1,8 @@
-import { EventEmitter, requireNativeModule, type Subscription } from 'expo-modules-core';
+import { requireNativeModule, type EventSubscription } from 'expo-modules-core';
 
 import type { AppInfo, PermissionStatus } from '@/types/blocker';
 
 const BlockerModule = requireNativeModule('BlockerModule');
-const emitter = new EventEmitter(BlockerModule);
 
 export function getInstalledApps(): AppInfo[] {
   return BlockerModule.getInstalledApps();
@@ -14,8 +13,9 @@ export function startBlocking(
   sessionId: string,
   authToken: string,
   baseUrl: string,
+  maxBlockTimeMs: number,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl);
+  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs);
 }
 
 export function stopBlocking(): void {
@@ -48,10 +48,10 @@ export function requestOverlayPermission(): void {
 
 export function addBlockedAppListener(
   callback: (event: { packageName: string }) => void,
-): Subscription {
-  return emitter.addListener('onBlockedAppDetected', callback);
+): EventSubscription {
+  return BlockerModule.addListener('onBlockedAppDetected', callback);
 }
 
-export function addServiceStoppedListener(callback: () => void): Subscription {
-  return emitter.addListener('onServiceStopped', callback);
+export function addServiceStoppedListener(callback: () => void): EventSubscription {
+  return BlockerModule.addListener('onServiceStopped', callback);
 }

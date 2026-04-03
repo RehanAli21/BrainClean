@@ -12,6 +12,8 @@ interface UiState {
   selectedApps: string[];
   toggleApp: (packageName: string) => void;
   isAppSelected: (packageName: string) => boolean;
+  maxBlockTimeMinutes: number;
+  setMaxBlockTime: (minutes: number) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -30,6 +32,12 @@ export const useUiStore = create<UiState>()(
 
       isAppSelected: (packageName: string) => {
         return get().selectedApps.includes(packageName);
+      },
+
+      maxBlockTimeMinutes: 600,
+
+      setMaxBlockTime: (minutes: number) => {
+        set({ maxBlockTimeMinutes: minutes });
       },
     }),
     {

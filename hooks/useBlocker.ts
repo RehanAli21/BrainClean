@@ -17,8 +17,8 @@ export function useBlocker() {
   );
 
   const startBlocking = useCallback(
-    (packageNames: string[], sessionId: string, authToken: string, baseUrl: string) => {
-      nativeStartBlocking(packageNames, sessionId, authToken, baseUrl);
+    (packageNames: string[], sessionId: string, authToken: string, baseUrl: string, maxBlockTimeMs: number) => {
+      nativeStartBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs);
       setBlocking(true);
       setBlockedApps(packageNames);
       setActiveSessionId(sessionId);

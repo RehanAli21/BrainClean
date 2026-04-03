@@ -4,13 +4,15 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 
 interface AuthContextType {
 	token: string | null
+	email: string | null
 	isLoading: boolean
-	login: (token: string) => void
+	login: (token: string, email: string) => void
 	logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType>({
 	token: null,
+	email: null,
 	isLoading: true,
 	login: () => {},
 	logout: () => {},
@@ -21,6 +23,7 @@ export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [token, setToken] = useState<string | null>(null)
+	const [email, setEmail] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const router = useRouter()
 	const segments = useSegments()
@@ -31,8 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		const checkToken = async () => {
 			try {
 				const storedToken = await SecureStore.getItemAsync('user_token')
+				const storedEmail = await SecureStore.getItemAsync('user_email')
 				if (storedToken) {
 					setToken(storedToken)
+					setEmail(storedEmail)
 				}
 			} catch (e) {
 				console.error('Failed to fetch token', e)
@@ -58,18 +63,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, [token, segments, isLoading, navigationRef.isReady()])
 
 	// 3. Login Action
-	const login = async (newToken: string) => {
+	const login = async (newToken: string, userEmail: string) => {
 		await SecureStore.setItemAsync('user_token', newToken)
+		await SecureStore.setItemAsync('user_email', userEmail)
 		setToken(newToken)
+		setEmail(userEmail)
 		router.replace('/(main)/(tabs)/tasks')
 	}
 
 	// 4. Logout Action
 	const logout = async () => {
 		await SecureStore.deleteItemAsync('user_token')
+		await SecureStore.deleteItemAsync('user_email')
 		setToken(null)
+		setEmail(null)
 		router.replace('/auth/login')
 	}
 
-	return <AuthContext.Provider value={{ token, isLoading, login, logout }}>{children}</AuthContext.Provider>
+	return <AuthContext.Provider value={{ token, email, isLoading, login, logout }}>{children}</AuthContext.Provider>
 }

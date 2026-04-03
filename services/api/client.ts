@@ -49,14 +49,14 @@ apiClient.interceptors.response.use(
         // Only auto-logout for 401s on protected endpoints.
         const isAuthEndpoint = url.startsWith('/auth/');
 
-        // B. Handle 401 Unauthorized (Token Expired/Invalid)
-        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
-            console.warn('[Interceptor] 401 Detected. Logging out...');
+        // B. Handle 401 Unauthorized or 403 Forbidden
+        const status = error.response?.status;
+        if ((status === 401 || status === 403) && !originalRequest._retry && !isAuthEndpoint) {
+            console.warn(`[Interceptor] ${status} Detected. Logging out...`);
 
-            // 1. Clear bad token
             await SecureStore.deleteItemAsync('user_token');
+            await SecureStore.deleteItemAsync('user_email');
 
-            // 2. Force redirect to login
             router.replace('/auth/login');
 
             return Promise.reject(error);

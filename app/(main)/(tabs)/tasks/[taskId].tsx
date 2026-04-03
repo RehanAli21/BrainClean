@@ -50,6 +50,7 @@ export default function TaskDetailScreen() {
   const { startBlocking } = useBlocker();
   const { token } = useAuth();
   const selectedApps = useUiStore((s) => s.selectedApps);
+  const maxBlockTimeMinutes = useUiStore((s) => s.maxBlockTimeMinutes);
   const [apiError, setApiError] = useState('');
 
   useFocusEffect(
@@ -68,7 +69,7 @@ export default function TaskDetailScreen() {
     startMutation.mutate(taskId!, {
       onSuccess: () => {
         try {
-          startBlocking(selectedApps, taskId!, token!, API_BASE_URL);
+          startBlocking(selectedApps, taskId!, token!, API_BASE_URL, maxBlockTimeMinutes * 60 * 1000);
         } catch {
           setApiError('Task started but app blocking failed to engage.');
         }

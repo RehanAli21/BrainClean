@@ -7,7 +7,7 @@ class BlockerState private constructor(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String) {
+    fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long) {
         prefs.edit()
             .putBoolean(KEY_IS_ACTIVE, true)
             .putStringSet(KEY_BLOCKED_PACKAGES, packages.toSet())
@@ -15,6 +15,7 @@ class BlockerState private constructor(context: Context) {
             .putLong(KEY_STARTED_AT, System.currentTimeMillis())
             .putString(KEY_AUTH_TOKEN, authToken)
             .putString(KEY_BASE_URL, baseUrl)
+            .putLong(KEY_MAX_BLOCK_TIME_MS, maxBlockTimeMs)
             .apply()
     }
 
@@ -26,6 +27,7 @@ class BlockerState private constructor(context: Context) {
             .putLong(KEY_STARTED_AT, 0L)
             .putString(KEY_AUTH_TOKEN, "")
             .putString(KEY_BASE_URL, "")
+            .putLong(KEY_MAX_BLOCK_TIME_MS, 0L)
             .apply()
     }
 
@@ -42,6 +44,8 @@ class BlockerState private constructor(context: Context) {
 
     fun getBaseUrl(): String = prefs.getString(KEY_BASE_URL, "") ?: ""
 
+    fun getMaxBlockTimeMs(): Long = prefs.getLong(KEY_MAX_BLOCK_TIME_MS, 0L)
+
     companion object {
         private const val PREFS_NAME = "grayguard_blocker_state"
         private const val KEY_IS_ACTIVE = "is_active"
@@ -50,6 +54,7 @@ class BlockerState private constructor(context: Context) {
         private const val KEY_STARTED_AT = "started_at"
         private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_BASE_URL = "base_url"
+        private const val KEY_MAX_BLOCK_TIME_MS = "max_block_time_ms"
 
         @Volatile
         private var instance: BlockerState? = null

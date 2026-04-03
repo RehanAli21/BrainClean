@@ -19,6 +19,7 @@ class BlockerService : Service() {
     private val overlay = BlockerOverlay()
     private val taskStatusChecker = TaskStatusChecker()
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var maxTimeRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -72,6 +73,27 @@ class BlockerService : Service() {
             )
         }
 
+        // Enforce max block time
+        val maxBlockTimeMs = state.getMaxBlockTimeMs()
+        if (maxBlockTimeMs > 0) {
+            val elapsed = System.currentTimeMillis() - state.getStartedAt()
+            val remaining = maxBlockTimeMs - elapsed
+            if (remaining <= 0) {
+                Log.i(TAG, "Max block time already exceeded, stopping blocker")
+                state.stopSession()
+                overlay.hide()
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            maxTimeRunnable = Runnable {
+                Log.i(TAG, "Max block time reached, stopping blocker")
+                state.stopSession()
+                overlay.hide()
+                stopSelf()
+            }
+            mainHandler.postDelayed(maxTimeRunnable!!, remaining)
+        }
+
         return START_STICKY
     }
 
@@ -79,6 +101,7 @@ class BlockerService : Service() {
         Log.i(TAG, "BlockerService destroyed")
         appMonitor.stop()
         taskStatusChecker.stop()
+        maxTimeRunnable?.let { mainHandler.removeCallbacks(it) }
         overlay.hide()
         super.onDestroy()
     }

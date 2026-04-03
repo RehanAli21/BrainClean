@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 class BlockerService : Service() {
     private val appMonitor = AppMonitor()
     private val overlay = BlockerOverlay()
+    private val taskStatusChecker = TaskStatusChecker()
     private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
@@ -53,12 +54,31 @@ class BlockerService : Service() {
             }
         )
 
+        // Poll backend to detect task completion
+        val authToken = state.getAuthToken()
+        val baseUrl = state.getBaseUrl()
+        if (authToken.isNotEmpty() && baseUrl.isNotEmpty()) {
+            taskStatusChecker.start(
+                baseUrl = baseUrl,
+                authToken = authToken,
+                onNoActiveTasks = {
+                    Log.i(TAG, "Backend reports no active tasks, stopping blocker")
+                    state.stopSession()
+                    mainHandler.post {
+                        overlay.hide()
+                        stopSelf()
+                    }
+                }
+            )
+        }
+
         return START_STICKY
     }
 
     override fun onDestroy() {
         Log.i(TAG, "BlockerService destroyed")
         appMonitor.stop()
+        taskStatusChecker.stop()
         overlay.hide()
         super.onDestroy()
     }

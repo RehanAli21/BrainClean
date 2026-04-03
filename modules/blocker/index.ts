@@ -9,8 +9,13 @@ export function getInstalledApps(): AppInfo[] {
   return BlockerModule.getInstalledApps();
 }
 
-export function startBlocking(packageNames: string[], sessionId: string): void {
-  BlockerModule.startBlocking(packageNames, sessionId);
+export function startBlocking(
+  packageNames: string[],
+  sessionId: string,
+  authToken: string,
+  baseUrl: string,
+): void {
+  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl);
 }
 
 export function stopBlocking(): void {

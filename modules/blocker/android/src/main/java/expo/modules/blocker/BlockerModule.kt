@@ -59,10 +59,10 @@ class BlockerModule : Module() {
                 .sortedBy { (it["appName"] as? String)?.lowercase() }
         }
 
-        Function("startBlocking") { packageNames: List<String>, sessionId: String ->
+        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String ->
             val context = appContext.reactContext ?: return@Function Unit
             val state = BlockerState.getInstance(context)
-            state.startSession(packageNames, sessionId)
+            state.startSession(packageNames, sessionId, authToken, baseUrl)
             BlockerService.start(context)
         }
 

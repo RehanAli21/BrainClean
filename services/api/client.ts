@@ -1,10 +1,11 @@
+import { API_BASE_URL } from '@/constants/config';
 import axios from 'axios';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
 // 1. Create the Axios Instance
 const apiClient = axios.create({
-    baseURL: 'http://192.168.100.5:8080/api', // Replace with your actual Backend URL
+    baseURL: API_BASE_URL,
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',

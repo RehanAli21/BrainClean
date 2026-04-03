@@ -1,4 +1,5 @@
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { API_BASE_URL } from '@/constants/config';
 import { Colors } from '@/constants/theme';
 import {
   useDeleteTaskMutation,
@@ -6,6 +7,7 @@ import {
   useTaskQuery,
 } from '@/hooks/queries/useTasks';
 import { useBlocker } from '@/hooks/useBlocker';
+import { useAuth } from '@/context/AuthContext';
 import { useUiStore } from '@/store/uiStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -46,6 +48,7 @@ export default function TaskDetailScreen() {
   const startMutation = useStartTaskMutation();
   const deleteMutation = useDeleteTaskMutation();
   const { startBlocking } = useBlocker();
+  const { token } = useAuth();
   const selectedApps = useUiStore((s) => s.selectedApps);
   const [apiError, setApiError] = useState('');
 
@@ -65,7 +68,7 @@ export default function TaskDetailScreen() {
     startMutation.mutate(taskId!, {
       onSuccess: () => {
         try {
-          startBlocking(selectedApps, taskId!);
+          startBlocking(selectedApps, taskId!, token!, API_BASE_URL);
         } catch {
           setApiError('Task started but app blocking failed to engage.');
         }

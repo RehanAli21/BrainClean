@@ -16,12 +16,15 @@ export function useBlocker() {
     getActiveSessionId(),
   );
 
-  const startBlocking = useCallback((packageNames: string[], sessionId: string) => {
-    nativeStartBlocking(packageNames, sessionId);
-    setBlocking(true);
-    setBlockedApps(packageNames);
-    setActiveSessionId(sessionId);
-  }, []);
+  const startBlocking = useCallback(
+    (packageNames: string[], sessionId: string, authToken: string, baseUrl: string) => {
+      nativeStartBlocking(packageNames, sessionId, authToken, baseUrl);
+      setBlocking(true);
+      setBlockedApps(packageNames);
+      setActiveSessionId(sessionId);
+    },
+    [],
+  );
 
   const stopBlocking = useCallback(() => {
     nativeStopBlocking();

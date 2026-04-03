@@ -5,9 +5,11 @@ import {
   useStartTaskMutation,
   useTaskQuery,
 } from '@/hooks/queries/useTasks';
+import { useBlocker } from '@/hooks/useBlocker';
+import { useUiStore } from '@/store/uiStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -40,14 +42,34 @@ export default function TaskDetailScreen() {
   const theme = Colors.dark;
   const router = useRouter();
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
-  const { data: task, isLoading, isError } = useTaskQuery(taskId!);
+  const { data: task, isLoading, isError, refetch } = useTaskQuery(taskId!);
   const startMutation = useStartTaskMutation();
   const deleteMutation = useDeleteTaskMutation();
+  const { startBlocking } = useBlocker();
+  const selectedApps = useUiStore((s) => s.selectedApps);
   const [apiError, setApiError] = useState('');
 
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
   const handleStart = () => {
+    if (selectedApps.length === 0) {
+      setApiError('No apps selected for blocking. Select apps in the Apps tab first.');
+      return;
+    }
+
     setApiError('');
     startMutation.mutate(taskId!, {
+      onSuccess: () => {
+        try {
+          startBlocking(selectedApps, taskId!);
+        } catch {
+          setApiError('Task started but app blocking failed to engage.');
+        }
+      },
       onError: (err: any) => {
         const code = err.response?.data?.error;
         if (code === 'ACTIVE_TASK_EXISTS') {

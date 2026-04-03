@@ -310,7 +310,7 @@ QR generation is entirely in React Native. Kotlin is NOT involved in QR generati
 
 ## Do NOT
 
-- Do NOT let Kotlin make API calls to the backend. All API communication goes through React Native.
+- Kotlin MAY make API calls to the backend when needed (e.g., polling for task completion while the foreground service is active). Keep the Kotlin HTTP layer minimal — reuse the same base URL and auth token pattern as the RN side.
 - Do NOT store blocking state in React Native (AsyncStorage, Zustand, or component state). SharedPreferences on the Kotlin side is the source of truth.
 - Do NOT use AccessibilityService for app detection. Use UsageStatsManager. AccessibilityService is for the overlay only.
 - Do NOT put a close/dismiss button on the blocking overlay. The user must leave the blocked app.

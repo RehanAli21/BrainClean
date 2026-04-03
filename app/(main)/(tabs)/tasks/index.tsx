@@ -1,10 +1,12 @@
+import { TASK_POLL_INTERVAL_MS } from '@/constants/config';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { useTasksQuery } from '@/hooks/queries/useTasks';
+import { useBlocker } from '@/hooks/useBlocker';
 import type { Task } from '@/types/task';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
-import React from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -64,7 +66,28 @@ export default function TaskListScreen() {
   const router = useRouter();
   const { logout } = useAuth();
   const { data: tasks, isLoading, isError, refetch } = useTasksQuery();
+  const { isBlocking, stopBlocking } = useBlocker();
   const hasActiveTask = tasks?.some((t) => t.started && !t.completed) ?? false;
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
+
+  // Stop native blocking when no task is active (task completed from website)
+  useEffect(() => {
+    if (tasks && !hasActiveTask && isBlocking) {
+      stopBlocking();
+    }
+  }, [tasks, hasActiveTask, isBlocking, stopBlocking]);
+
+  // Poll for task completion while blocking is active
+  useEffect(() => {
+    if (!isBlocking) return;
+    const interval = setInterval(refetch, TASK_POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [isBlocking, refetch]);
 
   const renderItem = ({ item }: { item: Task }) => (
     <TaskCard

@@ -256,6 +256,29 @@ Returns an empty array `[]` if the user has no tasks.
 
 ---
 
+### GET /api/tasks/status-counts
+
+Get counts of tasks grouped by status for the authenticated user.
+
+**Auth:** Authenticated
+
+**Example Response:** `200 OK`
+
+```json
+{
+	"pending": 3,
+	"active": 1,
+	"completed": 5,
+	"total": 9
+}
+```
+
+- **pending** — created but not yet started
+- **active** — started but not yet completed
+- **completed** — marked as completed
+
+---
+
 ### GET /api/tasks/{id}
 
 Get a single task by ID. Only returns tasks owned by the authenticated user.

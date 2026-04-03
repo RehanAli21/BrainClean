@@ -3,6 +3,7 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { authService } from '@/services/api/auth'
 import { Link, Redirect } from 'expo-router'
 import React, { useState } from 'react'
@@ -17,13 +18,14 @@ const loginSchema = z.object({
 export default function Index() {
 	const theme = Colors.dark
 	const { token, isLoading, login } = useAuth()
+	const { allGranted, isLoading: permissionsLoading } = usePermissions()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	if (isLoading) {
+	if (isLoading || permissionsLoading) {
 		return (
 			<View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
 				<ActivityIndicator size='large' color={theme.primary} />
@@ -31,7 +33,11 @@ export default function Index() {
 		)
 	}
 
-	if (token) {
+	if (token && !allGranted) {
+		return <Redirect href='/(setup)/permissions' />
+	}
+
+	if (token && allGranted) {
 		return <Redirect href='/(main)/(tabs)/tasks' />
 	}
 

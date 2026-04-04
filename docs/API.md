@@ -231,9 +231,24 @@ Create a new task.
 
 ### GET /api/tasks
 
-Get all tasks for the authenticated user.
+Get all tasks for the authenticated user. Optionally filter by date range.
 
 **Auth:** Authenticated
+
+**Query Parameters:**
+
+| Param | Type   | Required | Description                                                     |
+| ----- | ------ | -------- | --------------------------------------------------------------- |
+| start | string | No       | ISO 8601 datetime — filter tasks created on or after this time  |
+| end   | string | No       | ISO 8601 datetime — filter tasks created on or before this time |
+
+Both `start` and `end` must be provided together. If omitted, all tasks are returned.
+
+**Example Request:**
+
+```
+GET /api/tasks?start=2026-04-01T00:00:00Z&end=2026-04-02T00:00:00Z
+```
 
 **Example Response:** `200 OK`
 
@@ -247,12 +262,58 @@ Get all tasks for the authenticated user.
 		"startedAt": "2026-03-29T12:00:00Z",
 		"completed": false,
 		"completedAt": null,
-		"createdAt": "2026-03-29T12:00:00Z"
+		"createdAt": "2026-04-01T10:00:00Z"
 	}
 ]
 ```
 
-Returns an empty array `[]` if the user has no tasks.
+Returns an empty array `[]` if the user has no tasks matching the criteria.
+
+---
+
+### GET /api/tasks/by-date
+
+Get all tasks for the authenticated user created on a specific date.
+
+**Auth:** Authenticated
+
+**Query Parameters:**
+
+| Param | Type   | Required | Description                       |
+| ----- | ------ | -------- | --------------------------------- |
+| date  | string | Yes      | ISO 8601 date (e.g. `2026-04-04`) |
+
+**Example Request:**
+
+```
+GET /api/tasks/by-date?date=2026-04-04
+```
+
+**Example Response:** `200 OK`
+
+```json
+[
+	{
+		"id": "550e8400-e29b-41d4-a716-446655440000",
+		"name": "Read 10 pages",
+		"minimumDurationSeconds": 600,
+		"started": false,
+		"startedAt": null,
+		"completed": false,
+		"completedAt": null,
+		"createdAt": "2026-04-04T10:00:00Z"
+	}
+]
+```
+
+Returns an empty array `[]` if no tasks were created on that date.
+
+**Error Responses:**
+
+| Status | Error Code       | When                          |
+| ------ | ---------------- | ----------------------------- |
+| 400    | VALIDATION_ERROR | Missing or invalid date param |
+| 401    | —                | Missing or invalid JWT        |
 
 ---
 
@@ -362,7 +423,7 @@ Start a task. Sets `startedAt` to the server clock. Only one task can be active 
 
 ### PATCH /api/tasks/{id}/complete
 
-Mark a task as completed. This is currently a stub — in the future, this will require a valid QR token.
+Mark a task as completed. The task must be started and the minimum duration must have elapsed since `startedAt` (server-side check). In the future, this will also require a valid QR token.
 
 **Auth:** Authenticated
 
@@ -383,11 +444,12 @@ Mark a task as completed. This is currently a stub — in the future, this will 
 
 **Error Responses:**
 
-| Status | Error Code             | When                                     |
-| ------ | ---------------------- | ---------------------------------------- |
-| 404    | TASK_NOT_FOUND         | Task does not exist or not owned by user |
-| 409    | TASK_ALREADY_COMPLETED | Task has already been completed          |
-| 401    | —                      | Missing or invalid JWT                   |
+| Status | Error Code             | When                                                  |
+| ------ | ---------------------- | ----------------------------------------------------- |
+| 404    | TASK_NOT_FOUND         | Task does not exist or not owned by user              |
+| 409    | TASK_NOT_ELIGIBLE      | Task not started, or minimum duration not yet reached |
+| 409    | TASK_ALREADY_COMPLETED | Task has already been completed                       |
+| 401    | —                      | Missing or invalid JWT                                |
 
 ---
 

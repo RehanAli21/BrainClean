@@ -2,10 +2,19 @@ import { taskService } from '@/services/api/tasks';
 import type { CreateTaskRequest } from '@/types/task';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export function useTasksQuery() {
+function getTodayDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function useTasksQuery(date?: string) {
+  const queryDate = date ?? getTodayDate();
   return useQuery({
-    queryKey: ['tasks'],
-    queryFn: taskService.getAll,
+    queryKey: ['tasks', queryDate],
+    queryFn: () => taskService.getByDate(queryDate),
   });
 }
 

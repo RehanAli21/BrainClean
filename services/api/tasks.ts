@@ -3,8 +3,8 @@ import apiClient from './client';
 
 export const taskService = {
 
-  getAll: async (): Promise<Task[]> => {
-    const response = await apiClient.get<Task[]>('/tasks');
+  getByDate: async (date: string): Promise<Task[]> => {
+    const response = await apiClient.get<Task[]>('/tasks/by-date', { params: { date } });
     return response.data;
   },
 

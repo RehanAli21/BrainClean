@@ -3,9 +3,10 @@ import { Colors } from '@/constants/theme';
 import { useTasksQuery } from '@/hooks/queries/useTasks';
 import { useBlocker } from '@/hooks/useBlocker';
 import type { Task } from '@/types/task';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -14,6 +15,25 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+function toDateString(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getTodayDate(): string {
+  return toDateString(new Date());
+}
+
+function formatDateLabel(date: string): string {
+  const today = getTodayDate();
+  if (date === today) return 'Today';
+  const [y, m, d] = date.split('-').map(Number);
+  const dateObj = new Date(y, m - 1, d);
+  return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -63,7 +83,9 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 export default function TaskListScreen() {
   const theme = Colors.dark;
   const router = useRouter();
-  const { data: tasks, isLoading, isError, refetch } = useTasksQuery();
+  const [selectedDate, setSelectedDate] = useState(getTodayDate);
+  const [showPicker, setShowPicker] = useState(false);
+  const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate);
   const { isBlocking, stopBlocking } = useBlocker();
   const hasActiveTask = tasks?.some((t) => t.started && !t.completed) ?? false;
 
@@ -99,6 +121,30 @@ export default function TaskListScreen() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>Tasks</Text>
       </View>
+
+      <TouchableOpacity
+        style={[styles.datePicker, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        onPress={() => setShowPicker(true)}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="calendar-outline" size={18} color={theme.primary} />
+        <Text style={[styles.dateLabel, { color: theme.text }]}>
+          {formatDateLabel(selectedDate)}
+        </Text>
+      </TouchableOpacity>
+
+      {showPicker ? (
+        <DateTimePicker
+          value={(() => { const [y, m, d] = selectedDate.split('-').map(Number); return new Date(y, m - 1, d); })()}
+          mode="date"
+          display="default"
+          onValueChange={(_, date) => {
+            setShowPicker(false);
+            if (date) setSelectedDate(toDateString(date));
+          }}
+          onDismiss={() => setShowPicker(false)}
+        />
+      ) : null}
 
       {isLoading ? (
         <View style={styles.centered}>
@@ -153,6 +199,18 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   title: { fontSize: 32, fontWeight: '700' },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+    gap: 8,
+    alignSelf: 'flex-start',
+  },
+  dateLabel: { fontSize: 15, fontWeight: '600' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { fontSize: 16, textAlign: 'center', lineHeight: 24 },
   list: { paddingBottom: 80 },

@@ -35,10 +35,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			try {
 				const storedToken = await SecureStore.getItemAsync('user_token')
 				const storedEmail = await SecureStore.getItemAsync('user_email')
-				if (storedToken) {
-					setToken(storedToken)
-					setEmail(storedEmail)
-				}
+
+				setToken(storedToken)
+				setEmail(storedEmail)
 			} catch (e) {
 				console.error('Failed to fetch token', e)
 			} finally {

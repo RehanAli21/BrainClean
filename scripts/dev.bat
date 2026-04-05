@@ -1,5 +1,5 @@
 @echo off
-cd /d D:\rehan\GrayGuard
+cd /d D:\rehan\BrainClean
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot
 echo JAVA_HOME set to JDK 17: %JAVA_HOME%
 npx expo run:android

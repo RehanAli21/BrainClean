@@ -83,7 +83,7 @@ export default function SignupScreen() {
 
 				<AuthInput
 					label='Email Address'
-					placeholder='user@grayguard.com'
+					placeholder='user@brainclean.com'
 					keyboardType='email-address'
 					autoCapitalize='none'
 					value={email}

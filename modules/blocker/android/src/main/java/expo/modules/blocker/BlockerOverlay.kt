@@ -65,7 +65,7 @@ class BlockerOverlay {
         }
 
         val subtitle = TextView(context).apply {
-            text = "Return to GrayGuard to check your session."
+            text = "Return to BrainClean to check your session."
             setTextColor(Color.parseColor("#A1A1AA"))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             gravity = Gravity.CENTER

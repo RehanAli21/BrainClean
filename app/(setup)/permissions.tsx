@@ -55,14 +55,14 @@ export default function PermissionsScreen() {
         <Ionicons name="shield-checkmark-outline" size={48} color={theme.primary} />
         <Text style={[styles.title, { color: theme.text }]}>Permissions Required</Text>
         <Text style={[styles.subtitle, { color: theme.icon }]}>
-          GrayGuard needs these permissions to block apps and protect your focus.
+          BrainClean needs these permissions to block apps and protect your focus.
         </Text>
       </View>
 
       <View style={styles.cards}>
         <PermissionCard
           title="Usage Access"
-          description="Required to detect which app is in the foreground so GrayGuard can block it."
+          description="Required to detect which app is in the foreground so BrainClean can block it."
           granted={permissions.usageStats}
           onRequest={requestUsageStatsPermission}
         />
@@ -83,7 +83,7 @@ export default function PermissionsScreen() {
       </View>
 
       <Text style={[styles.footerText, { color: theme.icon }]}>
-        Each permission opens Android Settings. Toggle the permission for GrayGuard, then return here.
+        Each permission opens Android Settings. Toggle the permission for BrainClean, then return here.
       </Text>
     </View>
   );

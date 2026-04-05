@@ -116,10 +116,10 @@ class BlockerService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "GrayGuard Blocker",
+                "BrainClean Blocker",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Shows when GrayGuard is blocking apps"
+                description = "Shows when BrainClean is blocking apps"
                 setShowBadge(false)
             }
             val nm = getSystemService(NotificationManager::class.java)
@@ -129,8 +129,8 @@ class BlockerService : Service() {
 
     private fun buildNotification(): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("GrayGuard")
-            .setContentText("GrayGuard is protecting your focus.")
+            .setContentTitle("BrainClean")
+            .setContentText("BrainClean is protecting your focus.")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -139,7 +139,7 @@ class BlockerService : Service() {
 
     companion object {
         private const val TAG = "BlockerService"
-        private const val CHANNEL_ID = "grayguard_blocker"
+        private const val CHANNEL_ID = "brainclean_blocker"
         private const val NOTIFICATION_ID = 1001
 
         fun start(context: Context) {

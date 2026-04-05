@@ -1,4 +1,4 @@
-# GrayGuard Color Scheme
+# BrainClean Color Scheme
 
 Shared design system for mobile (React Native) and web. Dark-first, cyber-focus aesthetic.
 

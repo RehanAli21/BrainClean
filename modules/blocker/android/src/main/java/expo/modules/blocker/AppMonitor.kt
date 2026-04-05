@@ -65,7 +65,7 @@ class AppMonitor {
      * Unified detection logic: check if the package is blocked and show/hide overlay.
      */
     fun onForegroundAppChanged(packageName: String) {
-        // Ignore our own package — overlay is part of GrayGuard's process
+        // Ignore our own package — overlay is part of BrainClean's process
         if (packageName == ownPackage) return
 
         if (blockedPackages.contains(packageName)) {

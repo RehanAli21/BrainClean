@@ -47,7 +47,7 @@ class BlockerState private constructor(context: Context) {
     fun getMaxBlockTimeMs(): Long = prefs.getLong(KEY_MAX_BLOCK_TIME_MS, 0L)
 
     companion object {
-        private const val PREFS_NAME = "grayguard_blocker_state"
+        private const val PREFS_NAME = "brainclean_blocker_state"
         private const val KEY_IS_ACTIVE = "is_active"
         private const val KEY_BLOCKED_PACKAGES = "blocked_packages"
         private const val KEY_SESSION_ID = "session_id"

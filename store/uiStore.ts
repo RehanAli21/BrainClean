@@ -41,7 +41,7 @@ export const useUiStore = create<UiState>()(
       },
     }),
     {
-      name: 'grayguard-ui',
+      name: 'brainclean-ui',
       storage: createJSONStorage(() => secureStorage),
     },
   ),

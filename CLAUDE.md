@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GrayGuard is a productivity and digital wellness app that blocks selected mobile apps until the user completes a task. Users create a task, start it, and selected apps are blocked until the task is marked complete on the backend. The mobile app is the enforcement layer.
+BrainClean is a productivity and digital wellness app that blocks selected mobile apps until the user completes a task. Users create a task, start it, and selected apps are blocked until the task is marked complete on the backend. The mobile app is the enforcement layer.
 
 The mobile app has two runtime layers: React Native/Expo (UI + API) and Kotlin (blocking enforcement). The Kotlin layer MUST survive the React Native app being killed. These are architecturally independent — React Native is a remote control, Kotlin is the engine.
 
@@ -218,7 +218,7 @@ types/
 
 ### BlockerService (foreground service)
 
-- Runs as a foreground service with a persistent notification showing "GrayGuard is protecting your focus."
+- Runs as a foreground service with a persistent notification showing "BrainClean is protecting your focus."
 - Starts when RN calls `startBlocking()`. Reads blocked package names, session ID, auth token, base URL, and max block time from SharedPreferences.
 - Contains the main loop: polls UsageStatsManager via AppMonitor every 500ms-1s to detect foreground app.
 - If foreground app is in the blocked list, triggers BlockerOverlay.
@@ -234,9 +234,9 @@ types/
 ### BlockerOverlay
 
 - Uses TYPE_APPLICATION_OVERLAY to show a full-screen overlay when a blocked app is detected.
-- Overlay displays: "This app is blocked. Return to GrayGuard to check your session."
+- Overlay displays: "This app is blocked. Return to BrainClean to check your session."
 - Requires SYSTEM_ALERT_WINDOW permission.
-- Overlay must be dismissable only by returning to GrayGuard or the home screen. It should NOT have a close button.
+- Overlay must be dismissable only by returning to BrainClean or the home screen. It should NOT have a close button.
 
 ### BlockerAccessibilityService
 

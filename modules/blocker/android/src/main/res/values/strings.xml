@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="accessibility_service_description">GrayGuard uses this service to detect when you open a blocked app and show the blocking screen. It does not read or collect any personal data.</string>
+    <string name="accessibility_service_description">BrainClean uses this service to detect when you open a blocked app and show the blocking screen. It does not read or collect any personal data.</string>
 </resources>

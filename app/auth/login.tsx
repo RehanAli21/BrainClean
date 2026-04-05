@@ -1,6 +1,6 @@
 import { AuthInput } from '@/components/AuthInput'
 import { PrimaryButton } from '@/components/PrimaryButton'
-import { SocialButton } from '@/components/SocialButton'
+// import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { authService } from '@/services/api/auth'
@@ -105,7 +105,7 @@ export default function LoginScreen() {
 					isLoading={isLoading}
 				/>
 
-				<View style={styles.divider}>
+				{/* <View style={styles.divider}>
 					<View style={[styles.line, { backgroundColor: theme.border }]} />
 					<Text style={[styles.orText, { color: theme.icon }]}>OR</Text>
 					<View style={[styles.line, { backgroundColor: theme.border }]} />
@@ -114,7 +114,7 @@ export default function LoginScreen() {
 				<SocialButton
 					title='Continue with Google'
 					onPress={() => console.log('Google Auth')}
-				/>
+				/> */}
 			</View>
 
 			<View style={styles.footer}>

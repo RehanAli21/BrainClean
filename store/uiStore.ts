@@ -14,6 +14,8 @@ interface UiState {
   isAppSelected: (packageName: string) => boolean;
   maxBlockTimeMinutes: number;
   setMaxBlockTime: (minutes: number) => void;
+  blockNotifications: boolean;
+  setBlockNotifications: (enabled: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -38,6 +40,12 @@ export const useUiStore = create<UiState>()(
 
       setMaxBlockTime: (minutes: number) => {
         set({ maxBlockTimeMinutes: minutes });
+      },
+
+      blockNotifications: false,
+
+      setBlockNotifications: (enabled: boolean) => {
+        set({ blockNotifications: enabled });
       },
     }),
     {

@@ -59,10 +59,10 @@ class BlockerModule : Module() {
                 .sortedBy { (it["appName"] as? String)?.lowercase() }
         }
 
-        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long ->
+        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, blockNotifications: Boolean ->
             val context = appContext.reactContext ?: return@Function Unit
             val state = BlockerState.getInstance(context)
-            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs)
+            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications)
             BlockerService.start(context)
         }
 
@@ -144,6 +144,20 @@ class BlockerModule : Module() {
         Function("requestAccessibilityPermission") {
             val context = appContext.reactContext ?: return@Function Unit
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }
+
+        Function("isNotificationListenerEnabled") {
+            val context = appContext.reactContext ?: return@Function false
+            val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+            flat?.contains("${context.packageName}/expo.modules.blocker.NotificationBlockerService") == true
+        }
+
+        Function("requestNotificationListenerPermission") {
+            val context = appContext.reactContext ?: return@Function Unit
+            val intent = Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS").apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)

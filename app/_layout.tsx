@@ -1,8 +1,11 @@
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Stack } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useState } from 'react'
 import { AppState, type AppStateStatus } from 'react-native'
 import { AuthProvider } from '../context/AuthContext'
+
+SplashScreen.preventAutoHideAsync()
 
 function useAppStateFocusManager() {
 	useEffect(() => {

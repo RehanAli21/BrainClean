@@ -4,6 +4,7 @@ import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { useDeleteTaskMutation, useStartTaskMutation, useTaskQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
@@ -38,6 +39,7 @@ export default function TaskDetailScreen() {
 	const deleteMutation = useDeleteTaskMutation()
 	const { startBlocking } = useBlocker()
 	const { token } = useAuth()
+	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
@@ -50,6 +52,11 @@ export default function TaskDetailScreen() {
 	)
 
 	const handleStart = () => {
+		if (!allGranted) {
+			setApiError('Required permissions not granted. Go to Settings to grant them.')
+			return
+		}
+
 		if (selectedApps.length === 0) {
 			setApiError('No apps selected for blocking. Select apps in the Apps tab first.')
 			return

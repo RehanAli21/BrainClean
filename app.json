@@ -20,8 +20,12 @@
 			},
 			"edgeToEdgeEnabled": true,
 			"predictiveBackGestureEnabled": false,
-			"package": "com.anonymous.BrainClean",
-			"permissions": ["android.permission.QUERY_ALL_PACKAGES"]
+			"package": "com.brainclean.app",
+			"permissions": ["android.permission.QUERY_ALL_PACKAGES"],
+			"blockedPermissions": [
+				"android.permission.READ_EXTERNAL_STORAGE",
+				"android.permission.WRITE_EXTERNAL_STORAGE"
+			]
 		},
 		"web": {
 			"output": "static",
@@ -41,7 +45,8 @@
 					}
 				}
 			],
-			"expo-secure-store"
+			"expo-secure-store",
+			"./plugins/withProductionAndroidConfig"
 		],
 		"experiments": {
 			"typedRoutes": true,

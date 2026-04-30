@@ -1,0 +1,136 @@
+================================================================
+  PRE-LAUNCH CHECKLIST: GOOGLE PLAY STORE
+  For Expo React Native + Kotlin Native Modules
+================================================================
+
+
+1. BUILD & CONFIGURATION
+------------------------
+[ ] Switch from Expo Go to development/production builds via EAS Build
+    (Expo Go cannot run custom Kotlin native modules)
+[ ] Set unique `package` name in app.json / app.config.js
+    (e.g., com.yourcompany.appname)
+[ ] Set `versionCode` as integer (must increment with every upload)
+[ ] Set `versionName` (e.g., "1.0.0")
+[ ] Generate an Android App Bundle (.aab) — NOT APK
+    (Play Store requires AAB for new apps)
+[ ] Target the latest required Android API level
+    (Currently API 34 / Android 14 — verify on Play Console)
+[ ] Verify prebuild/eject includes all Kotlin modules in:
+    android/app/src/main/java/...
+
+
+2. SIGNING & SECURITY
+---------------------
+[ ] Set up a production keystore (or let EAS manage it)
+    WARNING: Losing this key means you can NEVER update your app
+[ ] Enable Play App Signing in Play Console
+[ ] Back up keystore and credentials in a secure location
+[ ] Test with --variant release to verify ProGuard/R8 minification
+    does not break Kotlin native modules (add keep rules if needed)
+[ ] Remove all console.log statements and debug flags
+[ ] Remove all dev-only code paths
+[ ] Confirm no API keys or secrets are hardcoded in JS or Kotlin
+
+
+3. PERMISSIONS & NATIVE CODE
+----------------------------
+[ ] Audit AndroidManifest.xml — remove unused permissions
+    (Expo adds several by default)
+[ ] Prepare justification for every sensitive permission:
+    - Location
+    - Camera
+    - Storage
+    - Contacts
+    - Microphone
+[ ] Prepare Permissions Declaration form if using:
+    - QUERY_ALL_PACKAGES
+    - MANAGE_EXTERNAL_STORAGE
+    - Background location
+    - SMS permissions
+    - Call log permissions
+[ ] Test Kotlin native modules on multiple Android versions
+    (especially API 23, 28, 31, 34)
+[ ] Verify runtime permission requests work correctly
+
+
+4. TESTING
+----------
+[ ] Test the release build on a real device (not just dev build)
+[ ] Test on different screen sizes
+[ ] Test on different Android versions
+[ ] Test with airplane mode / poor connectivity
+[ ] Run an internal testing track release before production
+[ ] Verify deep links / app links (if used)
+[ ] Check JS ↔ Kotlin bridges work correctly in release mode
+    (Hermes vs JSC behavior may differ)
+
+
+5. STORE LISTING ASSETS
+-----------------------
+[ ] App icon: 512x512 PNG (32-bit with alpha)
+[ ] Feature graphic: 1024x500 PNG/JPG
+[ ] Minimum 2 phone screenshots (min 320px, max 3840px)
+[ ] 7-inch tablet screenshots (if supporting tablets)
+[ ] 10-inch tablet screenshots (if supporting tablets)
+[ ] Short description (max 80 characters)
+[ ] Full description (max 4000 characters)
+[ ] App category and tags selected
+[ ] Public contact email (required)
+
+
+6. POLICY & COMPLIANCE FORMS (Play Console)
+-------------------------------------------
+[ ] Privacy Policy URL (publicly hosted — REQUIRED)
+[ ] Data safety form completed
+    (declare every data type collected, purpose, and sharing)
+[ ] Content rating questionnaire completed
+[ ] Target audience and content declaration
+[ ] Ads declaration (does your app show ads?)
+[ ] News app declaration (if applicable)
+[ ] Government app declaration (if applicable)
+[ ] COVID-19 declaration (if applicable)
+[ ] Financial features declaration (if applicable)
+
+
+7. LEGAL & ACCOUNT
+------------------
+[ ] Google Play Developer account ($25 one-time fee)
+[ ] Identity verification completed
+[ ] For NEW personal accounts: complete 14-day closed test
+    with 12+ testers before publishing to production
+[ ] Tax and banking info set up (if monetizing)
+[ ] Compliance with regional laws verified:
+    - GDPR (EU)
+    - CCPA (California)
+    - DPDP Act (India)
+    - Other regions as applicable
+
+
+8. FINAL PRE-SUBMISSION
+-----------------------
+[ ] Run `npx expo-doctor` to catch config issues
+[ ] Run `eas build --platform android --profile production`
+[ ] Test the exact AAB using `bundletool` or via internal testing
+[ ] Verify crash reporting configured for production
+    (Sentry, Firebase Crashlytics, etc.)
+[ ] Increment versionCode one final time before upload
+[ ] Write release notes (max 500 characters)
+
+
+9. POST-SUBMISSION
+------------------
+[ ] Monitor Play Console for review status
+    (review can take a few hours to 7+ days for new apps)
+[ ] Watch for policy warnings
+[ ] Respond to reviewer questions within their deadline
+
+
+================================================================
+  COMMON GOTCHAS
+================================================================
+- The 14-day closed test requirement trips up many indie devs
+- Kotlin native modules often need explicit ProGuard keep rules
+- Release builds can behave very differently from dev builds
+- Always test the EXACT .aab you plan to upload
+================================================================

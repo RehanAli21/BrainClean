@@ -7,7 +7,7 @@ class BlockerState private constructor(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long) {
+    fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, blockNotifications: Boolean) {
         prefs.edit()
             .putBoolean(KEY_IS_ACTIVE, true)
             .putStringSet(KEY_BLOCKED_PACKAGES, packages.toSet())
@@ -16,6 +16,7 @@ class BlockerState private constructor(context: Context) {
             .putString(KEY_AUTH_TOKEN, authToken)
             .putString(KEY_BASE_URL, baseUrl)
             .putLong(KEY_MAX_BLOCK_TIME_MS, maxBlockTimeMs)
+            .putBoolean(KEY_BLOCK_NOTIFICATIONS, blockNotifications)
             .apply()
     }
 
@@ -28,6 +29,7 @@ class BlockerState private constructor(context: Context) {
             .putString(KEY_AUTH_TOKEN, "")
             .putString(KEY_BASE_URL, "")
             .putLong(KEY_MAX_BLOCK_TIME_MS, 0L)
+            .putBoolean(KEY_BLOCK_NOTIFICATIONS, false)
             .apply()
     }
 
@@ -46,6 +48,8 @@ class BlockerState private constructor(context: Context) {
 
     fun getMaxBlockTimeMs(): Long = prefs.getLong(KEY_MAX_BLOCK_TIME_MS, 0L)
 
+    fun shouldBlockNotifications(): Boolean = prefs.getBoolean(KEY_BLOCK_NOTIFICATIONS, false)
+
     companion object {
         private const val PREFS_NAME = "brainclean_blocker_state"
         private const val KEY_IS_ACTIVE = "is_active"
@@ -55,6 +59,7 @@ class BlockerState private constructor(context: Context) {
         private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_BASE_URL = "base_url"
         private const val KEY_MAX_BLOCK_TIME_MS = "max_block_time_ms"
+        private const val KEY_BLOCK_NOTIFICATIONS = "block_notifications"
 
         @Volatile
         private var instance: BlockerState? = null

@@ -1,6 +1,5 @@
 import { AuthInput } from '@/components/AuthInput'
 import { PrimaryButton } from '@/components/PrimaryButton'
-// import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { authService } from '@/services/api/auth'
@@ -105,17 +104,6 @@ export default function SignupScreen() {
 					onPress={handleSignup}
 					isLoading={isLoading}
 				/>
-
-				{/* <View style={styles.divider}>
-					<View style={[styles.line, { backgroundColor: theme.border }]} />
-					<Text style={[styles.orText, { color: theme.icon }]}>OR</Text>
-					<View style={[styles.line, { backgroundColor: theme.border }]} />
-				</View>
-
-				<SocialButton
-					title='Sign up with Google'
-					onPress={() => console.log('Google Auth')}
-				/> */}
 			</View>
 
 			<View style={styles.footer}>
@@ -139,9 +127,6 @@ const styles = StyleSheet.create({
 	subtitle: { fontSize: 16 },
 	form: { width: '100%' },
 	linkText: { fontWeight: '600' },
-	divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 24 },
-	line: { flex: 1, height: 1 },
-	orText: { marginHorizontal: 16, fontSize: 12, fontWeight: '600' },
 	footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
 	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
 	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },

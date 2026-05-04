@@ -1,0 +1,534 @@
+================================================================
+  BRAINCLEAN — WHAT YOU MUST DO BEFORE PLAY STORE LAUNCH
+  Detailed step-by-step handoff
+================================================================
+
+This file lists every item from android_playstore_checklist.txt
+that requires you (Claude cannot do them from this terminal),
+in the order you should do them. Code-side fixes are already done.
+
+Estimated total time: 2–4 weeks of calendar time, mostly because
+of the mandatory 14-day closed test for new Play accounts.
+
+================================================================
+  PHASE 0 — REGENERATE NATIVE FOLDER (do this first)
+================================================================
+
+The package name changed from com.anonymous.BrainClean to
+com.brainclean.app. The android/ folder must be regenerated so
+the new package, the blocked permissions, and the new config
+plugin all take effect.
+
+  1. Close any running Metro / Android Studio sessions.
+  2. From the project root run:
+        npx expo prebuild --clean --platform android
+     This wipes android/ and regenerates it from app.json.
+     The new plugin (plugins/withProductionAndroidConfig.js) will:
+       - flip android.enableMinifyInReleaseBuilds = true
+       - flip android.enableShrinkResourcesInReleaseBuilds = true
+       - inject a release signingConfig in app/build.gradle
+       - append ProGuard keep rules to app/proguard-rules.pro
+  3. Sanity-check the output. After prebuild finishes, open:
+        android/app/src/main/AndroidManifest.xml
+     Confirm:
+       - <manifest package="..."> is gone (modern manifests use
+         the namespace in build.gradle instead — that is fine).
+       - READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE are NOT
+         listed in <uses-permission>.
+       - QUERY_ALL_PACKAGES, SYSTEM_ALERT_WINDOW, INTERNET, 
+         VIBRATE remain.
+       - The blocker module's services / receivers appear inside
+         <application>: BlockerService, BlockerAccessibilityService,
+         NotificationBlockerService, BootReceiver. (They come from
+         the local module's manifest at modules/blocker/android/
+         src/main/AndroidManifest.xml — verify that file declares
+         them; if not, you will need to add them there.)
+  4. Open android/app/build.gradle and confirm:
+       - applicationId 'com.brainclean.app'
+       - signingConfigs has both debug and release blocks
+       - buildTypes.release uses signingConfig signingConfigs.release
+  5. Open android/gradle.properties and confirm:
+       - android.enableMinifyInReleaseBuilds=true
+       - android.enableShrinkResourcesInReleaseBuilds=true
+  6. Open android/app/proguard-rules.pro and confirm the
+     "BEGIN BrainClean ProGuard rules" block is present at the
+     bottom.
+  7. Smoke-test debug build still works:
+        npx expo run:android
+     Log in, create a task, start blocking. If it works, move on.
+
+--complete--
+
+================================================================
+  PHASE 1 — PRODUCTION API ENDPOINT
+================================================================
+
+Right now constants/config.ts reads EXPO_PUBLIC_API_BASE_URL from
+the environment, falling back to your LAN IP for dev. You must
+provide the production URL one of two ways.
+
+  Option A (recommended) — EAS secret:
+        eas secret:create \
+          --name EXPO_PUBLIC_API_BASE_URL \
+          --value https://api.your-real-domain.com/api \
+          --scope project
+     EAS injects this at build time only for the production
+     profile (already configured in eas.json).
+     Also delete or update the placeholder env value currently in
+     eas.json under build.production.env (it says
+     "https://api.brainclean.app/api" — replace it or remove it
+     in favor of the secret).
+
+  Option B — hardcode in eas.json:
+     Edit eas.json, replace
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.brainclean.app/api"
+     with your real production URL. Do the same for the preview
+     profile (currently "https://staging.example.com/api").
+
+Use HTTPS only. Plain HTTP requires android:usesCleartextTraffic
+which Play Store flags.
+
+--complete--
+
+================================================================
+  PHASE 2 — KEYSTORE / SIGNING
+================================================================
+
+This is the single most important step. Lose this key and you can
+never update your app on Play Store again.
+
+Recommended: let EAS manage your keystore.
+
+  1. Install / log in to EAS:
+        npm install -g eas-cli
+        eas login
+  2. Initialize EAS for this project (creates an EAS project ID):
+        eas init
+  3. Generate a keystore via EAS:
+        eas credentials
+     Select: Android → production → Keystore: Set up a new keystore
+     Let EAS generate it. EAS stores it for you on their server.
+  4. Back up the keystore locally too:
+        eas credentials
+     Select: Android → production → Keystore: Download
+     Save the .jks file to a password manager (1Password, Bitwarden)
+     AND to an encrypted offsite backup (e.g. encrypted USB stored
+     in a different physical location). Save the keystore password,
+     key alias, and key password too.
+  5. Make sure the production build profile in eas.json has
+        "credentialsSource": "remote"
+     (already set). EAS will inject the keystore at build time.
+
+If you prefer to manage the keystore yourself, generate one with:
+        keytool -genkeypair -v -keystore release.keystore \
+          -alias brainclean-upload -keyalg RSA -keysize 2048 \
+          -validity 10000
+Then add to ~/.gradle/gradle.properties (NOT the project's
+gradle.properties — your global one):
+        BRAINCLEAN_UPLOAD_STORE_FILE=/absolute/path/release.keystore
+        BRAINCLEAN_UPLOAD_STORE_PASSWORD=...
+        BRAINCLEAN_UPLOAD_KEY_ALIAS=brainclean-upload
+        BRAINCLEAN_UPLOAD_KEY_PASSWORD=...
+The plugin's release signingConfig reads exactly those property
+names.
+
+Either way: enable Play App Signing in Play Console (default for
+new apps). Google then re-signs your AAB with their managed key
+and the upload key only authenticates uploads — much safer.
+
+================================================================
+  PHASE 3 — GOOGLE PLAY DEVELOPER ACCOUNT
+================================================================
+
+  1. Go to https://play.google.com/console/signup
+  2. Choose Personal or Organization. Personal is fine for a solo
+     dev but triggers the 14-day closed-test requirement (Phase 7).
+     Organization avoids that requirement but needs a DUNS number.
+  3. Pay $25 USD one-time fee.
+  4. Identity verification: upload a government-issued photo ID.
+     Google takes 1–3 business days to approve. You cannot publish
+     until approved.
+  5. Set up tax info under Setup → Payments profile (only required
+     if you ever monetize; can be skipped for free apps).
+
+================================================================
+  PHASE 4 — STORE LISTING ASSETS
+================================================================
+
+Required artwork. Reject this and the listing cannot publish.
+
+  4.1 App icon (high-res)
+      - 512 x 512 px, 32-bit PNG with alpha channel, max 1 MB
+      - Verify your existing assets/images/logo_in_white_color.png
+        is exactly 512x512. From the project root:
+            file assets/images/logo_in_white_color.png
+        (or open in any image editor to check dimensions). If it
+        is not 512x512, export a fresh PNG at exactly 512x512.
+
+  4.2 Feature graphic (REQUIRED, you do not currently have one)
+      - 1024 x 500 px, JPG or 24-bit PNG, no alpha
+      - This is the banner shown at the top of your store listing.
+      - Tools to make one: Figma, Canva, Photoshop. Many free
+        templates exist for "Google Play feature graphic 1024x500".
+      - Should include the BrainClean logo and a clear value prop
+        ("Block distracting apps until you finish what matters").
+
+  4.3 Phone screenshots (minimum 2, maximum 8)
+      - 16:9 or 9:16 aspect ratio
+      - Min 320 px on shortest side, max 3840 px on longest side
+      - 24-bit PNG or JPG, no alpha
+      - Capture from a real device or emulator: launch screen,
+        permissions setup, task list, create-task, blocking
+        overlay (the actual block UI is the most important).
+
+  4.4 Tablet screenshots (only if you support tablets)
+      - 7-inch: at least 2 screenshots
+      - 10-inch: at least 2 screenshots
+      - Same format rules as phone screenshots
+      - You currently have supportsTablet: true in app.json for
+        iOS only. Android tablet support is implicit. Easiest path:
+        skip tablet screenshots and let Play list the app as
+        phone-only. If you do want tablet listing, capture from
+        a tablet emulator.
+
+  4.5 Copy
+      - Short description: max 80 characters. Suggested:
+          "Block distracting apps until your task is done.
+           Reclaim your focus."
+      - Full description: max 4000 characters. Cover:
+          - What the app does
+          - How blocking works (apps, tasks, completion)
+          - Why permissions are needed (be specific about
+            Usage Stats, Overlay, Accessibility — see Phase 6)
+          - Privacy stance
+      - Category: Productivity (or Tools).
+      - Tags: choose up to 5 from Play's list.
+      - Public contact email: required, will be visible on
+        the store listing. Use a dedicated alias like
+        support@brainclean.app, not your personal email.
+
+  4.6 Release notes
+      - Max 500 characters. For v1.0:
+          "Initial release. Create focus tasks and block your
+           chosen apps until the task is complete. Set up
+           permissions in-app and start your first session."
+
+================================================================
+  PHASE 5 — PRIVACY POLICY (REQUIRED, MUST BE PUBLICLY HOSTED)
+================================================================
+
+Play Store requires a privacy policy URL. It must be:
+  - Publicly accessible (no login wall)
+  - Hosted on a stable URL (your own domain ideal,
+    GitHub Pages / Netlify / Notion public page acceptable)
+  - In effect at submission time (not a placeholder)
+
+It MUST cover (because BrainClean collects/uses these):
+
+  - Auth data: email address and password (hashed) sent to
+    your backend at signup/login. Stored on your server.
+  - Task data: task names, dates, completion status. Stored
+    on your server.
+  - Selected apps: package names of apps the user picks to
+    block. Stored locally in Kotlin SharedPreferences AND
+    referenced server-side via task records.
+  - Foreground service notification: the app shows an ongoing
+    notification while blocking is active. Required by Android.
+  - Accessibility service: used to enforce the blocking overlay.
+    Disclose: "We do not record, log, transmit, or read any
+    on-screen content. The accessibility service is used solely
+    to display a blocking overlay over user-selected apps."
+    This sentence is critical — Play Store rejects accessibility
+    apps that do not have an explicit policy statement on what
+    they do NOT do.
+  - QUERY_ALL_PACKAGES: discloses that the app reads the list of
+    installed apps so the user can choose which to block. List
+    of installed apps is NOT transmitted off-device.
+  - Third parties: list any. Currently none (no analytics,
+    no Sentry yet, no ads). State this explicitly.
+
+A solid free template generator: https://app-privacy-policy-generator.firebaseapp.com/
+But review and edit by hand — generated templates often miss
+accessibility/usage-stats disclosures, and Play reviewers check.
+
+================================================================
+  PHASE 6 — PLAY CONSOLE FORMS
+================================================================
+
+In Play Console → your app → Policy:
+
+  6.1 Data safety form
+      Declare every data type you collect:
+        - Email address (collected, account/auth)
+        - Password (collected, account/auth)
+        - App activity (collected — selected apps to block)
+      For each: is it shared? (No.) Is it encrypted in transit?
+      (Yes — HTTPS.) Can users request deletion? (Yes — you must
+      build an account-deletion flow if you do not have one.
+      Required by Play Store policy as of 2024.)
+
+  6.2 Content rating questionnaire
+      Productivity app, no violence, no sexual content, no ads.
+      Will result in "Everyone" / "PEGI 3" rating.
+
+  6.3 Target audience and content
+      Choose your target age range. For a productivity app pick
+      "13+" or "18+". Avoid "children" — that pulls in the
+      Designed for Families program with extra requirements.
+
+  6.4 Ads declaration
+      No ads currently. Mark "No, my app does not contain ads."
+
+  6.5 News app declaration: No.
+  6.6 Government app declaration: No.
+  6.7 COVID-19 declaration: No.
+  6.8 Financial features declaration: No.
+
+  6.9 PERMISSIONS DECLARATION (most important)
+      You will be asked to justify these permissions in writing:
+
+      a) QUERY_ALL_PACKAGES
+         Justification text (paste this, edit to taste):
+           "BrainClean is a focus tool that lets users block
+            distracting apps for the duration of a task. The app
+            needs the list of installed apps so the user can
+            choose which apps to block. The list is read on-device
+            only and is not transmitted to our servers. There is
+            no narrower permission that allows the user to pick
+            arbitrary apps from their device."
+
+      b) SYSTEM_ALERT_WINDOW (Display over other apps)
+         Justification:
+           "The app displays a blocking overlay over user-selected
+            apps when those apps are opened during an active focus
+            task. The overlay is the core enforcement mechanism of
+            the app's stated function. The user opts in to blocking
+            during task creation."
+
+      c) AccessibilityService
+         Justification (Play has a separate dedicated form for
+         accessibility apps as of 2023):
+           "The accessibility service is used to detect when a
+            user-selected blocked app comes into the foreground
+            and to display a blocking overlay. We do not read,
+            log, store, or transmit any on-screen content,
+            keystrokes, or app data. This use case
+            (focus / digital-wellbeing app blocking) is explicitly
+            permitted by Google Play accessibility policy when
+            disclosed in-app and in the privacy policy."
+
+      Be prepared for review escalation on the accessibility
+      service. Reviewers may ask for a screen recording showing
+      the blocking flow. Have one ready.
+
+================================================================
+  PHASE 7 — CLOSED TESTING (only for personal accounts created
+  after Nov 2023)
+================================================================
+
+If your developer account is Personal (not Organization), Play
+Store requires:
+
+  - At least 12 testers opted in to a closed test
+  - Test must run for at least 14 consecutive days
+  - You cannot promote to production until both conditions are met
+
+Steps:
+
+  1. Play Console → Your app → Testing → Closed testing
+  2. Create a new track (e.g. "alpha")
+  3. Add an email list with ≥12 unique Gmail addresses (your own
+     test accounts count — but Google may flag obvious duplicates;
+     prefer real testers)
+  4. Upload your AAB (see Phase 9) to this track
+  5. Share the opt-in URL with your testers; each must click it
+     AND install the app at least once
+  6. Wait 14 days. After day 14, the "Apply for production access"
+     button unlocks in Play Console
+  7. Submit the production access form. Google reviews it (1-7
+     days). Approval lets you publish to production.
+
+Recruit testers early — finding 12 willing people is the slowest
+part of this whole process. Discord servers, Reddit r/AndroidApps
+"need testers" threads, and your own friends/family work.
+
+================================================================
+  PHASE 8 — REAL-DEVICE TESTING
+================================================================
+
+You MUST test the actual release AAB on real devices before
+uploading. Release builds behave differently from dev builds —
+especially with R8/ProGuard now enabled.
+
+Test matrix (minimum):
+  - Android 6 (API 23) — oldest realistic target
+  - Android 9 (API 28) — common in budget phones
+  - Android 12 (API 31) — major permission model changes
+  - Android 14 (API 34) — current target
+
+Critical scenarios (each must pass on all 4 versions):
+
+  T1. Permissions setup: fresh install → permission walkthrough
+      → grant Usage Stats, Overlay, Accessibility → screen
+      detects all three granted and lets you proceed.
+  T2. Login: log in → token persisted in expo-secure-store →
+      restart app → still logged in.
+  T3. Task lifecycle: create task → start blocking → open a
+      blocked app → blocking overlay appears.
+  T4. App-kill survival: with blocking active, swipe app away
+      from recents (force close) → open a blocked app →
+      overlay STILL appears. This is the entire point of
+      the architecture; if it fails, ship is blocked.
+  T5. Reboot survival: with blocking active, reboot the device
+      → BootReceiver should restart BlockerService → opening
+      a blocked app shows the overlay even though the user
+      never re-launched the app.
+  T6. Task completion: complete the task on the web frontend
+      (via QR scan flow) → TaskStatusChecker polls every 20s →
+      blocking stops automatically within ~30s.
+  T7. Max time: start blocking with maxBlockTimeMinutes set to
+      1 minute → wait 1 minute → blocking auto-stops.
+  T8. Doze mode: start blocking → leave device idle for 30+ min
+      → confirm BlockerService is not killed by Doze.
+
+How to install the release AAB on a device for testing:
+  1. eas build --platform android --profile preview
+     (preview profile produces an APK, easier to sideload than
+     an AAB)
+  2. Download the APK from the build URL in your browser
+  3. adb install -r path/to/build.apk
+     OR transfer to device and install manually
+For testing the EXACT AAB you will upload to Play:
+  4. Install bundletool: download from
+     https://github.com/google/bundletool/releases
+  5. java -jar bundletool.jar build-apks --bundle=app.aab \
+        --output=app.apks --connected-device
+  6. java -jar bundletool.jar install-apks --apks=app.apks
+This installs the AAB exactly as Play would, catching any
+ProGuard / split-APK issues before submission.
+
+================================================================
+  PHASE 9 — BUILD & UPLOAD
+================================================================
+
+Pre-flight checks:
+  1. npx expo-doctor          (resolve any issues it reports)
+  2. npx expo lint            (already clean as of last run)
+  3. Ensure versionCode 1 and versionName "1.0.0" in app.json
+     (use eas.json autoIncrement for subsequent builds — already
+     enabled for production)
+  4. Confirm EAS secret EXPO_PUBLIC_API_BASE_URL is set
+        eas secret:list
+
+Build:
+        eas build --platform android --profile production
+This runs on EAS's cloud, takes 15-30 minutes, produces an AAB.
+Watch the build log for warnings. Download the resulting .aab
+from the URL EAS prints.
+
+Upload to internal testing first:
+  1. Play Console → Your app → Testing → Internal testing
+  2. Create release → Upload the AAB
+  3. Add release notes (≤500 chars, see Phase 4.6)
+  4. Add yourself + a couple of others as internal testers
+  5. Roll out — internal testing is instant, no review
+  6. Install via the opt-in URL on a real device
+  7. Run through Phase 8 test matrix one more time
+  8. If all green: promote release → Closed testing track
+     (this is where the 14-day window starts, see Phase 7)
+
+After 14 days + production access approval:
+  9. Promote → Production
+ 10. Set rollout percentage (start at 5-10% staged rollout)
+ 11. Submit for review. Review takes 2 hours to 7 days for new
+     apps; subsequent updates are usually <24 hours.
+
+================================================================
+  PHASE 10 — POST-SUBMISSION
+================================================================
+
+  - Watch Play Console daily for review status and policy
+    warnings.
+  - Reviewer questions arrive via email and Play Console inbox.
+    They have a deadline (usually 7 days). Miss it and the app
+    is rejected — you have to resubmit.
+  - Once live, monitor:
+      * Play Console → Quality → Android vitals (crash rate,
+        ANR rate)
+      * Pre-launch report (Google auto-runs your app on a few
+        physical devices and surfaces crashes)
+      * User reviews
+  - For your second release: bump versionCode (eas.json
+    autoIncrement does this for you), eas build, upload to
+    Internal testing first, then promote.
+
+================================================================
+  PHASE 11 — DEFERRED ITEMS (do these soon, not blocking v1.0)
+================================================================
+
+  11.1 Crash reporting
+       You opted to skip Sentry / Crashlytics for v1.0. Without
+       it, you will be blind to production crashes. Add it
+       before v1.1.
+       Easiest path:
+         npm install @sentry/react-native
+         npx @sentry/wizard@latest -s -i reactNative
+       Set EXPO_PUBLIC_SENTRY_DSN as an EAS secret.
+       In app/_layout.tsx, before any other code:
+         import * as Sentry from '@sentry/react-native';
+         if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
+           Sentry.init({ dsn: process.env.EXPO_PUBLIC_SENTRY_DSN });
+         }
+       Wrap your default export with Sentry.wrap(...).
+
+  11.2 Account deletion endpoint
+       Play Store policy (2024) requires apps with auth to
+       offer in-app account deletion. If you do not have it,
+       add a "Delete account" button in Settings that calls a
+       backend endpoint to wipe the user's data.
+
+  11.3 Compliance review
+       For users in:
+         - EU — GDPR data subject rights, lawful basis disclosure
+         - California — CCPA "Do Not Sell My Data" link, even if
+           you do not sell (you must say so)
+         - India — DPDP Act compliance
+       Your privacy policy can cover most of this; confirm with
+       a lawyer if you take this seriously.
+
+================================================================
+  QUICK CHECKLIST — print this, tick as you go
+================================================================
+
+  [ ] Phase 0: npx expo prebuild --clean --platform android
+  [ ] Phase 0: verify manifest, build.gradle, gradle.properties,
+              proguard-rules.pro
+  [ ] Phase 1: production API URL set (EAS secret or eas.json)
+  [ ] Phase 2: production keystore generated and backed up
+  [ ] Phase 2: Play App Signing enabled (default in Play Console)
+  [ ] Phase 3: Play Developer account created and verified
+  [ ] Phase 4: 512x512 icon verified
+  [ ] Phase 4: 1024x500 feature graphic designed
+  [ ] Phase 4: ≥2 phone screenshots captured
+  [ ] Phase 4: short + full description written
+  [ ] Phase 4: contact email decided
+  [ ] Phase 5: privacy policy written and hosted publicly
+  [ ] Phase 6: Data Safety form completed
+  [ ] Phase 6: Content Rating completed
+  [ ] Phase 6: Target Audience completed
+  [ ] Phase 6: Permissions Declaration submitted (QUERY_ALL_PACKAGES,
+              SYSTEM_ALERT_WINDOW, accessibility)
+  [ ] Phase 7: 12 testers recruited and added to closed track
+  [ ] Phase 7: 14-day closed test elapsed
+  [ ] Phase 7: production access form submitted and approved
+  [ ] Phase 8: T1-T8 test matrix passed on API 23, 28, 31, 34
+  [ ] Phase 9: eas build --platform android --profile production
+  [ ] Phase 9: AAB uploaded to Internal testing
+  [ ] Phase 9: AAB promoted to Production
+  [ ] Phase 9: production review passed
+  [ ] Phase 11: Sentry / Crashlytics added (post-launch v1.1)
+  [ ] Phase 11: account-deletion flow built (required by Play)
+
+================================================================
+  END
+================================================================

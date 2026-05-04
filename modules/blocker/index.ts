@@ -14,8 +14,9 @@ export function startBlocking(
   authToken: string,
   baseUrl: string,
   maxBlockTimeMs: number,
+  blockNotifications: boolean,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs);
+  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications);
 }
 
 export function stopBlocking(): void {
@@ -48,6 +49,14 @@ export function requestOverlayPermission(): void {
 
 export function requestAccessibilityPermission(): void {
   BlockerModule.requestAccessibilityPermission();
+}
+
+export function isNotificationListenerEnabled(): boolean {
+  return BlockerModule.isNotificationListenerEnabled();
+}
+
+export function requestNotificationListenerPermission(): void {
+  BlockerModule.requestNotificationListenerPermission();
 }
 
 export function addBlockedAppListener(

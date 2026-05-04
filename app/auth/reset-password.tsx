@@ -8,13 +8,15 @@ import React, { useState } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
-const resetSchema = z.object({
-	newPassword: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password must be at most 128 characters'),
-	confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-	message: 'Passwords do not match',
-	path: ['confirmPassword'],
-})
+const resetSchema = z
+	.object({
+		newPassword: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password must be at most 128 characters'),
+		confirmPassword: z.string(),
+	})
+	.refine(data => data.newPassword === data.confirmPassword, {
+		message: 'Passwords do not match',
+		path: ['confirmPassword'],
+	})
 
 export default function ResetPasswordScreen() {
 	const theme = Colors.dark
@@ -69,7 +71,11 @@ export default function ResetPasswordScreen() {
 		return (
 			<View style={[styles.container, { backgroundColor: theme.background }]}>
 				<View style={styles.successContent}>
-					<Ionicons name='checkmark-circle' size={64} color='#10B981' />
+					<Ionicons
+						name='checkmark-circle'
+						size={64}
+						color='#10B981'
+					/>
 					<Text style={[styles.title, { color: theme.text, marginTop: 16 }]}>Password Reset</Text>
 					<Text style={[styles.subtitle, { color: theme.icon, textAlign: 'center' }]}>
 						Your password has been reset successfully. You can now sign in with your new password.

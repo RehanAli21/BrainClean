@@ -9,7 +9,7 @@ import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useCallback, useState } from 'react'
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 function formatDuration(seconds: number): string {
 	const mins = Math.floor(seconds / 60)
@@ -241,7 +241,15 @@ export default function TaskDetailScreen() {
 							size={16}
 							color={theme.primary}
 						/>
-						<Text style={[styles.infoBannerText, { color: theme.primary }]}>Task is active. Complete it via web app.</Text>
+						<Text style={[styles.infoBannerText, { color: theme.primary }]}>
+							Task is active. Complete it via{' '}
+							<Text
+								style={styles.infoBannerLink}
+								onPress={() => Linking.openURL('https://brainclean.app/')}>
+								web app
+							</Text>
+							.
+						</Text>
 					</View>
 				) : null}
 
@@ -290,6 +298,7 @@ const styles = StyleSheet.create({
 	actions: { marginTop: 24, gap: 12 },
 	infoBanner: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8, gap: 8 },
 	infoBannerText: { fontSize: 14, fontWeight: '500', flex: 1 },
+	infoBannerLink: { fontWeight: '700', textDecorationLine: 'underline' },
 	deleteButton: {
 		borderWidth: 1,
 		borderRadius: 12,

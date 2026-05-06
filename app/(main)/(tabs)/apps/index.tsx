@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/theme'
+import { useBlocker } from '@/hooks/useBlocker'
 import { getInstalledApps } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
 import type { AppInfo } from '@/types/blocker'
@@ -6,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, FlatList, Image, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 
-function AppRow({ app }: { app: AppInfo }) {
+function AppRow({ app, disabled }: { app: AppInfo; disabled: boolean }) {
 	const theme = Colors.dark
 	const isSelected = useUiStore(s => s.selectedApps.includes(app.packageName))
 	const toggleApp = useUiStore(s => s.toggleApp)
@@ -44,6 +45,7 @@ function AppRow({ app }: { app: AppInfo }) {
 				onValueChange={() => toggleApp(app.packageName)}
 				trackColor={{ false: theme.border, true: theme.primary }}
 				thumbColor='#FFFFFF'
+				disabled={disabled}
 			/>
 		</View>
 	)
@@ -56,6 +58,7 @@ export default function AppsScreen() {
 	const [error, setError] = useState('')
 	const [search, setSearch] = useState('')
 	const selectedCount = useUiStore(s => s.selectedApps.length)
+	const { isBlocking } = useBlocker()
 
 	useEffect(() => {
 		loadApps()
@@ -88,6 +91,19 @@ export default function AppsScreen() {
 					{selectedCount > 0 ? `${selectedCount} selected` : !isLoading && apps.length > 0 ? `${apps.length} installed` : ''}
 				</Text>
 			</View>
+
+			{isBlocking ? (
+				<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
+					<Ionicons
+						name='lock-closed'
+						size={18}
+						color={theme.primary}
+					/>
+					<Text style={[styles.lockBannerText, { color: theme.text }]}>
+						App selection is locked while a task is active. Complete the task to make changes.
+					</Text>
+				</View>
+			) : null}
 
 			<View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 				<Ionicons
@@ -144,7 +160,8 @@ export default function AppsScreen() {
 				<FlatList
 					data={filteredApps}
 					keyExtractor={item => item.packageName}
-					renderItem={({ item }) => <AppRow app={item} />}
+					renderItem={({ item }) => <AppRow app={item} disabled={isBlocking} />}
+					extraData={isBlocking}
 					contentContainerStyle={styles.list}
 					showsVerticalScrollIndicator={false}
 				/>
@@ -198,4 +215,14 @@ const styles = StyleSheet.create({
 	appInfo: { flex: 1 },
 	appName: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
 	packageName: { fontSize: 12 },
+	lockBanner: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 10,
+		borderWidth: 1,
+		borderRadius: 12,
+		padding: 12,
+		marginBottom: 16,
+	},
+	lockBannerText: { flex: 1, fontSize: 13, lineHeight: 18 },
 })

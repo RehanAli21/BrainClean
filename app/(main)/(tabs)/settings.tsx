@@ -1,5 +1,6 @@
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
+import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
 	isNotificationListenerEnabled,
@@ -31,6 +32,7 @@ export default function SettingsScreen() {
 	const theme = Colors.dark
 	const { email, logout } = useAuth()
 	const { permissions, recheck } = usePermissions()
+	const { isBlocking } = useBlocker()
 	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 	const setMaxBlockTime = useUiStore(s => s.setMaxBlockTime)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
@@ -131,6 +133,19 @@ export default function SettingsScreen() {
 				contentContainerStyle={styles.content}>
 				<Text style={[styles.title, { color: theme.text }]}>Settings</Text>
 
+				{isBlocking ? (
+					<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
+						<Ionicons
+							name='lock-closed'
+							size={18}
+							color={theme.primary}
+						/>
+						<Text style={[styles.lockBannerText, { color: theme.text }]}>
+							Settings are locked while a task is active. Complete the task to make changes.
+						</Text>
+					</View>
+				) : null}
+
 				{/* Profile Section */}
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>PROFILE</Text>
 				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -162,19 +177,21 @@ export default function SettingsScreen() {
 								<Text style={[styles.hint, { color: theme.icon }]}>Auto-unblock after this duration (1–1440 min)</Text>
 							</View>
 						</View>
-						<View style={styles.inputRow}>
+						<View style={[styles.inputRow, isBlocking && styles.disabled]}>
 							<TextInput
 								style={[styles.input, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
 								value={timeInput}
 								onChangeText={setTimeInput}
 								keyboardType='number-pad'
 								maxLength={4}
+								editable={!isBlocking}
 							/>
 							<Text style={[styles.unit, { color: theme.icon }]}>min</Text>
 							<TouchableOpacity
 								style={[styles.saveButton, { backgroundColor: saved ? theme.success : theme.primary }]}
 								onPress={handleSaveMaxTime}
-								activeOpacity={0.7}>
+								activeOpacity={0.7}
+								disabled={isBlocking}>
 								<Text style={styles.saveButtonText}>{saved ? 'Saved' : 'Save'}</Text>
 							</TouchableOpacity>
 						</View>
@@ -200,6 +217,7 @@ export default function SettingsScreen() {
 							onValueChange={handleToggleNotifications}
 							trackColor={{ false: theme.border, true: theme.primary }}
 							thumbColor={theme.text}
+							disabled={isBlocking}
 						/>
 					</View>
 				</View>
@@ -212,6 +230,7 @@ export default function SettingsScreen() {
 						title='Usage Access'
 						description='Detect which app is in the foreground'
 						granted={permissions?.usageStats ?? false}
+						disabled={isBlocking}
 						onRequest={() => {
 							requestUsageStatsPermission()
 						}}
@@ -222,6 +241,7 @@ export default function SettingsScreen() {
 						title='Display Over Other Apps'
 						description='Show blocking overlay on blocked apps'
 						granted={permissions?.overlay ?? false}
+						disabled={isBlocking}
 						onRequest={() => {
 							requestOverlayPermission()
 						}}
@@ -232,6 +252,7 @@ export default function SettingsScreen() {
 						title='Accessibility Service'
 						description='Instantly detect app switches from recents'
 						granted={permissions?.accessibility ?? false}
+						disabled={isBlocking}
 						onRequest={() => {
 							requestAccessibilityPermission()
 						}}
@@ -240,9 +261,10 @@ export default function SettingsScreen() {
 
 				{/* Logout */}
 				<TouchableOpacity
-					style={[styles.logoutButton, { borderColor: theme.accent }]}
+					style={[styles.logoutButton, { borderColor: theme.accent }, isBlocking && styles.disabled]}
 					onPress={handleLogout}
-					activeOpacity={0.7}>
+					activeOpacity={0.7}
+					disabled={isBlocking}>
 					<Ionicons
 						name='log-out-outline'
 						size={20}
@@ -253,10 +275,10 @@ export default function SettingsScreen() {
 
 				{/* Delete Account */}
 				<TouchableOpacity
-					style={[styles.deleteButton, { backgroundColor: theme.accent }]}
+					style={[styles.deleteButton, { backgroundColor: theme.accent }, isBlocking && styles.disabled]}
 					onPress={handleDeleteAccount}
 					activeOpacity={0.7}
-					disabled={deleting}>
+					disabled={deleting || isBlocking}>
 					{deleting ? (
 						<ActivityIndicator
 							size='small'
@@ -283,12 +305,14 @@ function PermissionRow({
 	title,
 	description,
 	granted,
+	disabled = false,
 	onRequest,
 }: {
 	icon: keyof typeof Ionicons.glyphMap
 	title: string
 	description: string
 	granted: boolean
+	disabled?: boolean
 	onRequest: () => void
 }) {
 	const theme = Colors.dark
@@ -317,9 +341,10 @@ function PermissionRow({
 				</View>
 			) : (
 				<TouchableOpacity
-					style={[styles.permButton, { backgroundColor: theme.primary }]}
+					style={[styles.permButton, { backgroundColor: theme.primary }, disabled && styles.disabled]}
 					onPress={onRequest}
-					activeOpacity={0.7}>
+					activeOpacity={0.7}
+					disabled={disabled}>
 					<Text style={styles.permButtonText}>Grant</Text>
 				</TouchableOpacity>
 			)}
@@ -410,4 +435,15 @@ const styles = StyleSheet.create({
 		marginLeft: 32,
 	},
 	permButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+	lockBanner: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 10,
+		borderWidth: 1,
+		borderRadius: 12,
+		padding: 12,
+		marginBottom: 24,
+	},
+	lockBannerText: { flex: 1, fontSize: 13, lineHeight: 18 },
+	disabled: { opacity: 0.4 },
 })

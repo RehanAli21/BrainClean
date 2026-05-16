@@ -4,6 +4,7 @@ import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
 	isNotificationListenerEnabled,
+	requestBatteryOptimizationExemption,
 	requestNotificationListenerPermission,
 	requestOverlayPermission,
 	requestUsageStatsPermission,
@@ -243,6 +244,17 @@ export default function SettingsScreen() {
 						disabled={isBlocking}
 						onRequest={() => {
 							requestOverlayPermission()
+						}}
+					/>
+					<View style={[styles.permDivider, { backgroundColor: theme.border }]} />
+					<PermissionRow
+						icon='battery-charging-outline'
+						title='Unrestricted Background'
+						description='Keeps blocking running while the screen is off'
+						granted={permissions?.batteryOptimization ?? false}
+						disabled={isBlocking}
+						onRequest={() => {
+							requestBatteryOptimizationExemption()
 						}}
 					/>
 				</View>

@@ -1,6 +1,10 @@
 import { Colors } from '@/constants/theme'
 import { usePermissions } from '@/hooks/usePermissions'
-import { requestOverlayPermission, requestUsageStatsPermission } from '@/modules/blocker'
+import {
+	requestBatteryOptimizationExemption,
+	requestOverlayPermission,
+	requestUsageStatsPermission,
+} from '@/modules/blocker'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import React, { useEffect } from 'react'
@@ -67,10 +71,17 @@ export default function PermissionsScreen() {
 					granted={permissions.overlay}
 					onRequest={requestOverlayPermission}
 				/>
+
+				<PermissionCard
+					title='Unrestricted Background'
+					description='Required so BrainClean keeps blocking apps while your screen is off. Tap Grant, then Allow on the system dialog.'
+					granted={permissions.batteryOptimization}
+					onRequest={requestBatteryOptimizationExemption}
+				/>
 			</View>
 
 			<Text style={[styles.footerText, { color: theme.icon }]}>
-				Each permission opens Android Settings. Toggle the permission for BrainClean, then return here.
+				Tap Grant on each card. Some open Android Settings; others show a quick Allow dialog.
 			</Text>
 		</View>
 	)

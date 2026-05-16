@@ -111,6 +111,8 @@ getInstalledApps()                                        → AppInfo[]
 hasRequiredPermissions()                                  → PermissionStatus
 requestUsageStatsPermission()                             → void
 requestOverlayPermission()                                → void
+isBatteryOptimizationIgnored()                            → boolean
+requestBatteryOptimizationExemption()                     → void
 isNotificationListenerEnabled()                           → boolean
 requestNotificationListenerPermission()                   → void
 ```
@@ -264,14 +266,26 @@ types/
 - On boot: reads BlockerState. If `isActive` is true, starts BlockerService.
 - Registered in AndroidManifest.xml, not programmatically.
 
+### BlockerWatchdogReceiver
+
+- BroadcastReceiver fired by AlarmManager every ~10 minutes while a session is active.
+- Scheduled by `BlockerService` via `setAndAllowWhileIdle` (fires even during Doze).
+- On fire: if `BlockerState.isActive() == true` AND `BlockerService` is NOT in the running services list → calls `BlockerService.start(context)` to relaunch. Then reschedules itself.
+- Purpose: aggressive OEMs (Infinix XOS, Xiaomi MIUI, Oppo ColorOS, Vivo FunTouch) kill foreground services despite Android's documented rules. This watchdog ensures the blocker comes back up.
+- Cancelled in `BlockerService.onDestroy` ONLY when the session ended cleanly (i.e. `BlockerState.isActive() == false`). If the OS killed the service, `isActive` stays true and the watchdog stays armed.
+- Requires battery optimization exemption (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`) for reliable firing during Doze.
+
 ## Permissions Setup Flow
 
-The app requires two special Android permissions. Each requires navigating to Android Settings — they cannot be granted via runtime dialog.
+The app requires three Android permissions. The first two require navigating to Android Settings; the third is a one-tap system dialog.
 
 1. **Usage Stats Access** (PACKAGE_USAGE_STATS) — needed to detect foreground app
 2. **Overlay Permission** (SYSTEM_ALERT_WINDOW) — needed to show blocking overlay
+3. **Ignore Battery Optimizations** (REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) — needed so the foreground service keeps polling during Doze / when screen is off. Shows as a system Allow/Deny dialog, not a settings page.
 
-An optional third permission (Notification Access) is requested from Settings only if the user enables the "Block Notifications" toggle — it is not part of the setup wizard.
+`BlockerService` also acquires a `PARTIAL_WAKE_LOCK` for the duration of an active session, which keeps the CPU awake so the 250ms polling coroutine fires reliably during Doze. The wake lock is released in `onDestroy`.
+
+An optional fourth permission (Notification Access) is requested from Settings only if the user enables the "Block Notifications" toggle — it is not part of the setup wizard.
 
 The `(setup)/permissions.tsx` screen walks the user through each sequentially. It checks status after the user returns from Settings and only allows proceeding when both are granted. The `usePermissions()` hook polls `hasRequiredPermissions()` from the native module (re-checks on app foreground via AppState listener).
 

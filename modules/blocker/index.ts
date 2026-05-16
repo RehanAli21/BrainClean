@@ -47,6 +47,14 @@ export function requestOverlayPermission(): void {
   BlockerModule.requestOverlayPermission();
 }
 
+export function isBatteryOptimizationIgnored(): boolean {
+  return BlockerModule.isBatteryOptimizationIgnored();
+}
+
+export function requestBatteryOptimizationExemption(): void {
+  BlockerModule.requestBatteryOptimizationExemption();
+}
+
 export function isNotificationListenerEnabled(): boolean {
   return BlockerModule.isNotificationListenerEnabled();
 }

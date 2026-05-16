@@ -7,4 +7,5 @@ export interface AppInfo {
 export interface PermissionStatus {
   usageStats: boolean;
   overlay: boolean;
+  batteryOptimization: boolean;
 }

@@ -1,6 +1,8 @@
 package expo.modules.blocker
 
+import android.annotation.SuppressLint
 import android.app.AppOpsManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -8,6 +10,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Base64
 import expo.modules.kotlin.modules.Module
@@ -93,7 +96,7 @@ class BlockerModule : Module() {
             val context = appContext.reactContext ?: return@Function mapOf(
                 "usageStats" to false,
                 "overlay" to false,
-                "accessibility" to false
+                "batteryOptimization" to false
             )
 
             val appOps = context.getSystemService(AppOpsManager::class.java)
@@ -113,12 +116,14 @@ class BlockerModule : Module() {
             }
 
             val overlayGranted = Settings.canDrawOverlays(context)
-            val accessibilityGranted = BlockerAccessibilityService.isEnabled(context)
+
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val batteryOptimizationIgnored = pm.isIgnoringBatteryOptimizations(context.packageName)
 
             mapOf(
                 "usageStats" to usageStatsGranted,
                 "overlay" to overlayGranted,
-                "accessibility" to accessibilityGranted
+                "batteryOptimization" to batteryOptimizationIgnored
             )
         }
 
@@ -141,9 +146,20 @@ class BlockerModule : Module() {
             context.startActivity(intent)
         }
 
-        Function("requestAccessibilityPermission") {
+        Function("isBatteryOptimizationIgnored") {
+            val context = appContext.reactContext ?: return@Function false
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            pm.isIgnoringBatteryOptimizations(context.packageName)
+        }
+
+        @SuppressLint("BatteryLife")
+        Function("requestBatteryOptimizationExemption") {
             val context = appContext.reactContext ?: return@Function Unit
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (pm.isIgnoringBatteryOptimizations(context.packageName)) return@Function Unit
+
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:${context.packageName}")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)

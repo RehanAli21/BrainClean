@@ -13,7 +13,7 @@ export function usePermissions() {
       const status = hasRequiredPermissions();
       setPermissions(status);
     } catch {
-      setPermissions({ usageStats: false, overlay: false, accessibility: false });
+      setPermissions({ usageStats: false, overlay: false, batteryOptimization: false });
     } finally {
       setIsLoading(false);
     }
@@ -34,7 +34,10 @@ export function usePermissions() {
     return () => subscription.remove();
   }, [check]);
 
-  const allGranted = permissions?.usageStats === true && permissions?.overlay === true && permissions?.accessibility === true;
+  const allGranted =
+    permissions?.usageStats === true &&
+    permissions?.overlay === true &&
+    permissions?.batteryOptimization === true;
 
   return { permissions, isLoading, allGranted, recheck: check };
 }

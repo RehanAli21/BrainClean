@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -20,6 +21,7 @@ class BlockerService : Service() {
     private val taskStatusChecker = TaskStatusChecker()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var maxTimeRunnable: Runnable? = null
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -41,6 +43,8 @@ class BlockerService : Service() {
         Log.i(TAG, "Starting blocker service for session=$sessionId with ${blockedPackages.size} blocked apps")
 
         startForeground(NOTIFICATION_ID, buildNotification())
+        acquireWakeLock(state.getMaxBlockTimeMs())
+        BlockerWatchdogReceiver.schedule(this)
 
         appMonitor.start(
             context = this,
@@ -54,9 +58,6 @@ class BlockerService : Service() {
                 mainHandler.post { overlay.hide() }
             }
         )
-
-        // Expose AppMonitor so BlockerAccessibilityService can push events to it
-        AppMonitor.instance.set(appMonitor)
 
         // Poll backend to detect task completion
         val authToken = state.getAuthToken()
@@ -102,12 +103,41 @@ class BlockerService : Service() {
 
     override fun onDestroy() {
         Log.i(TAG, "BlockerService destroyed")
-        AppMonitor.instance.set(null)
         appMonitor.stop()
         taskStatusChecker.stop()
         maxTimeRunnable?.let { mainHandler.removeCallbacks(it) }
         overlay.hide()
+        releaseWakeLock()
+        // Cancel watchdog only if the session ended cleanly; if the OS killed us,
+        // the watchdog will fire, see isActive=true, and restart us.
+        if (!BlockerState.getInstance(this).isActive()) {
+            BlockerWatchdogReceiver.cancel(this)
+        }
         super.onDestroy()
+    }
+
+    private fun acquireWakeLock(maxBlockTimeMs: Long) {
+        if (wakeLock?.isHeld == true) return
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val timeoutMs = if (maxBlockTimeMs > 0) maxBlockTimeMs else DEFAULT_WAKELOCK_TIMEOUT_MS
+        wakeLock = pm.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "BrainClean::BlockerWakeLock"
+        ).apply {
+            setReferenceCounted(false)
+            acquire(timeoutMs)
+        }
+        Log.i(TAG, "WakeLock acquired (timeout=${timeoutMs}ms)")
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+                Log.i(TAG, "WakeLock released")
+            }
+        }
+        wakeLock = null
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -141,6 +171,7 @@ class BlockerService : Service() {
         private const val TAG = "BlockerService"
         private const val CHANNEL_ID = "brainclean_blocker"
         private const val NOTIFICATION_ID = 1001
+        private const val DEFAULT_WAKELOCK_TIMEOUT_MS = 24L * 60L * 60L * 1000L
 
         fun start(context: Context) {
             val intent = Intent(context, BlockerService::class.java)

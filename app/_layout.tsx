@@ -17,13 +17,16 @@ function useAppStateFocusManager() {
 }
 
 export default function RootLayout() {
-	const [queryClient] = useState(() => new QueryClient({
-		defaultOptions: {
-			queries: {
-				refetchOnWindowFocus: true,
-			},
-		},
-	}))
+	const [queryClient] = useState(
+		() =>
+			new QueryClient({
+				defaultOptions: {
+					queries: {
+						refetchOnWindowFocus: true,
+					},
+				},
+			}),
+	)
 
 	useAppStateFocusManager()
 

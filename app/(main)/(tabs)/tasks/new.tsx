@@ -100,8 +100,7 @@ export default function NewTaskScreen() {
 						</Text>
 					</View>
 					<Text style={[styles.permsHint, { color: theme.icon }]}>
-						BrainClean needs Usage Access, Display Over Other Apps, and Accessibility permissions to block apps during your focus
-						sessions.
+						BrainClean needs Usage Access, Display Over Other Apps, and Unrestricted Background permissions to block apps during your focus sessions.
 					</Text>
 					<View style={{ marginTop: 16 }}>
 						<PrimaryButton

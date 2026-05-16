@@ -16,11 +16,11 @@ ${KEEP_RULES_MARKER}
 -keep class expo.modules.kotlin.** { *; }
 -keep class expo.modules.core.** { *; }
 
-# Foreground service, accessibility service, boot receiver: declared in
+# Foreground service, boot receiver, notification listener, watchdog: declared in
 # AndroidManifest.xml, looked up by name by the Android system.
 -keep class expo.modules.blocker.BlockerService { *; }
--keep class expo.modules.blocker.BlockerAccessibilityService { *; }
 -keep class expo.modules.blocker.BootReceiver { *; }
+-keep class expo.modules.blocker.BlockerWatchdogReceiver { *; }
 -keep class expo.modules.blocker.NotificationBlockerService { *; }
 
 # OkHttp (used by TaskStatusChecker for backend polling)

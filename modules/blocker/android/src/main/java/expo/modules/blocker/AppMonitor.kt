@@ -10,7 +10,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicReference
 
 class AppMonitor {
     private var monitorJob: Job? = null
@@ -60,11 +59,7 @@ class AppMonitor {
         }
     }
 
-    /**
-     * Called by both the UsageStats polling loop and BlockerAccessibilityService.
-     * Unified detection logic: check if the package is blocked and show/hide overlay.
-     */
-    fun onForegroundAppChanged(packageName: String) {
+    private fun onForegroundAppChanged(packageName: String) {
         // Ignore our own package — overlay is part of BrainClean's process
         if (packageName == ownPackage) return
 
@@ -114,10 +109,7 @@ class AppMonitor {
 
     companion object {
         private const val TAG = "AppMonitor"
-        private const val POLL_INTERVAL_MS = 2000L
+        private const val POLL_INTERVAL_MS = 250L
         private const val EVENT_WINDOW_MS = 10000L
-
-        /** Static reference for BlockerAccessibilityService to push events */
-        val instance = AtomicReference<AppMonitor?>(null)
     }
 }

@@ -47,10 +47,6 @@ export function requestOverlayPermission(): void {
   BlockerModule.requestOverlayPermission();
 }
 
-export function requestAccessibilityPermission(): void {
-  BlockerModule.requestAccessibilityPermission();
-}
-
 export function isNotificationListenerEnabled(): boolean {
   return BlockerModule.isNotificationListenerEnabled();
 }

@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/theme'
 import { usePermissions } from '@/hooks/usePermissions'
-import { requestAccessibilityPermission, requestOverlayPermission, requestUsageStatsPermission } from '@/modules/blocker'
+import { requestOverlayPermission, requestUsageStatsPermission } from '@/modules/blocker'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import React, { useEffect } from 'react'
@@ -66,13 +66,6 @@ export default function PermissionsScreen() {
 					description='Required to show the blocking overlay when you open a blocked app.'
 					granted={permissions.overlay}
 					onRequest={requestOverlayPermission}
-				/>
-
-				<PermissionCard
-					title='Accessibility Service'
-					description='Required to instantly detect when you open a blocked app, even from the recents screen.'
-					granted={permissions.accessibility}
-					onRequest={requestAccessibilityPermission}
 				/>
 			</View>
 

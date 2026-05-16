@@ -4,7 +4,6 @@ import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
 	isNotificationListenerEnabled,
-	requestAccessibilityPermission,
 	requestNotificationListenerPermission,
 	requestOverlayPermission,
 	requestUsageStatsPermission,
@@ -244,17 +243,6 @@ export default function SettingsScreen() {
 						disabled={isBlocking}
 						onRequest={() => {
 							requestOverlayPermission()
-						}}
-					/>
-					<View style={[styles.permDivider, { backgroundColor: theme.border }]} />
-					<PermissionRow
-						icon='accessibility-outline'
-						title='Accessibility Service'
-						description='Instantly detect app switches from recents'
-						granted={permissions?.accessibility ?? false}
-						disabled={isBlocking}
-						onRequest={() => {
-							requestAccessibilityPermission()
 						}}
 					/>
 				</View>

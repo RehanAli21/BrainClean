@@ -136,6 +136,9 @@ Either way: enable Play App Signing in Play Console (default for
 new apps). Google then re-signs your AAB with their managed key
 and the upload key only authenticates uploads — much safer.
 
+
+--complete--
+
 ================================================================
   PHASE 3 — GOOGLE PLAY DEVELOPER ACCOUNT
 ================================================================
@@ -150,6 +153,8 @@ and the upload key only authenticates uploads — much safer.
      until approved.
   5. Set up tax info under Setup → Payments profile (only required
      if you ever monetize; can be skipped for free apps).
+
+--complete-- tax will be later added
 
 ================================================================
   PHASE 4 — STORE LISTING ASSETS
@@ -213,6 +218,8 @@ Required artwork. Reject this and the listing cannot publish.
            chosen apps until the task is complete. Set up
            permissions in-app and start your first session."
 
+  --complete--
+
 ================================================================
   PHASE 5 — PRIVACY POLICY (REQUIRED, MUST BE PUBLICLY HOSTED)
 ================================================================
@@ -250,6 +257,8 @@ It MUST cover (because BrainClean collects/uses these):
 A solid free template generator: https://app-privacy-policy-generator.firebaseapp.com/
 But review and edit by hand — generated templates often miss
 accessibility/usage-stats disclosures, and Play reviewers check.
+
+--complete--
 
 ================================================================
   PHASE 6 — PLAY CONSOLE FORMS
@@ -500,19 +509,19 @@ After 14 days + production access approval:
   QUICK CHECKLIST — print this, tick as you go
 ================================================================
 
-  [ ] Phase 0: npx expo prebuild --clean --platform android
-  [ ] Phase 0: verify manifest, build.gradle, gradle.properties,
+  [x] Phase 0: npx expo prebuild --clean --platform android
+  [X] Phase 0: verify manifest, build.gradle, gradle.properties,
               proguard-rules.pro
-  [ ] Phase 1: production API URL set (EAS secret or eas.json)
-  [ ] Phase 2: production keystore generated and backed up
+  [X] Phase 1: production API URL set (EAS secret or eas.json)
+  [X] Phase 2: production keystore generated and backed up
   [ ] Phase 2: Play App Signing enabled (default in Play Console)
-  [ ] Phase 3: Play Developer account created and verified
-  [ ] Phase 4: 512x512 icon verified
-  [ ] Phase 4: 1024x500 feature graphic designed
-  [ ] Phase 4: ≥2 phone screenshots captured
-  [ ] Phase 4: short + full description written
-  [ ] Phase 4: contact email decided
-  [ ] Phase 5: privacy policy written and hosted publicly
+  [X] Phase 3: Play Developer account created and verified
+  [X] Phase 4: 512x512 icon verified
+  [X] Phase 4: 1024x500 feature graphic designed
+  [X] Phase 4: ≥2 phone screenshots captured
+  [X] Phase 4: short + full description written
+  [X] Phase 4: contact email decided
+  [X] Phase 5: privacy policy written and hosted publicly
   [ ] Phase 6: Data Safety form completed
   [ ] Phase 6: Content Rating completed
   [ ] Phase 6: Target Audience completed

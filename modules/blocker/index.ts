@@ -63,6 +63,17 @@ export function requestNotificationListenerPermission(): void {
   BlockerModule.requestNotificationListenerPermission();
 }
 
+export function getDeviceManufacturer(): string {
+  return BlockerModule.getDeviceManufacturer();
+}
+
+// Returns true if a known OEM-specific AutoStart screen was opened.
+// Returns false if we had to fall back to the generic App Info screen
+// (still works — user just navigates one extra tap).
+export function openAutoStartSettings(): boolean {
+  return BlockerModule.openAutoStartSettings();
+}
+
 export function addBlockedAppListener(
   callback: (event: { packageName: string }) => void,
 ): EventSubscription {

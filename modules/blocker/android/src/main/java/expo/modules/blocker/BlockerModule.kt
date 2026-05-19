@@ -2,6 +2,7 @@ package expo.modules.blocker
 
 import android.annotation.SuppressLint
 import android.app.AppOpsManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Base64
+import android.util.Log
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.ByteArrayOutputStream
@@ -177,6 +179,80 @@ class BlockerModule : Module() {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
+        }
+
+        Function("getDeviceManufacturer") {
+            Build.MANUFACTURER?.lowercase() ?: ""
+        }
+
+        Function("openAutoStartSettings") {
+            val context = appContext.reactContext ?: return@Function false
+            val manufacturer = Build.MANUFACTURER?.lowercase() ?: ""
+
+            // OEM-specific AutoStart/AppLaunch settings screens. The OS blocks our
+            // foreground service unless the user enables auto-launch here — there is
+            // no public API to toggle this programmatically, so we deep-link instead.
+            val candidates: List<ComponentName> = when {
+                manufacturer.contains("infinix") || manufacturer.contains("tecno") ||
+                manufacturer.contains("itel") || manufacturer.contains("transsion") -> listOf(
+                    ComponentName("com.transsion.phonemaster", "com.transsion.phonemaster.applicationmanager.activity.AppManagerActivity"),
+                    ComponentName("com.transsion.phonemaster", "com.transsion.phonemaster.appmanager.view.AppLaunchActivity"),
+                    ComponentName("com.transsion.phonemaster", "com.cyin.himgr.applicationmanager.view.activity.AppLaunchActivity"),
+                    ComponentName("com.transsion.phonemanager", "com.transsion.phonemanager.entry.MainActivity"),
+                )
+                manufacturer.contains("xiaomi") || manufacturer.contains("redmi") || manufacturer.contains("poco") -> listOf(
+                    ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"),
+                )
+                manufacturer.contains("oppo") || manufacturer.contains("realme") -> listOf(
+                    ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"),
+                    ComponentName("com.coloros.safecenter", "com.coloros.safecenter.startupapp.StartupAppListActivity"),
+                    ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity"),
+                )
+                manufacturer.contains("vivo") || manufacturer.contains("iqoo") -> listOf(
+                    ComponentName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity"),
+                    ComponentName("com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"),
+                )
+                manufacturer.contains("huawei") || manufacturer.contains("honor") -> listOf(
+                    ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"),
+                    ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"),
+                )
+                manufacturer.contains("samsung") -> listOf(
+                    ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"),
+                )
+                else -> emptyList()
+            }
+
+            val pm = context.packageManager
+            for (component in candidates) {
+                val intent = Intent().apply {
+                    this.component = component
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                if (intent.resolveActivity(pm) != null) {
+                    try {
+                        context.startActivity(intent)
+                        Log.i("BlockerModule", "Opened AutoStart settings via ${component.flattenToShortString()}")
+                        return@Function true
+                    } catch (e: Exception) {
+                        Log.w("BlockerModule", "Failed to open ${component.flattenToShortString()}: ${e.message}")
+                    }
+                }
+            }
+
+            // Fallback: open this app's App Info page. On most XOS/MIUI/ColorOS
+            // versions, the AutoStart toggle is reachable from there.
+            val fallback = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.parse("package:${context.packageName}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            try {
+                context.startActivity(fallback)
+                Log.i("BlockerModule", "Opened App Info as AutoStart fallback")
+                return@Function false
+            } catch (e: Exception) {
+                Log.e("BlockerModule", "Failed to open App Info fallback", e)
+                return@Function false
+            }
         }
     }
 

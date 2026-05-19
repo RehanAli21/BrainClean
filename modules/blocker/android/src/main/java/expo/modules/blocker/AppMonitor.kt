@@ -44,6 +44,8 @@ class AppMonitor {
                 return@launch
             }
 
+            var tickCount = 0L
+            var lastHeartbeatLoggedAt = 0L
             while (isActive) {
                 try {
                     val foregroundPackage = getForegroundPackage(usageStatsManager)
@@ -52,6 +54,13 @@ class AppMonitor {
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error polling foreground app", e)
+                }
+
+                tickCount++
+                val now = System.currentTimeMillis()
+                if (now - lastHeartbeatLoggedAt >= HEARTBEAT_INTERVAL_MS) {
+                    Log.i(TAG, "heartbeat tick=$tickCount foreground=${try { getForegroundPackage(usageStatsManager) } catch (e: Exception) { "err" }}")
+                    lastHeartbeatLoggedAt = now
                 }
 
                 delay(POLL_INTERVAL_MS)
@@ -111,5 +120,6 @@ class AppMonitor {
         private const val TAG = "AppMonitor"
         private const val POLL_INTERVAL_MS = 250L
         private const val EVENT_WINDOW_MS = 10000L
+        private const val HEARTBEAT_INTERVAL_MS = 60_000L
     }
 }

@@ -2,17 +2,24 @@ import { useNavigationContainerRef, useRouter, useSegments } from 'expo-router'
 import * as SecureStore from 'expo-secure-store'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
+// Log the user out this many ms BEFORE the real token expiration, so they
+// get prompted to re-login while they still have a usable session in hand.
+// 24h = re-login a full day before the JWT actually rejects.
+export const TOKEN_EXPIRY_BUFFER_MS = 24 * 60 * 60 * 1000
+
 interface AuthContextType {
 	token: string | null
 	email: string | null
+	tokenExpiresAt: number | null
 	isLoading: boolean
-	login: (token: string, email: string) => void
+	login: (token: string, email: string, expiresAt: string) => void
 	logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType>({
 	token: null,
 	email: null,
+	tokenExpiresAt: null,
 	isLoading: true,
 	login: () => {},
 	logout: () => {},
@@ -24,6 +31,7 @@ export const useAuth = () => useContext(AuthContext)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [token, setToken] = useState<string | null>(null)
 	const [email, setEmail] = useState<string | null>(null)
+	const [tokenExpiresAt, setTokenExpiresAt] = useState<number | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const router = useRouter()
 	const segments = useSegments()
@@ -35,9 +43,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			try {
 				const storedToken = await SecureStore.getItemAsync('user_token')
 				const storedEmail = await SecureStore.getItemAsync('user_email')
+				const storedExpiry = await SecureStore.getItemAsync('user_token_expires_at')
 
 				setToken(storedToken)
 				setEmail(storedEmail)
+				setTokenExpiresAt(storedExpiry ? Number(storedExpiry) : null)
 			} catch (e) {
 				console.error('Failed to fetch token', e)
 			} finally {
@@ -62,11 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, [token, segments, isLoading, navigationRef.isReady()])
 
 	// 3. Login Action
-	const login = async (newToken: string, userEmail: string) => {
+	const login = async (newToken: string, userEmail: string, expiresAt: string) => {
+		const expiresAtMs = new Date(expiresAt).getTime()
 		await SecureStore.setItemAsync('user_token', newToken)
 		await SecureStore.setItemAsync('user_email', userEmail)
+		await SecureStore.setItemAsync('user_token_expires_at', String(expiresAtMs))
 		setToken(newToken)
 		setEmail(userEmail)
+		setTokenExpiresAt(expiresAtMs)
 		router.replace('/(main)/(tabs)/tasks')
 	}
 
@@ -74,10 +87,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const logout = async () => {
 		await SecureStore.deleteItemAsync('user_token')
 		await SecureStore.deleteItemAsync('user_email')
+		await SecureStore.deleteItemAsync('user_token_expires_at')
 		setToken(null)
 		setEmail(null)
+		setTokenExpiresAt(null)
 		router.replace('/auth/login')
 	}
 
-	return <AuthContext.Provider value={{ token, email, isLoading, login, logout }}>{children}</AuthContext.Provider>
+	return (
+		<AuthContext.Provider value={{ token, email, tokenExpiresAt, isLoading, login, logout }}>
+			{children}
+		</AuthContext.Provider>
+	)
 }

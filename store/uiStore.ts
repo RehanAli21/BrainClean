@@ -16,6 +16,11 @@ interface UiState {
   setMaxBlockTime: (minutes: number) => void;
   blockNotifications: boolean;
   setBlockNotifications: (enabled: boolean) => void;
+  // Timestamp (ms) the user confirmed they padlocked BrainClean in the recents
+  // view on an aggressive-OEM device (XOS/MIUI/etc). Null = not confirmed yet.
+  // Used to hide the padlock-tutorial card once the user has done it.
+  padlockConfirmedAt: number | null;
+  setPadlockConfirmed: (confirmed: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -46,6 +51,12 @@ export const useUiStore = create<UiState>()(
 
       setBlockNotifications: (enabled: boolean) => {
         set({ blockNotifications: enabled });
+      },
+
+      padlockConfirmedAt: null,
+
+      setPadlockConfirmed: (confirmed: boolean) => {
+        set({ padlockConfirmedAt: confirmed ? Date.now() : null });
       },
     }),
     {

@@ -10,6 +10,8 @@ export interface AuthUser {
 /** Response from POST /api/auth/login and POST /api/auth/signup */
 export interface AuthResponse {
   token: string;
+  /** UTC ISO timestamp when the JWT becomes invalid */
+  expiresAt: string;
   user: AuthUser;
 }
 

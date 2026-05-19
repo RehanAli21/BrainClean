@@ -1,6 +1,8 @@
+import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { useBlocker } from '@/hooks/useBlocker'
+import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
 	isNotificationListenerEnabled,
@@ -32,6 +34,7 @@ export default function SettingsScreen() {
 	const theme = Colors.dark
 	const { email, logout } = useAuth()
 	const { permissions, recheck } = usePermissions()
+	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 	const { isBlocking } = useBlocker()
 	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 	const setMaxBlockTime = useUiStore(s => s.setMaxBlockTime)
@@ -258,6 +261,12 @@ export default function SettingsScreen() {
 						}}
 					/>
 				</View>
+
+				{requiresAutoStart ? (
+					<View style={{ marginBottom: 24 }}>
+						<PadlockProtectionCard manufacturer={manufacturer} />
+					</View>
+				) : null}
 
 				{/* Logout */}
 				<TouchableOpacity

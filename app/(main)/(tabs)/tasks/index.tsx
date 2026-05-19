@@ -1,5 +1,6 @@
 import { TASK_POLL_INTERVAL_MS } from '@/constants/config'
 import { Colors } from '@/constants/theme'
+import { TOKEN_EXPIRY_BUFFER_MS, useAuth } from '@/context/AuthContext'
 import { useTasksQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
 import type { Task } from '@/types/task'
@@ -76,7 +77,19 @@ export default function TaskListScreen() {
 	const [showPicker, setShowPicker] = useState(false)
 	const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate)
 	const { isBlocking, stopBlocking } = useBlocker()
+	const { tokenExpiresAt, logout } = useAuth()
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
+
+	// Proactively log the user out 1 day before their JWT actually expires, so
+	// they re-login while their session still works rather than getting a 401
+	// mid-task. Runs every time the user lands on the Tasks screen.
+	useFocusEffect(
+		useCallback(() => {
+			if (tokenExpiresAt != null && Date.now() >= tokenExpiresAt - TOKEN_EXPIRY_BUFFER_MS) {
+				logout()
+			}
+		}, [tokenExpiresAt, logout]),
+	)
 
 	useFocusEffect(
 		useCallback(() => {

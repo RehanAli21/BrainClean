@@ -115,6 +115,8 @@ isBatteryOptimizationIgnored()                            → boolean
 requestBatteryOptimizationExemption()                     → void
 isNotificationListenerEnabled()                           → boolean
 requestNotificationListenerPermission()                   → void
+getDeviceManufacturer()                                   → string
+openAutoStartSettings()                                   → boolean
 ```
 
 Events from Kotlin to RN (via `BlockerModule.addListener`):
@@ -274,6 +276,17 @@ types/
 - Purpose: aggressive OEMs (Infinix XOS, Xiaomi MIUI, Oppo ColorOS, Vivo FunTouch) kill foreground services despite Android's documented rules. This watchdog ensures the blocker comes back up.
 - Cancelled in `BlockerService.onDestroy` ONLY when the session ended cleanly (i.e. `BlockerState.isActive() == false`). If the OS killed the service, `isActive` stays true and the watchdog stays armed.
 - Requires battery optimization exemption (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`) for reliable firing during Doze.
+- Caveat: on Transsion XOS (Infinix/TECNO/Itel) the OS freezes the entire package within ~60s of going to background when AutoStart is disabled. In that frozen state the alarm fires but the receiver never runs, so the watchdog cannot save the service. Auto-Start must be enabled in OEM settings — see "OEM AutoStart" below.
+
+### OEM AutoStart and the padlock-in-recents flow
+
+Chinese OEM skins (Transsion XOS, MIUI, ColorOS, FunTouch, EMUI/MagicOS) enforce a custom AutoStart whitelist on top of standard Android. Apps not on this whitelist are frozen ~60s after going to background and refused service-rebind with `W/ActivityManager: AutoStart Limit`. There is **no public API** to query or toggle this.
+
+On most XOS/OxygenOS versions the user-facing fix isn't a settings toggle — it's a **menu action in the recent apps view**: open recents → tap the menu icon next to the app name → tap Lock. The locked app is then exempted from the OEM's kill list.
+
+The `PadlockProtectionCard` (`components/PadlockProtectionCard.tsx`) walks the user through the gesture with a 3-step illustration and a single "I've Locked It" confirm button. On confirm, `padlockConfirmedAt` is set in `uiStore` (persisted to expo-secure-store) and the card replaces itself with a "Locked in Recents" success state. A "Show instructions again" link resets the flag so the user can re-read the steps if blocking ever stops working.
+
+`useOemAutoStart()` exposes the detected brand and a `requiresAutoStart` flag (true for Transsion/Xiaomi/Oppo/Vivo/Huawei/Samsung). The card only renders on those devices. `openAutoStartSettings()` remains available as a fallback deep-link but is not used in the current UX — the recents-menu lock works on every modern XOS version, while the AutoStart settings screen location varies.
 
 ## Permissions Setup Flow
 

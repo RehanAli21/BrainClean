@@ -40,7 +40,7 @@ export default function LoginScreen() {
 		setIsLoading(true)
 		try {
 			const data = await authService.login(email, password)
-			login(data.token, data.user.email)
+			login(data.token, data.user.email, data.expiresAt)
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'INVALID_CREDENTIALS') {

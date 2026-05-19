@@ -1,4 +1,6 @@
+import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
 import { Colors } from '@/constants/theme'
+import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
 	requestBatteryOptimizationExemption,
@@ -8,12 +10,13 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import React, { useEffect } from 'react'
-import { ActivityIndicator, BackHandler, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, BackHandler, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export default function PermissionsScreen() {
 	const theme = Colors.dark
 	const router = useRouter()
 	const { permissions, isLoading, allGranted } = usePermissions()
+	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 
 	// Navigate to main app once all permissions are granted
 	useEffect(() => {
@@ -46,7 +49,9 @@ export default function PermissionsScreen() {
 	}
 
 	return (
-		<View style={[styles.container, { backgroundColor: theme.background }]}>
+		<ScrollView
+			style={[styles.container, { backgroundColor: theme.background }]}
+			contentContainerStyle={styles.scrollContent}>
 			<View style={styles.header}>
 				<Ionicons
 					name='shield-checkmark-outline'
@@ -78,12 +83,16 @@ export default function PermissionsScreen() {
 					granted={permissions.batteryOptimization}
 					onRequest={requestBatteryOptimizationExemption}
 				/>
+
+				{requiresAutoStart ? (
+					<PadlockProtectionCard manufacturer={manufacturer} />
+				) : null}
 			</View>
 
 			<Text style={[styles.footerText, { color: theme.icon }]}>
 				Tap Grant on each card. Some open Android Settings; others show a quick Allow dialog.
 			</Text>
-		</View>
+		</ScrollView>
 	)
 }
 
@@ -118,7 +127,8 @@ function PermissionCard({ title, description, granted, onRequest }: { title: str
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, padding: 24, justifyContent: 'center' },
+	container: { flex: 1 },
+	scrollContent: { padding: 24, justifyContent: 'center', flexGrow: 1 },
 	centered: { justifyContent: 'center', alignItems: 'center' },
 	header: { alignItems: 'center', marginBottom: 32 },
 	title: { fontSize: 24, fontWeight: '700', marginTop: 16, marginBottom: 8 },

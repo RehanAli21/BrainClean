@@ -35,6 +35,7 @@ Register a new user with email and password.
 ```json
 {
 	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"expiresAt": "2026-04-27T12:00:00Z",
 	"user": {
 		"id": "550e8400-e29b-41d4-a716-446655440000",
 		"email": "user@example.com",
@@ -44,6 +45,8 @@ Register a new user with email and password.
 	}
 }
 ```
+
+`expiresAt` is the UTC instant when the JWT becomes invalid (30 days after issuance).
 
 **Error Responses:**
 
@@ -82,6 +85,7 @@ Authenticate an existing user.
 ```json
 {
 	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"expiresAt": "2026-04-27T12:00:00Z",
 	"user": {
 		"id": "550e8400-e29b-41d4-a716-446655440000",
 		"email": "user@example.com",
@@ -91,6 +95,8 @@ Authenticate an existing user.
 	}
 }
 ```
+
+`expiresAt` is the UTC instant when the JWT becomes invalid (30 days after issuance).
 
 **Error Responses:**
 

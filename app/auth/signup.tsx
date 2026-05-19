@@ -55,7 +55,7 @@ export default function SignupScreen() {
 		setIsLoading(true)
 		try {
 			const data = await authService.signup(email, username, password)
-			login(data.token, data.user.email)
+			login(data.token, data.user.email, data.expiresAt)
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'EMAIL_ALREADY_EXISTS') {

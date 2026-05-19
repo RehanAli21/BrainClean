@@ -42,7 +42,7 @@ This is the most important rule in the entire project. When the user force-close
 
 **React Native/Expo layer** — handles all UI, API communication, routing, and state management. Standard Expo app. Dies when force-closed.
 
-**Kotlin native layer** — handles all Android system API interactions: UsageStatsManager, AccessibilityService, system overlay windows, foreground service. Runs independently. Survives app kill and device reboot. Kotlin MAY make API calls to the backend when needed (e.g., `TaskStatusChecker` polls for task completion while blocking is active). Keep the Kotlin HTTP layer minimal — reuse the same base URL and auth token pattern as the RN side.
+**Kotlin native layer** — handles all Android system API interactions: UsageStatsManager, system overlay windows, foreground service, notification listener. Runs independently. Survives app kill and device reboot. Kotlin MAY make API calls to the backend when needed (e.g., `TaskStatusChecker` polls for task completion while blocking is active). Keep the Kotlin HTTP layer minimal — reuse the same base URL and auth token pattern as the RN side.
 
 These layers communicate through a narrow, explicit bridge. React Native NEVER touches Android system APIs directly.
 
@@ -102,7 +102,7 @@ The bridge between React Native and Kotlin. Defined in `modules/blocker/` using 
 Exposes these functions:
 
 ```
-startBlocking(packageNames: string[], sessionId: string, authToken: string, baseUrl: string, maxBlockTimeMs: number) → void
+startBlocking(packageNames: string[], sessionId: string, authToken: string, baseUrl: string, maxBlockTimeMs: number, blockNotifications: boolean) → void
 stopBlocking()                                            → void
 isBlocking()                                              → boolean
 getBlockedApps()                                          → string[]
@@ -111,7 +111,12 @@ getInstalledApps()                                        → AppInfo[]
 hasRequiredPermissions()                                  → PermissionStatus
 requestUsageStatsPermission()                             → void
 requestOverlayPermission()                                → void
-requestAccessibilityPermission()                          → void
+isBatteryOptimizationIgnored()                            → boolean
+requestBatteryOptimizationExemption()                     → void
+isNotificationListenerEnabled()                           → boolean
+requestNotificationListenerPermission()                   → void
+getDeviceManufacturer()                                   → string
+openAutoStartSettings()                                   → boolean
 ```
 
 Events from Kotlin to RN (via `BlockerModule.addListener`):
@@ -197,7 +202,7 @@ modules/
         ├── AppMonitor.kt          # UsageStatsManager polling loop
         ├── BlockerOverlay.kt      # TYPE_APPLICATION_OVERLAY window
         ├── BlockerState.kt        # SharedPreferences read/write
-        ├── BlockerAccessibilityService.kt  # Accessibility service for overlay
+        ├── NotificationBlockerService.kt   # Cancels notifications from blocked apps
         ├── TaskStatusChecker.kt   # Polls backend for task completion
         └── BootReceiver.kt        # Restart blocking on device reboot
 services/
@@ -220,7 +225,7 @@ types/
 
 - Runs as a foreground service with a persistent notification showing "BrainClean is protecting your focus."
 - Starts when RN calls `startBlocking()`. Reads blocked package names, session ID, auth token, base URL, and max block time from SharedPreferences.
-- Contains the main loop: polls UsageStatsManager via AppMonitor every 500ms-1s to detect foreground app.
+- Contains the main loop: polls UsageStatsManager via AppMonitor every 250ms to detect foreground app.
 - If foreground app is in the blocked list, triggers BlockerOverlay.
 - Stops when: RN calls `stopBlocking()`, `TaskStatusChecker` detects task completion on backend, or max block time is exceeded.
 - Must handle: service killed by system (restart via START_STICKY), low memory, Doze mode.
@@ -228,7 +233,7 @@ types/
 ### AppMonitor
 
 - Uses UsageStatsManager to query foreground app.
-- Polling interval: 500ms-1s. Do NOT use AccessibilityService for detection — use it only for the overlay.
+- Polling interval: 250ms. This is the sole detection mechanism — there is no AccessibilityService fallback.
 - Requires PACKAGE_USAGE_STATS permission (granted via Settings, not runtime dialog).
 
 ### BlockerOverlay
@@ -238,11 +243,11 @@ types/
 - Requires SYSTEM_ALERT_WINDOW permission.
 - Overlay must be dismissable only by returning to BrainClean or the home screen. It should NOT have a close button.
 
-### BlockerAccessibilityService
+### NotificationBlockerService
 
-- AccessibilityService used for reliable overlay display and blocking enforcement.
-- Configured via `accessibility_service_config.xml`.
-- Do NOT use for app detection — that is AppMonitor's job via UsageStatsManager.
+- NotificationListenerService that cancels notifications posted by blocked apps while a session is active.
+- Opt-in: only runs when the user enables the "Block Notifications" toggle in Settings and grants notification access.
+- Requires BIND_NOTIFICATION_LISTENER_SERVICE (granted via system Notification Access settings).
 
 ### BlockerState
 
@@ -263,15 +268,39 @@ types/
 - On boot: reads BlockerState. If `isActive` is true, starts BlockerService.
 - Registered in AndroidManifest.xml, not programmatically.
 
+### BlockerWatchdogReceiver
+
+- BroadcastReceiver fired by AlarmManager every ~10 minutes while a session is active.
+- Scheduled by `BlockerService` via `setAndAllowWhileIdle` (fires even during Doze).
+- On fire: if `BlockerState.isActive() == true` AND `BlockerService` is NOT in the running services list → calls `BlockerService.start(context)` to relaunch. Then reschedules itself.
+- Purpose: aggressive OEMs (Infinix XOS, Xiaomi MIUI, Oppo ColorOS, Vivo FunTouch) kill foreground services despite Android's documented rules. This watchdog ensures the blocker comes back up.
+- Cancelled in `BlockerService.onDestroy` ONLY when the session ended cleanly (i.e. `BlockerState.isActive() == false`). If the OS killed the service, `isActive` stays true and the watchdog stays armed.
+- Requires battery optimization exemption (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`) for reliable firing during Doze.
+- Caveat: on Transsion XOS (Infinix/TECNO/Itel) the OS freezes the entire package within ~60s of going to background when AutoStart is disabled. In that frozen state the alarm fires but the receiver never runs, so the watchdog cannot save the service. Auto-Start must be enabled in OEM settings — see "OEM AutoStart" below.
+
+### OEM AutoStart and the padlock-in-recents flow
+
+Chinese OEM skins (Transsion XOS, MIUI, ColorOS, FunTouch, EMUI/MagicOS) enforce a custom AutoStart whitelist on top of standard Android. Apps not on this whitelist are frozen ~60s after going to background and refused service-rebind with `W/ActivityManager: AutoStart Limit`. There is **no public API** to query or toggle this.
+
+On most XOS/OxygenOS versions the user-facing fix isn't a settings toggle — it's a **menu action in the recent apps view**: open recents → tap the menu icon next to the app name → tap Lock. The locked app is then exempted from the OEM's kill list.
+
+The `PadlockProtectionCard` (`components/PadlockProtectionCard.tsx`) walks the user through the gesture with a 3-step illustration and a single "I've Locked It" confirm button. On confirm, `padlockConfirmedAt` is set in `uiStore` (persisted to expo-secure-store) and the card replaces itself with a "Locked in Recents" success state. A "Show instructions again" link resets the flag so the user can re-read the steps if blocking ever stops working.
+
+`useOemAutoStart()` exposes the detected brand and a `requiresAutoStart` flag (true for Transsion/Xiaomi/Oppo/Vivo/Huawei/Samsung). The card only renders on those devices. `openAutoStartSettings()` remains available as a fallback deep-link but is not used in the current UX — the recents-menu lock works on every modern XOS version, while the AutoStart settings screen location varies.
+
 ## Permissions Setup Flow
 
-The app requires three special Android permissions. Each requires navigating to Android Settings — they cannot be granted via runtime dialog.
+The app requires three Android permissions. The first two require navigating to Android Settings; the third is a one-tap system dialog.
 
 1. **Usage Stats Access** (PACKAGE_USAGE_STATS) — needed to detect foreground app
 2. **Overlay Permission** (SYSTEM_ALERT_WINDOW) — needed to show blocking overlay
-3. **Accessibility Service** — needed for reliable overlay display and blocking enforcement
+3. **Ignore Battery Optimizations** (REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) — needed so the foreground service keeps polling during Doze / when screen is off. Shows as a system Allow/Deny dialog, not a settings page.
 
-The `(setup)/permissions.tsx` screen walks the user through each sequentially. It checks status after the user returns from Settings and only allows proceeding when all three are granted. The `usePermissions()` hook polls `hasRequiredPermissions()` from the native module (re-checks on app foreground via AppState listener).
+`BlockerService` also acquires a `PARTIAL_WAKE_LOCK` for the duration of an active session, which keeps the CPU awake so the 250ms polling coroutine fires reliably during Doze. The wake lock is released in `onDestroy`.
+
+An optional fourth permission (Notification Access) is requested from Settings only if the user enables the "Block Notifications" toggle — it is not part of the setup wizard.
+
+The `(setup)/permissions.tsx` screen walks the user through each sequentially. It checks status after the user returns from Settings and only allows proceeding when both are granted. The `usePermissions()` hook polls `hasRequiredPermissions()` from the native module (re-checks on app foreground via AppState listener).
 
 This screen MUST be shown on first launch before the user can create any tasks or start blocking.
 
@@ -319,7 +348,7 @@ This screen MUST be shown on first launch before the user can create any tasks o
 ## Do NOT
 
 - Do NOT store blocking state in React Native (AsyncStorage, Zustand, or component state). SharedPreferences on the Kotlin side is the source of truth.
-- Do NOT use AccessibilityService for app detection. Use UsageStatsManager. AccessibilityService is for the overlay only.
+- Do NOT add an AccessibilityService back to the project. The Play Store flags accessibility-for-blocking as a policy risk and the 250ms UsageStatsManager poll is sufficient for app detection. Notification suppression uses NotificationListenerService, which is a separate, allowed mechanism.
 - Do NOT put a close/dismiss button on the blocking overlay. The user must leave the blocked app.
 - Do NOT install or use any form library (React Hook Form, Formik, etc.). Use plain controlled inputs with useState. Validate with Zod.
 - Do NOT use React Context for state management EXCEPT for auth (AuthContext integrates with Expo Router). All other server state goes through TanStack Query.

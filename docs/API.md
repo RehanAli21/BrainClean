@@ -1,4 +1,4 @@
-# BrainClean API Documentation
+# GrayGuard API Documentation
 
 Base URL: `http://localhost:8080`
 
@@ -35,6 +35,7 @@ Register a new user with email and password.
 ```json
 {
 	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"expiresAt": "2026-04-27T12:00:00Z",
 	"user": {
 		"id": "550e8400-e29b-41d4-a716-446655440000",
 		"email": "user@example.com",
@@ -44,6 +45,8 @@ Register a new user with email and password.
 	}
 }
 ```
+
+`expiresAt` is the UTC instant when the JWT becomes invalid (30 days after issuance).
 
 **Error Responses:**
 
@@ -82,6 +85,7 @@ Authenticate an existing user.
 ```json
 {
 	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"expiresAt": "2026-04-27T12:00:00Z",
 	"user": {
 		"id": "550e8400-e29b-41d4-a716-446655440000",
 		"email": "user@example.com",
@@ -91,6 +95,8 @@ Authenticate an existing user.
 	}
 }
 ```
+
+`expiresAt` is the UTC instant when the JWT becomes invalid (30 days after issuance).
 
 **Error Responses:**
 
@@ -177,6 +183,30 @@ Reset password using a valid reset token.
 | 400    | INVALID_TOKEN    | Token not found or invalid |
 | 400    | TOKEN_EXPIRED    | Reset token has expired    |
 | 400    | VALIDATION_ERROR | Invalid or missing fields  |
+
+---
+
+## Users
+
+### DELETE /api/users/me
+
+Permanently delete the authenticated user and **all** of their data:
+
+- the user record itself
+- all of the user's tasks
+
+This operation is irreversible.
+
+**Auth:** Authenticated
+
+**Success Response:** `204 No Content`
+
+**Error Responses:**
+
+| Status | Error Code     | When                                  |
+| ------ | -------------- | ------------------------------------- |
+| 404    | USER_NOT_FOUND | User no longer exists in the database |
+| 401    | —              | Missing or invalid JWT                |
 
 ---
 
@@ -390,7 +420,8 @@ Delete a task. Only deletes tasks owned by the authenticated user. Cannot delete
 
 ### PATCH /api/tasks/{id}/start
 
-Start a task. Sets `startedAt` to the server clock. Only one task can be active (started and not completed) at a time. Called from mobile to begin app blocking.
+Start a task. Sets `startedAt` to the server clock. Only one task can be active (started and not completed) at a time.
+Called from mobile to begin app blocking.
 
 **Auth:** Authenticated
 
@@ -423,7 +454,8 @@ Start a task. Sets `startedAt` to the server clock. Only one task can be active 
 
 ### PATCH /api/tasks/{id}/complete
 
-Mark a task as completed. The task must be started and the minimum duration must have elapsed since `startedAt` (server-side check). In the future, this will also require a valid QR token.
+Mark a task as completed. The task must be started and the minimum duration must have elapsed since `startedAt` (
+server-side check).
 
 **Auth:** Authenticated
 
@@ -450,6 +482,54 @@ Mark a task as completed. The task must be started and the minimum duration must
 | 409    | TASK_NOT_ELIGIBLE      | Task not started, or minimum duration not yet reached |
 | 409    | TASK_ALREADY_COMPLETED | Task has already been completed                       |
 | 401    | —                      | Missing or invalid JWT                                |
+
+---
+
+## Wishlist
+
+### POST /api/wishlist/join
+
+Add an email to the wishlist. Idempotent: if the email already exists, the existing
+entry is returned with the same `201 Created` response (no error).
+
+**Auth:** Public
+
+**Request Body:**
+
+| Field    | Type   | Validation                     |
+| -------- | ------ | ------------------------------ |
+| email    | string | Required, valid email, max 255 |
+| location | string | Optional, max 255 chars        |
+
+**Example Request:**
+
+```json
+{
+	"email": "user@example.com",
+	"location": "Karachi, PK"
+}
+```
+
+**Success Response:** `201 Created`
+
+```json
+{
+	"id": "550e8400-e29b-41d4-a716-446655440000",
+	"email": "user@example.com",
+	"location": "Karachi, PK",
+	"createdAt": "2026-05-03T12:00:00Z"
+}
+```
+
+If the email is already on the wishlist, the same `201 Created` response is returned
+with the originally stored `location` and `createdAt` (the new request's `location`
+is ignored).
+
+**Error Responses:**
+
+| Status | Error Code       | When                                      |
+| ------ | ---------------- | ----------------------------------------- |
+| 400    | VALIDATION_ERROR | Missing email, invalid email, or too long |
 
 ---
 

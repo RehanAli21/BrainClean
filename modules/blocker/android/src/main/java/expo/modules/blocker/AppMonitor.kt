@@ -10,7 +10,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicReference
 
 class AppMonitor {
     private var monitorJob: Job? = null
@@ -45,6 +44,8 @@ class AppMonitor {
                 return@launch
             }
 
+            var tickCount = 0L
+            var lastHeartbeatLoggedAt = 0L
             while (isActive) {
                 try {
                     val foregroundPackage = getForegroundPackage(usageStatsManager)
@@ -55,16 +56,19 @@ class AppMonitor {
                     Log.e(TAG, "Error polling foreground app", e)
                 }
 
+                tickCount++
+                val now = System.currentTimeMillis()
+                if (now - lastHeartbeatLoggedAt >= HEARTBEAT_INTERVAL_MS) {
+                    Log.i(TAG, "heartbeat tick=$tickCount foreground=${try { getForegroundPackage(usageStatsManager) } catch (e: Exception) { "err" }}")
+                    lastHeartbeatLoggedAt = now
+                }
+
                 delay(POLL_INTERVAL_MS)
             }
         }
     }
 
-    /**
-     * Called by both the UsageStats polling loop and BlockerAccessibilityService.
-     * Unified detection logic: check if the package is blocked and show/hide overlay.
-     */
-    fun onForegroundAppChanged(packageName: String) {
+    private fun onForegroundAppChanged(packageName: String) {
         // Ignore our own package — overlay is part of BrainClean's process
         if (packageName == ownPackage) return
 
@@ -114,10 +118,8 @@ class AppMonitor {
 
     companion object {
         private const val TAG = "AppMonitor"
-        private const val POLL_INTERVAL_MS = 2000L
+        private const val POLL_INTERVAL_MS = 250L
         private const val EVENT_WINDOW_MS = 10000L
-
-        /** Static reference for BlockerAccessibilityService to push events */
-        val instance = AtomicReference<AppMonitor?>(null)
+        private const val HEARTBEAT_INTERVAL_MS = 60_000L
     }
 }

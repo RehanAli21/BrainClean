@@ -76,6 +76,6 @@ class TaskStatusChecker {
 
     companion object {
         private const val TAG = "TaskStatusChecker"
-        private const val POLL_INTERVAL_MS = 20_000L
+        private const val POLL_INTERVAL_MS = 5_000L
     }
 }

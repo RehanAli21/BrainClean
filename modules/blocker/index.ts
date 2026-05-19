@@ -14,8 +14,9 @@ export function startBlocking(
   authToken: string,
   baseUrl: string,
   maxBlockTimeMs: number,
+  blockNotifications: boolean,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs);
+  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications);
 }
 
 export function stopBlocking(): void {
@@ -46,8 +47,31 @@ export function requestOverlayPermission(): void {
   BlockerModule.requestOverlayPermission();
 }
 
-export function requestAccessibilityPermission(): void {
-  BlockerModule.requestAccessibilityPermission();
+export function isBatteryOptimizationIgnored(): boolean {
+  return BlockerModule.isBatteryOptimizationIgnored();
+}
+
+export function requestBatteryOptimizationExemption(): void {
+  BlockerModule.requestBatteryOptimizationExemption();
+}
+
+export function isNotificationListenerEnabled(): boolean {
+  return BlockerModule.isNotificationListenerEnabled();
+}
+
+export function requestNotificationListenerPermission(): void {
+  BlockerModule.requestNotificationListenerPermission();
+}
+
+export function getDeviceManufacturer(): string {
+  return BlockerModule.getDeviceManufacturer();
+}
+
+// Returns true if a known OEM-specific AutoStart screen was opened.
+// Returns false if we had to fall back to the generic App Info screen
+// (still works — user just navigates one extra tap).
+export function openAutoStartSettings(): boolean {
+  return BlockerModule.openAutoStartSettings();
 }
 
 export function addBlockedAppListener(

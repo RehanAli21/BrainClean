@@ -1,170 +1,51 @@
-import { AuthInput } from '@/components/AuthInput'
-import { PrimaryButton } from '@/components/PrimaryButton'
-import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
-import { useAuth } from '@/context/AuthContext'
-import { usePermissions } from '@/hooks/usePermissions'
-import { authService } from '@/services/api/auth'
-import { Link, Redirect } from 'expo-router'
-import React, { useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { z } from 'zod'
+import { useRouter } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
+import { useEffect } from 'react'
+import { Image, StyleSheet, Text, View } from 'react-native'
 
-const loginSchema = z.object({
-	email: z.string().email('Please enter a valid email'),
-	password: z.string().min(1, 'Password is required'),
-})
+const logo = require('@/assets/images/logo_in_white_color.png')
 
-export default function Index() {
+export default function SplashPage() {
 	const theme = Colors.dark
-	const { token, isLoading, login } = useAuth()
-	const { allGranted, isLoading: permissionsLoading } = usePermissions()
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
-	const [errors, setErrors] = useState<Record<string, string>>({})
-	const [apiError, setApiError] = useState('')
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const router = useRouter()
 
-	if (isLoading || permissionsLoading) {
-		return (
-			<View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
-				<ActivityIndicator
-					size='large'
-					color={theme.primary}
-				/>
-			</View>
-		)
-	}
+	useEffect(() => {
+		SplashScreen.hideAsync()
 
-	if (token && !allGranted) {
-		return <Redirect href='/(setup)/permissions' />
-	}
+		const timer = setTimeout(() => {
+			router.replace('/auth/login')
+		}, 300)
 
-	if (token && allGranted) {
-		return <Redirect href='/(main)/(tabs)/tasks' />
-	}
-
-	const handleLogin = async () => {
-		setErrors({})
-		setApiError('')
-
-		const result = loginSchema.safeParse({ email, password })
-		if (!result.success) {
-			const fieldErrors: Record<string, string> = {}
-			for (const issue of result.error.issues) {
-				const key = issue.path[0] as string
-				if (!fieldErrors[key]) fieldErrors[key] = issue.message
-			}
-			setErrors(fieldErrors)
-			return
-		}
-
-		setIsSubmitting(true)
-		try {
-			const data = await authService.login(email, password)
-			login(data.token, data.user.email)
-		} catch (err: any) {
-			const code = err.response?.data?.error
-			if (code === 'INVALID_CREDENTIALS') {
-				setApiError('Invalid email or password.')
-			} else if (code === 'ACCOUNT_DEACTIVATED') {
-				setApiError('Your account has been deactivated.')
-			} else {
-				setApiError('Something went wrong. Please try again.')
-			}
-		} finally {
-			setIsSubmitting(false)
-		}
-	}
+		return () => clearTimeout(timer)
+	}, [router])
 
 	return (
-		<View style={[styles.container, { backgroundColor: theme.background }]}>
-			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>Welcome Back</Text>
-				<Text style={[styles.subtitle, { color: theme.icon }]}>Sign in to manage your focus guard.</Text>
-			</View>
-
-			<View style={styles.form}>
-				{apiError ? (
-					<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
-						<Text style={[styles.errorBannerText, { color: theme.accent }]}>{apiError}</Text>
-					</View>
-				) : null}
-
-				<AuthInput
-					label='Email Address'
-					placeholder='user@brainclean.com'
-					keyboardType='email-address'
-					autoCapitalize='none'
-					value={email}
-					onChangeText={setEmail}
-				/>
-				{errors.email ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.email}</Text> : null}
-
-				<AuthInput
-					label='Password'
-					placeholder='••••••••'
-					isPassword
-					value={password}
-					onChangeText={setPassword}
-				/>
-				{errors.password ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.password}</Text> : null}
-
-				<View style={styles.forgotContainer}>
-					<Link
-						href='/auth/forgot-password'
-						asChild>
-						<TouchableOpacity>
-							<Text style={[styles.linkText, { color: theme.primary }]}>Forgot Password?</Text>
-						</TouchableOpacity>
-					</Link>
-				</View>
-
-				<PrimaryButton
-					title='Sign In'
-					onPress={handleLogin}
-					isLoading={isSubmitting}
-				/>
-
-				<View style={styles.divider}>
-					<View style={[styles.line, { backgroundColor: theme.border }]} />
-					<Text style={[styles.orText, { color: theme.icon }]}>OR</Text>
-					<View style={[styles.line, { backgroundColor: theme.border }]} />
-				</View>
-
-				<SocialButton
-					title='Continue with Google'
-					onPress={() => console.log('Google Auth')}
-				/>
-			</View>
-
-			<View style={styles.footer}>
-				<Text style={{ color: theme.icon }}>Don{"'"}t have an account? </Text>
-				<Link
-					href='/auth/signup'
-					asChild>
-					<TouchableOpacity>
-						<Text style={[styles.linkText, { color: theme.primary }]}>Sign Up</Text>
-					</TouchableOpacity>
-				</Link>
-			</View>
+		<View style={[styles.container, { backgroundColor: '#2563EB' }]}>
+			<Image
+				source={logo}
+				style={styles.logo}
+				resizeMode='contain'
+			/>
+			<Text style={[styles.appName, { color: theme.text }]}>BrainClean</Text>
 		</View>
 	)
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, padding: 24, justifyContent: 'center' },
-	header: { marginBottom: 32 },
-	title: { fontSize: 32, fontWeight: '700', marginBottom: 8 },
-	subtitle: { fontSize: 16 },
-	form: { width: '100%' },
-	forgotContainer: { alignItems: 'flex-end', marginBottom: 24, marginTop: -8 },
-	linkText: { fontWeight: '600' },
-	divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 24 },
-	line: { flex: 1, height: 1 },
-	orText: { marginHorizontal: 16, fontSize: 12, fontWeight: '600' },
-	footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
-	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
-	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
-	fieldError: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
+	container: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	logo: {
+		width: 150,
+		height: 150,
+	},
+	appName: {
+		fontSize: 28,
+		fontWeight: '700',
+		marginTop: 20,
+		letterSpacing: 1,
+	},
 })

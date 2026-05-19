@@ -1,6 +1,5 @@
 import { AuthInput } from '@/components/AuthInput'
 import { PrimaryButton } from '@/components/PrimaryButton'
-// import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { authService } from '@/services/api/auth'
@@ -41,7 +40,7 @@ export default function LoginScreen() {
 		setIsLoading(true)
 		try {
 			const data = await authService.login(email, password)
-			login(data.token, data.user.email)
+			login(data.token, data.user.email, data.expiresAt)
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'INVALID_CREDENTIALS') {
@@ -104,17 +103,6 @@ export default function LoginScreen() {
 					onPress={handleLogin}
 					isLoading={isLoading}
 				/>
-
-				{/* <View style={styles.divider}>
-					<View style={[styles.line, { backgroundColor: theme.border }]} />
-					<Text style={[styles.orText, { color: theme.icon }]}>OR</Text>
-					<View style={[styles.line, { backgroundColor: theme.border }]} />
-				</View>
-
-				<SocialButton
-					title='Continue with Google'
-					onPress={() => console.log('Google Auth')}
-				/> */}
 			</View>
 
 			<View style={styles.footer}>
@@ -139,9 +127,6 @@ const styles = StyleSheet.create({
 	form: { width: '100%' },
 	forgotContainer: { alignItems: 'flex-end', marginBottom: 24, marginTop: -8 },
 	linkText: { fontWeight: '600' },
-	divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 24 },
-	line: { flex: 1, height: 1 },
-	orText: { marginHorizontal: 16, fontSize: 12, fontWeight: '600' },
 	footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
 	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
 	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },

@@ -30,6 +30,7 @@ export const Colors = {
     primary: PALETTE.electricBlue,
     surface: '#F4F4F5',
     accent: PALETTE.roseAlert,
+    success: PALETTE.successTeal,
     border: '#E4E4E7',
   },
   dark: {
@@ -42,6 +43,7 @@ export const Colors = {
     primary: PALETTE.electricBlue,
     surface: PALETTE.surface,
     accent: PALETTE.roseAlert,
+    success: PALETTE.successTeal,
     border: PALETTE.border,
   },
 };

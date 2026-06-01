@@ -44,7 +44,7 @@
     - Contacts
     - Microphone
 [ ] Prepare Permissions Declaration form if using:
-    - QUERY_ALL_PACKAGES
+    - QUERY_ALL_PACKAGES (NOT used — replaced with <queries> filter)
     - MANAGE_EXTERNAL_STORAGE
     - Background location
     - SMS permissions

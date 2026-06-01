@@ -35,8 +35,9 @@ plugin all take effect.
          the namespace in build.gradle instead — that is fine).
        - READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE are NOT
          listed in <uses-permission>.
-       - QUERY_ALL_PACKAGES, SYSTEM_ALERT_WINDOW, INTERNET, 
-         VIBRATE remain.
+       - SYSTEM_ALERT_WINDOW, INTERNET, VIBRATE remain.
+       - A <queries> block is present with ACTION_MAIN/LAUNCHER
+         intent filter and OEM package entries.
        - The blocker module's services / receivers appear inside
          <application>: BlockerService, BlockerAccessibilityService,
          NotificationBlockerService, BootReceiver. (They come from
@@ -248,9 +249,10 @@ It MUST cover (because BrainClean collects/uses these):
     This sentence is critical — Play Store rejects accessibility
     apps that do not have an explicit policy statement on what
     they do NOT do.
-  - QUERY_ALL_PACKAGES: discloses that the app reads the list of
-    installed apps so the user can choose which to block. List
-    of installed apps is NOT transmitted off-device.
+  - Installed apps: discloses that the app reads the list of
+    installed apps (via <queries> intent filter, not
+    QUERY_ALL_PACKAGES) so the user can choose which to block.
+    List of installed apps is NOT transmitted off-device.
   - Third parties: list any. Currently none (no analytics,
     no Sentry yet, no ads). State this explicitly.
 
@@ -296,15 +298,9 @@ In Play Console → your app → Policy:
   6.9 PERMISSIONS DECLARATION (most important)
       You will be asked to justify these permissions in writing:
 
-      a) QUERY_ALL_PACKAGES
-         Justification text (paste this, edit to taste):
-           "BrainClean is a focus tool that lets users block
-            distracting apps for the duration of a task. The app
-            needs the list of installed apps so the user can
-            choose which apps to block. The list is read on-device
-            only and is not transmitted to our servers. There is
-            no narrower permission that allows the user to pick
-            arbitrary apps from their device."
+      a) QUERY_ALL_PACKAGES — NO LONGER USED. The app now uses
+         a <queries> intent filter (ACTION_MAIN + CATEGORY_LAUNCHER)
+         instead, so no Permissions Declaration is needed for this.
 
       b) SYSTEM_ALERT_WINDOW (Display over other apps)
          Justification:
@@ -525,8 +521,8 @@ After 14 days + production access approval:
   [ ] Phase 6: Data Safety form completed
   [ ] Phase 6: Content Rating completed
   [ ] Phase 6: Target Audience completed
-  [ ] Phase 6: Permissions Declaration submitted (QUERY_ALL_PACKAGES,
-              SYSTEM_ALERT_WINDOW, accessibility)
+  [ ] Phase 6: Permissions Declaration submitted (SYSTEM_ALERT_WINDOW,
+              accessibility — QUERY_ALL_PACKAGES no longer needed)
   [ ] Phase 7: 12 testers recruited and added to closed track
   [ ] Phase 7: 14-day closed test elapsed
   [ ] Phase 7: production access form submitted and approved

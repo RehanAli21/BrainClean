@@ -294,9 +294,10 @@
 
 			<h3>3.1 List of installed apps</h3>
 			<p>
-				The App uses Android&rsquo;s <code>QUERY_ALL_PACKAGES</code> permission and <code>PackageManager</code> to read the list of launchable
-				apps installed on your device. We do this only so the in-app picker can show you which apps you can choose to block, along with each
-				app&rsquo;s name and icon.
+				The App uses Android&rsquo;s <code>PackageManager</code> to read the list of launchable apps installed on your device. We do this only
+				so the in-app picker can show you which apps you can choose to block, along with each app&rsquo;s name and icon. The App declares a
+				narrow <code>&lt;queries&gt;</code> intent filter (limited to launcher apps) rather than the broad
+				<code>QUERY_ALL_PACKAGES</code> permission.
 				<strong>The list of installed apps is read on-device only and is never transmitted off your device.</strong>
 			</p>
 
@@ -339,10 +340,10 @@
 						<td>To communicate with our backend (sign in, save tasks, check task completion).</td>
 					</tr>
 					<tr>
-						<td><code>QUERY_ALL_PACKAGES</code></td>
+						<td>Launcher app visibility (<code>&lt;queries&gt;</code> filter)</td>
 						<td>
 							To show you the list of installed apps so you can choose which ones to block. The list is read on-device only and never
-							sent to our servers.
+							sent to our servers. Only apps with a launcher icon are visible to the App.
 						</td>
 					</tr>
 					<tr>

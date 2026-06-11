@@ -194,7 +194,7 @@
 	<body>
 		<main>
 			<h1>Privacy Policy</h1>
-			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 5 May 2026</p>
+			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 11 June 2026</p>
 
 			<div class="summary">
 				<p>
@@ -230,7 +230,7 @@
 			<h2 id="who">1. Who we are</h2>
 			<p>
 				This privacy policy describes how BrainClean (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) handles your information when you
-				use the <strong>BrainClean</strong> mobile application (Android package <code class="pkg">com.BrainClean.app</code>, the
+				use the <strong>BrainClean</strong> mobile application (Android package <code class="pkg">com.brainclean.app</code>, the
 				&ldquo;App&rdquo;).
 			</p>
 			<p>We are based in Pakistan. If you have any questions about this policy or your data, contact us at support@brainclean.app</p>
@@ -296,7 +296,8 @@
 			<p>
 				The App uses Android&rsquo;s <code>PackageManager</code> to read the list of launchable apps installed on your device. We do this only
 				so the in-app picker can show you which apps you can choose to block, along with each app&rsquo;s name and icon. The App declares a
-				narrow <code>&lt;queries&gt;</code> intent filter (limited to launcher apps) rather than the broad
+				narrow <code>&lt;queries&gt;</code> intent filter (limited to launcher apps, plus a small fixed list of device-manufacturer settings
+				apps used only to open the correct auto-start settings screen on certain devices) rather than the broad
 				<code>QUERY_ALL_PACKAGES</code> permission.
 				<strong>The list of installed apps is read on-device only and is never transmitted off your device.</strong>
 			</p>
@@ -308,16 +309,7 @@
 				<strong>Foreground app information is never logged or transmitted off your device.</strong>
 			</p>
 
-			<h3>3.3 Accessibility service</h3>
-			<div class="callout">
-				<p>
-					<strong>We do not record, log, transmit, or read any on-screen content.</strong> The accessibility service is used solely to
-					display a blocking overlay over user-selected apps and to detect app switches so the overlay appears reliably. We do not capture
-					keystrokes, screen contents, passwords, or any other on-screen data.
-				</p>
-			</div>
-
-			<h3>3.4 Notification listener (optional)</h3>
+			<h3>3.3 Notification listener (optional)</h3>
 			<p>
 				If you turn on the &ldquo;Block Notifications&rdquo; option in Settings, the App will use Android&rsquo;s notification listener to
 				silence notifications coming from the apps you have chosen to block while a focus task is active. The notification content is
@@ -358,17 +350,24 @@
 						<td>To show the blocking overlay on top of a blocked app. Granted by you in Android Settings.</td>
 					</tr>
 					<tr>
-						<td>Accessibility Service (<code>BIND_ACCESSIBILITY_SERVICE</code>)</td>
-						<td>
-							To display the blocking overlay reliably and to detect when you switch into a blocked app. We do not read on-screen
-							content. Granted by you in Android Settings.
-						</td>
-					</tr>
-					<tr>
 						<td><code>FOREGROUND_SERVICE</code> + <code>FOREGROUND_SERVICE_SPECIAL_USE</code></td>
 						<td>
 							To run the blocking engine as a foreground service so Android does not kill it while a focus task is active. The declared
 							subtype is &ldquo;App blocking enforcement for digital wellness&rdquo;.
+						</td>
+					</tr>
+					<tr>
+						<td><code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code></td>
+						<td>
+							To request exemption from battery optimization so the blocking service keeps running while the screen is off or your
+							device is in Doze mode. Granted by you via a system dialog.
+						</td>
+					</tr>
+					<tr>
+						<td><code>WAKE_LOCK</code></td>
+						<td>
+							To keep the CPU awake while a focus task is active so the blocking service can reliably detect the foreground app. Released
+							as soon as the task ends.
 						</td>
 					</tr>
 					<tr>
@@ -410,7 +409,7 @@
 			<h3>5.2 In transit</h3>
 			<p>
 				All communication between the App and our backend uses HTTPS (TLS). Our backend is reachable at
-				<code>https://api.BrainClean.app/api</code>.
+				<code>https://api.brainclean.app/api</code>.
 			</p>
 
 			<h3>5.3 On our servers</h3>
@@ -472,8 +471,8 @@
 				</li>
 				<li><strong>Sign out</strong> of the App at any time, which removes your authentication token from your device.</li>
 				<li>
-					<strong>Revoke permissions</strong> at any time in Android Settings. Revoking certain permissions (Usage Access, Overlay,
-					Accessibility) will disable or weaken the blocking feature.
+					<strong>Revoke permissions</strong> at any time in Android Settings. Revoking certain permissions (Usage Access, Display over
+					other apps) will disable or weaken the blocking feature.
 				</li>
 			</ul>
 			<p>
@@ -516,7 +515,7 @@
 
 			<footer>
 				<p>&copy; BrainClean. All rights reserved.</p>
-				<p>This page is the privacy policy for the BrainClean Android app, package <code>com.BrainClean.app</code>.</p>
+				<p>This page is the privacy policy for the BrainClean Android app, package <code>com.brainclean.app</code>.</p>
 			</footer>
 		</main>
 	</body>

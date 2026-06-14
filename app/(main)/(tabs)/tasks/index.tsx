@@ -104,12 +104,30 @@ export default function TaskListScreen() {
 		}
 	}, [tasks, hasActiveTask, isBlocking, stopBlocking])
 
-	// Poll for task completion while blocking is active
+	// Poll for task completion — delay until 1 min before minimum duration elapses
+	const activeTask = tasks?.find(t => t.started && !t.completed)
+	const activeStartedAt = activeTask?.startedAt
+	const activeMinDuration = activeTask?.minimumDurationSeconds
+
 	useEffect(() => {
-		if (!isBlocking) return
-		const interval = setInterval(refetch, TASK_POLL_INTERVAL_MS)
-		return () => clearInterval(interval)
-	}, [isBlocking, refetch])
+		if (!isBlocking || !activeStartedAt || !activeMinDuration) return
+
+		const eligibleAt = new Date(activeStartedAt).getTime() + activeMinDuration * 1000
+		const pollStartAt = eligibleAt - 60_000
+		const delayMs = Math.max(0, pollStartAt - Date.now())
+
+		let intervalId: ReturnType<typeof setInterval> | undefined
+
+		const timeoutId = setTimeout(() => {
+			refetch()
+			intervalId = setInterval(refetch, TASK_POLL_INTERVAL_MS)
+		}, delayMs)
+
+		return () => {
+			clearTimeout(timeoutId)
+			if (intervalId) clearInterval(intervalId)
+		}
+	}, [isBlocking, activeStartedAt, activeMinDuration, refetch])
 
 	const renderItem = ({ item }: { item: Task }) => (
 		<TaskCard

@@ -70,6 +70,17 @@ const withGradlePropertyFlags = (config) =>
 		return cfg;
 	});
 
+const withHermesCommandFix = (config) =>
+	withAppBuildGradle(config, (cfg) => {
+		// RN 0.81 bundles Hermes internally — the prebuild template's
+		// hermes-compiler resolution fails because the package doesn't exist.
+		cfg.modResults.contents = cfg.modResults.contents.replace(
+			/^\s*hermesCommand\s*=.*hermes-compiler.*$/m,
+			'    // hermesCommand removed — Hermes is bundled in react-native 0.81+',
+		);
+		return cfg;
+	});
+
 const withReleaseSigningConfig = (config) =>
 	withAppBuildGradle(config, (cfg) => {
 		let contents = cfg.modResults.contents;
@@ -112,6 +123,7 @@ const withProguardKeepRules = (config) =>
 
 module.exports = function withProductionAndroidConfig(config) {
 	config = withGradlePropertyFlags(config);
+	config = withHermesCommandFix(config);
 	config = withReleaseSigningConfig(config);
 	config = withProguardKeepRules(config);
 	return config;

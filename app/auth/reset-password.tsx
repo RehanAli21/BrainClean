@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 const resetSchema = z
 	.object({
+		code: z.string().length(6, 'Code must be exactly 6 digits').regex(/^\d{6}$/, 'Code must be 6 digits'),
 		newPassword: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password must be at most 128 characters'),
 		confirmPassword: z.string(),
 	})
@@ -21,7 +22,8 @@ const resetSchema = z
 export default function ResetPasswordScreen() {
 	const theme = Colors.dark
 	const router = useRouter()
-	const { token } = useLocalSearchParams<{ token: string }>()
+	const { email } = useLocalSearchParams<{ email: string }>()
+	const [code, setCode] = useState('')
 	const [newPassword, setNewPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
 	const [errors, setErrors] = useState<Record<string, string>>({})
@@ -33,7 +35,7 @@ export default function ResetPasswordScreen() {
 		setErrors({})
 		setApiError('')
 
-		const result = resetSchema.safeParse({ newPassword, confirmPassword })
+		const result = resetSchema.safeParse({ code, newPassword, confirmPassword })
 		if (!result.success) {
 			const fieldErrors: Record<string, string> = {}
 			for (const issue of result.error.issues) {
@@ -44,21 +46,25 @@ export default function ResetPasswordScreen() {
 			return
 		}
 
-		if (!token) {
-			setApiError('Reset token is missing. Please request a new one.')
+		if (!email) {
+			setApiError('Email is missing. Please go back and try again.')
 			return
 		}
 
 		setIsLoading(true)
 		try {
-			await authService.resetPassword(token, newPassword)
+			await authService.resetPassword(email, code, newPassword, confirmPassword)
 			setSuccess(true)
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'INVALID_TOKEN') {
-				setApiError('This reset token is invalid.')
+				setApiError('Invalid code. Please check and try again.')
 			} else if (code === 'TOKEN_EXPIRED') {
-				setApiError('This reset token has expired. Please request a new one.')
+				setApiError('This code has expired. Please request a new one.')
+			} else if (code === 'PASSWORD_MISMATCH') {
+				setApiError('Passwords do not match.')
+			} else if (code === 'VALIDATION_ERROR') {
+				setApiError(err.response?.data?.message || 'Invalid input.')
 			} else {
 				setApiError('Something went wrong. Please try again.')
 			}
@@ -109,7 +115,9 @@ export default function ResetPasswordScreen() {
 
 			<View style={styles.header}>
 				<Text style={[styles.title, { color: theme.text }]}>New Password</Text>
-				<Text style={[styles.subtitle, { color: theme.icon }]}>Enter your new password below.</Text>
+				<Text style={[styles.subtitle, { color: theme.icon }]}>
+					Enter the 6-digit code sent to {email || 'your email'} and choose a new password.
+				</Text>
 			</View>
 
 			<View style={styles.form}>
@@ -118,6 +126,17 @@ export default function ResetPasswordScreen() {
 						<Text style={[styles.errorBannerText, { color: theme.accent }]}>{apiError}</Text>
 					</View>
 				) : null}
+
+				<AuthInput
+					label='Reset Code'
+					placeholder='123456'
+					keyboardType='number-pad'
+					autoCapitalize='none'
+					value={code}
+					onChangeText={setCode}
+					maxLength={6}
+				/>
+				{errors.code ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.code}</Text> : null}
 
 				<AuthInput
 					label='New Password'

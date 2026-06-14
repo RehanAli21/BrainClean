@@ -37,12 +37,14 @@ export default function ForgotPasswordScreen() {
 
 		setIsLoading(true)
 		try {
-			const data = await authService.forgotPassword(email)
-			router.push({ pathname: '/auth/reset-password', params: { token: data.resetToken } })
+			await authService.forgotPassword(email)
+			router.push({ pathname: '/auth/reset-password', params: { email } })
 		} catch (err: any) {
 			const code = err.response?.data?.error
-			if (code === 'USER_NOT_FOUND') {
-				setApiError('No account found with this email.')
+			if (code === 'VALIDATION_ERROR') {
+				setApiError('Please enter a valid email address.')
+			} else if (code === 'EMAIL_DELIVERY_FAILED') {
+				setApiError('Failed to send the reset code. Please try again later.')
 			} else {
 				setApiError('Something went wrong. Please try again.')
 			}
@@ -69,7 +71,7 @@ export default function ForgotPasswordScreen() {
 
 			<View style={styles.header}>
 				<Text style={[styles.title, { color: theme.text }]}>Reset Password</Text>
-				<Text style={[styles.subtitle, { color: theme.icon }]}>Enter your email to receive a reset token.</Text>
+				<Text style={[styles.subtitle, { color: theme.icon }]}>Enter your email and we{"'"}ll send you a 6-digit reset code.</Text>
 			</View>
 
 			<View style={styles.form}>
@@ -90,7 +92,7 @@ export default function ForgotPasswordScreen() {
 				{errors.email ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.email}</Text> : null}
 
 				<PrimaryButton
-					title='Send Reset Token'
+					title='Send Reset Code'
 					onPress={handleSubmit}
 					isLoading={isLoading}
 				/>

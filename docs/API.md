@@ -1,10 +1,14 @@
-# GrayGuard API Documentation
+# BrainClean API Documentation
 
 Base URL: `http://localhost:8080`
 
 ---
 
 ## Auth
+
+All `/api/auth/**` endpoints are rate limited to **10 requests per minute per client IP**.
+Exceeding the limit returns `429 Too Many Requests` with error code `RATE_LIMIT_EXCEEDED`
+and a `Retry-After: 60` header.
 
 ### POST /api/auth/signup
 
@@ -110,7 +114,9 @@ Authenticate an existing user.
 
 ### POST /api/auth/forgot-password
 
-Request a password reset token. In v1, the token is returned directly in the response (no email sent).
+Request a password reset code. If the email is registered, a 6-digit code is sent to
+that address. The response is intentionally generic and does **not** reveal whether
+the email exists in the system.
 
 **Auth:** Public
 
@@ -132,39 +138,45 @@ Request a password reset token. In v1, the token is returned directly in the res
 
 ```json
 {
-	"resetToken": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-	"expiresAt": "2026-03-28T13:00:00Z"
+	"message": "If an account exists for that email, a reset code has been sent."
 }
 ```
 
+The same response is returned whether or not the email is registered. The code is
+delivered exclusively via email and expires after **15 minutes**.
+
 **Error Responses:**
 
-| Status | Error Code       | When                             |
-| ------ | ---------------- | -------------------------------- |
-| 404    | USER_NOT_FOUND   | No account found with this email |
-| 400    | VALIDATION_ERROR | Invalid or missing fields        |
+| Status | Error Code            | When                               |
+| ------ | --------------------- | ---------------------------------- |
+| 400    | VALIDATION_ERROR      | Missing email or invalid format    |
+| 503    | EMAIL_DELIVERY_FAILED | SMTP error while sending the email |
 
 ---
 
 ### POST /api/auth/reset-password
 
-Reset password using a valid reset token.
+Reset password using the 6-digit code that was sent to the user's email.
 
 **Auth:** Public
 
 **Request Body:**
 
-| Field       | Type   | Validation            |
-| ----------- | ------ | --------------------- |
-| token       | string | Required              |
-| newPassword | string | Required, 8-128 chars |
+| Field           | Type   | Validation                         |
+| --------------- | ------ | ---------------------------------- |
+| email           | string | Required, valid email              |
+| code            | string | Required, exactly 6 digits         |
+| newPassword     | string | Required, 8-128 chars              |
+| confirmPassword | string | Required, must equal `newPassword` |
 
 **Example Request:**
 
 ```json
 {
-	"token": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-	"newPassword": "newsecurepass456"
+	"email": "user@example.com",
+	"code": "482915",
+	"newPassword": "newsecurepass456",
+	"confirmPassword": "newsecurepass456"
 }
 ```
 
@@ -178,11 +190,12 @@ Reset password using a valid reset token.
 
 **Error Responses:**
 
-| Status | Error Code       | When                       |
-| ------ | ---------------- | -------------------------- |
-| 400    | INVALID_TOKEN    | Token not found or invalid |
-| 400    | TOKEN_EXPIRED    | Reset token has expired    |
-| 400    | VALIDATION_ERROR | Invalid or missing fields  |
+| Status | Error Code        | When                                                       |
+| ------ | ----------------- | ---------------------------------------------------------- |
+| 400    | INVALID_TOKEN     | Email/code combination is wrong or no code on file         |
+| 400    | TOKEN_EXPIRED     | Reset code has expired (older than 15 minutes)             |
+| 400    | PASSWORD_MISMATCH | `newPassword` and `confirmPassword` do not match           |
+| 400    | VALIDATION_ERROR  | Missing/invalid email, non-6-digit code, or short password |
 
 ---
 
@@ -299,6 +312,13 @@ GET /api/tasks?start=2026-04-01T00:00:00Z&end=2026-04-02T00:00:00Z
 
 Returns an empty array `[]` if the user has no tasks matching the criteria.
 
+**Error Responses:**
+
+| Status | Error Code       | When                                |
+| ------ | ---------------- | ----------------------------------- |
+| 400    | VALIDATION_ERROR | Malformed `start` or `end` datetime |
+| 401    | —                | Missing or invalid JWT              |
+
 ---
 
 ### GET /api/tasks/by-date
@@ -367,6 +387,13 @@ Get counts of tasks grouped by status for the authenticated user.
 - **pending** — created but not yet started
 - **active** — started but not yet completed
 - **completed** — marked as completed
+- **total** — sum of the above
+
+**Error Responses:**
+
+| Status | Error Code | When                   |
+| ------ | ---------- | ---------------------- |
+| 401    | —          | Missing or invalid JWT |
 
 ---
 

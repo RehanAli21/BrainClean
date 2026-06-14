@@ -26,4 +26,9 @@ export const taskService = {
     const response = await apiClient.patch<Task>(`/tasks/${id}/start`);
     return response.data;
   },
+
+  complete: async (id: string): Promise<Task> => {
+    const response = await apiClient.patch<Task>(`/tasks/${id}/complete`);
+    return response.data;
+  },
 };

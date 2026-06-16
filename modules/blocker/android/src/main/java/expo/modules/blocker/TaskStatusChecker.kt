@@ -18,6 +18,7 @@ class TaskStatusChecker {
     fun start(
         baseUrl: String,
         authToken: String,
+        initialDelayMs: Long = 0L,
         pollIntervalMs: Long = POLL_INTERVAL_MS,
         onNoActiveTasks: () -> Unit
     ) {
@@ -25,6 +26,10 @@ class TaskStatusChecker {
         scope = CoroutineScope(Dispatchers.IO)
 
         pollJob = scope?.launch {
+            if (initialDelayMs > 0) {
+                Log.i(TAG, "Delaying task status polling for ${initialDelayMs / 1000}s")
+                delay(initialDelayMs)
+            }
             while (isActive) {
                 delay(pollIntervalMs)
 
@@ -76,6 +81,6 @@ class TaskStatusChecker {
 
     companion object {
         private const val TAG = "TaskStatusChecker"
-        private const val POLL_INTERVAL_MS = 5_000L
+        private const val POLL_INTERVAL_MS = 20_000L
     }
 }

@@ -53,9 +53,12 @@ export default function NewTaskScreen() {
 			{
 				onSuccess: () => router.back(),
 				onError: (err: any) => {
+					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
 					const code = err.response?.data?.error
 					if (code === 'VALIDATION_ERROR') {
 						setApiError(err.response?.data?.message || 'Invalid input.')
+					} else if (code === 'ACTIVE_TASK_EXISTS') {
+						setApiError('You already have an active task. Complete it first.')
 					} else {
 						setApiError('Something went wrong. Please try again.')
 					}

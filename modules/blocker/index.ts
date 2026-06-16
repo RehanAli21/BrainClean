@@ -15,8 +15,9 @@ export function startBlocking(
   baseUrl: string,
   maxBlockTimeMs: number,
   blockNotifications: boolean,
+  minimumDurationMs: number,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications);
+  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications, minimumDurationMs);
 }
 
 export function stopBlocking(): void {

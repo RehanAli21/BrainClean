@@ -17,8 +17,7 @@ export interface AuthResponse {
 
 /** Response from POST /api/auth/forgot-password */
 export interface ForgotPasswordResponse {
-  resetToken: string;
-  expiresAt: string;
+  message: string;
 }
 
 /** Response from POST /api/auth/reset-password */

@@ -2,12 +2,11 @@
 	"expo": {
 		"name": "BrainClean",
 		"slug": "brainclean",
-		"version": "0.9.3",
+		"version": "0.9.4",
 		"orientation": "portrait",
 		"icon": "./assets/images/logo_in_white_color.png",
 		"scheme": "brainclean",
 		"userInterfaceStyle": "automatic",
-		"newArchEnabled": true,
 		"ios": {
 			"supportsTablet": true
 		},
@@ -18,11 +17,14 @@
 				"backgroundImage": "./assets/images/android-icon-background.png",
 				"monochromeImage": "./assets/images/android-icon-monochrome.png"
 			},
-			"edgeToEdgeEnabled": true,
 			"predictiveBackGestureEnabled": false,
 			"package": "com.brainclean.app",
-			"permissions": ["android.permission.QUERY_ALL_PACKAGES"],
-			"blockedPermissions": ["android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"]
+			"permissions": [],
+			"blockedPermissions": [
+				"android.permission.READ_EXTERNAL_STORAGE",
+				"android.permission.WRITE_EXTERNAL_STORAGE",
+				"com.google.android.gms.permission.AD_ID"
+			]
 		},
 		"web": {
 			"output": "static",

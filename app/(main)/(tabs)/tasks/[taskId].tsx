@@ -2,14 +2,14 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { API_BASE_URL } from '@/constants/config'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
-import { useDeleteTaskMutation, useStartTaskMutation, useTaskQuery } from '@/hooks/queries/useTasks'
+import { useCompleteTaskMutation, useDeleteTaskMutation, useStartTaskMutation, useTaskQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
-import React, { useCallback, useState } from 'react'
-import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 function formatDuration(seconds: number): string {
 	const mins = Math.floor(seconds / 60)
@@ -36,20 +36,52 @@ export default function TaskDetailScreen() {
 	const { taskId } = useLocalSearchParams<{ taskId: string }>()
 	const { data: task, isLoading, isError, refetch } = useTaskQuery(taskId!)
 	const startMutation = useStartTaskMutation()
+	const completeMutation = useCompleteTaskMutation()
 	const deleteMutation = useDeleteTaskMutation()
-	const { startBlocking } = useBlocker()
+	const { startBlocking, stopBlocking } = useBlocker()
 	const { token } = useAuth()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const [apiError, setApiError] = useState('')
+	const [now, setNow] = useState(Date.now)
+
+	const isActive = task?.started && !task?.completed
+	const eligibleAt = task?.startedAt ? new Date(task.startedAt).getTime() + task.minimumDurationSeconds * 1000 : 0
+	const canComplete = isActive && now >= eligibleAt
+	const remainingMs = eligibleAt - now
 
 	useFocusEffect(
 		useCallback(() => {
 			refetch()
 		}, [refetch]),
 	)
+
+	useEffect(() => {
+		if (!isActive || canComplete) return
+		const id = setInterval(() => setNow(Date.now()), 1000)
+		return () => clearInterval(id)
+	}, [isActive, canComplete])
+
+	const handleComplete = () => {
+		setApiError('')
+		completeMutation.mutate(taskId!, {
+			onSuccess: () => {
+				stopBlocking()
+			},
+			onError: (err: any) => {
+				const code = err.response?.data?.error
+				if (code === 'TASK_NOT_ELIGIBLE') {
+					setApiError('Minimum duration has not elapsed yet.')
+				} else if (code === 'TASK_ALREADY_COMPLETED') {
+					setApiError('This task has already been completed.')
+				} else {
+					setApiError('Failed to complete task. Please try again.')
+				}
+			},
+		})
+	}
 
 	const handleStart = () => {
 		if (!allGranted) {
@@ -66,7 +98,7 @@ export default function TaskDetailScreen() {
 		startMutation.mutate(taskId!, {
 			onSuccess: () => {
 				try {
-					startBlocking(selectedApps, taskId!, token!, API_BASE_URL, maxBlockTimeMinutes * 60 * 1000, blockNotifications)
+					startBlocking(selectedApps, taskId!, token!, API_BASE_URL, maxBlockTimeMinutes * 60 * 1000, blockNotifications, task!.minimumDurationSeconds * 1000)
 				} catch {
 					setApiError('Task started but app blocking failed to engage.')
 				}
@@ -144,7 +176,6 @@ export default function TaskDetailScreen() {
 	}
 
 	const isPending = !task.started && !task.completed
-	const isActive = task.started && !task.completed
 
 	return (
 		<View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -234,7 +265,15 @@ export default function TaskDetailScreen() {
 					/>
 				) : null}
 
-				{isActive ? (
+				{isActive && canComplete ? (
+					<PrimaryButton
+						title='Finish Task'
+						onPress={handleComplete}
+						isLoading={completeMutation.isPending}
+					/>
+				) : null}
+
+				{isActive && !canComplete ? (
 					<View style={[styles.infoBanner, { backgroundColor: theme.primary + '1A' }]}>
 						<Ionicons
 							name='lock-closed-outline'
@@ -242,13 +281,7 @@ export default function TaskDetailScreen() {
 							color={theme.primary}
 						/>
 						<Text style={[styles.infoBannerText, { color: theme.primary }]}>
-							Task is active. Complete it via{' '}
-							<Text
-								style={styles.infoBannerLink}
-								onPress={() => Linking.openURL('https://brainclean.app/')}>
-								web app
-							</Text>
-							.
+							Task is active. {formatDuration(Math.ceil(remainingMs / 1000))} remaining.
 						</Text>
 					</View>
 				) : null}

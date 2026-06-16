@@ -59,13 +59,18 @@ class BlockerService : Service() {
             }
         )
 
-        // Poll backend to detect task completion
+        // Poll backend to detect task completion — delay until 1 min before min duration
         val authToken = state.getAuthToken()
         val baseUrl = state.getBaseUrl()
         if (authToken.isNotEmpty() && baseUrl.isNotEmpty()) {
+            val minDurationMs = state.getMinimumDurationMs()
+            val elapsed = System.currentTimeMillis() - state.getStartedAt()
+            val pollDelay = maxOf(0L, minDurationMs - 60_000L - elapsed)
+
             taskStatusChecker.start(
                 baseUrl = baseUrl,
                 authToken = authToken,
+                initialDelayMs = pollDelay,
                 onNoActiveTasks = {
                     Log.i(TAG, "Backend reports no active tasks, stopping blocker")
                     state.stopSession()

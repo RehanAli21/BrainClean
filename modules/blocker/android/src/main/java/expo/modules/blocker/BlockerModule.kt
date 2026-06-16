@@ -64,10 +64,10 @@ class BlockerModule : Module() {
                 .sortedBy { (it["appName"] as? String)?.lowercase() }
         }
 
-        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, blockNotifications: Boolean ->
+        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, blockNotifications: Boolean, minimumDurationMs: Long ->
             val context = appContext.reactContext ?: return@Function Unit
             val state = BlockerState.getInstance(context)
-            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications)
+            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications, minimumDurationMs)
             BlockerService.start(context)
         }
 
@@ -222,20 +222,17 @@ class BlockerModule : Module() {
                 else -> emptyList()
             }
 
-            val pm = context.packageManager
             for (component in candidates) {
-                val intent = Intent().apply {
-                    this.component = component
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                if (intent.resolveActivity(pm) != null) {
-                    try {
-                        context.startActivity(intent)
-                        Log.i("BlockerModule", "Opened AutoStart settings via ${component.flattenToShortString()}")
-                        return@Function true
-                    } catch (e: Exception) {
-                        Log.w("BlockerModule", "Failed to open ${component.flattenToShortString()}: ${e.message}")
+                try {
+                    val intent = Intent().apply {
+                        this.component = component
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
+                    context.startActivity(intent)
+                    Log.i("BlockerModule", "Opened AutoStart settings via ${component.flattenToShortString()}")
+                    return@Function true
+                } catch (e: Exception) {
+                    Log.w("BlockerModule", "Failed to open ${component.flattenToShortString()}: ${e.message}")
                 }
             }
 

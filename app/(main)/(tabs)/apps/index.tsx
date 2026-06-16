@@ -5,7 +5,7 @@ import { useUiStore } from '@/store/uiStore'
 import type { AppInfo } from '@/types/blocker'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, FlatList, Image, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, FlatList, Image, InteractionManager, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 
 function AppRow({ app, disabled }: { app: AppInfo; disabled: boolean }) {
 	const theme = Colors.dark
@@ -61,21 +61,18 @@ export default function AppsScreen() {
 	const { isBlocking } = useBlocker()
 
 	useEffect(() => {
-		loadApps()
+		const handle = InteractionManager.runAfterInteractions(() => {
+			try {
+				const installedApps: AppInfo[] = getInstalledApps()
+				setApps(installedApps)
+			} catch {
+				setError('Failed to load installed apps. Make sure you are running on a device.')
+			} finally {
+				setIsLoading(false)
+			}
+		})
+		return () => handle.cancel()
 	}, [])
-
-	const loadApps = async () => {
-		setIsLoading(true)
-		setError('')
-		try {
-			const installedApps: AppInfo[] = getInstalledApps()
-			setApps(installedApps)
-		} catch {
-			setError('Failed to load installed apps. Make sure you are running on a device.')
-		} finally {
-			setIsLoading(false)
-		}
-	}
 
 	const filteredApps = useMemo(() => {
 		if (!search.trim()) return apps

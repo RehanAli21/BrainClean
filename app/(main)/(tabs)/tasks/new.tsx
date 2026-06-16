@@ -3,11 +3,18 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { Colors } from '@/constants/theme'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
+import { taskService } from '@/services/api/tasks'
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
+
+function getTodayDate(): string {
+	const now = new Date()
+	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
 
 const createTaskSchema = z.object({
 	name: z.string().min(1, 'Task name is required').max(255, 'Task name is too long'),
@@ -17,6 +24,7 @@ const createTaskSchema = z.object({
 export default function NewTaskScreen() {
 	const theme = Colors.dark
 	const router = useRouter()
+	const queryClient = useQueryClient()
 	const createMutation = useCreateTaskMutation()
 	const { isLoading: permsLoading, allGranted } = usePermissions()
 
@@ -35,6 +43,8 @@ export default function NewTaskScreen() {
 			durationMinutes: isNaN(parsed) ? 0 : parsed,
 		})
 
+		console.log(result)
+
 		if (!result.success) {
 			const fieldErrors: Record<string, string> = {}
 			for (const issue of result.error.issues) {
@@ -52,13 +62,25 @@ export default function NewTaskScreen() {
 			},
 			{
 				onSuccess: () => router.back(),
-				onError: (err: any) => {
+				onError: async (err: any) => {
 					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
 					const code = err.response?.data?.error
 					if (code === 'VALIDATION_ERROR') {
 						setApiError(err.response?.data?.message || 'Invalid input.')
 					} else if (code === 'ACTIVE_TASK_EXISTS') {
 						setApiError('You already have an active task. Complete it first.')
+					} else if (!err.response) {
+						try {
+							const tasks = await queryClient.fetchQuery({
+								queryKey: ['tasks', getTodayDate()],
+								queryFn: () => taskService.getByDate(getTodayDate()),
+							})
+							if (tasks.some(t => t.name === result.data.name)) {
+								router.back()
+								return
+							}
+						} catch {}
+						setApiError('Something went wrong. Please try again.')
 					} else {
 						setApiError('Something went wrong. Please try again.')
 					}
@@ -103,7 +125,8 @@ export default function NewTaskScreen() {
 						</Text>
 					</View>
 					<Text style={[styles.permsHint, { color: theme.icon }]}>
-						BrainClean needs Usage Access, Display Over Other Apps, and Unrestricted Background permissions to block apps during your focus sessions.
+						BrainClean needs Usage Access, Display Over Other Apps, and Unrestricted Background permissions to block apps during your
+						focus sessions.
 					</Text>
 					<View style={{ marginTop: 16 }}>
 						<PrimaryButton

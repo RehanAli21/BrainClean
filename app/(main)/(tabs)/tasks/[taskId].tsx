@@ -98,7 +98,15 @@ export default function TaskDetailScreen() {
 		startMutation.mutate(taskId!, {
 			onSuccess: () => {
 				try {
-					startBlocking(selectedApps, taskId!, token!, API_BASE_URL, maxBlockTimeMinutes * 60 * 1000, blockNotifications, task!.minimumDurationSeconds * 1000)
+					startBlocking(
+						selectedApps,
+						taskId!,
+						token!,
+						API_BASE_URL,
+						maxBlockTimeMinutes * 60 * 1000,
+						blockNotifications,
+						task!.minimumDurationSeconds * 1000,
+					)
 				} catch {
 					setApiError('Task started but app blocking failed to engage.')
 				}
@@ -126,7 +134,9 @@ export default function TaskDetailScreen() {
 				style: 'destructive',
 				onPress: () => {
 					deleteMutation.mutate(taskId!, {
-						onSuccess: () => router.back(),
+						onSuccess: () => {
+							router.replace('/(main)/(tabs)/tasks')
+						},
 						onError: (err: any) => {
 							const code = err.response?.data?.error
 							if (code === 'ACTIVE_TASK_EXISTS') {

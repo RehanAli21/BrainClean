@@ -68,7 +68,18 @@ export default function NewTaskScreen() {
 					if (code === 'VALIDATION_ERROR') {
 						setApiError(err.response?.data?.message || 'Invalid input.')
 					} else if (code === 'ACTIVE_TASK_EXISTS') {
-						setApiError('You already have an active task. Complete it first.')
+						const details = err.response?.data?.details
+						if (details?.name && details?.startedAt) {
+							const startedDate = new Date(details.startedAt).toLocaleDateString('en-US', {
+								month: 'short',
+								day: 'numeric',
+								hour: '2-digit',
+								minute: '2-digit',
+							})
+							setApiError(`"${details.name}" is already active (started ${startedDate}). Complete it first.`)
+						} else {
+							setApiError('You already have an active task. Complete it first.')
+						}
 					} else if (!err.response) {
 						try {
 							const tasks = await queryClient.fetchQuery({

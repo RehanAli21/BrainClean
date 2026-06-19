@@ -270,6 +270,26 @@ Create a new task.
 | 409    | ACTIVE_TASK_EXISTS | User already has a started, non-completed task |
 | 401    | —                  | Missing or invalid JWT                         |
 
+When `ACTIVE_TASK_EXISTS` is returned, the body includes a `details` object with the
+active task's `id`, `name`, and `startedAt` so the client can show when the existing
+task was started:
+
+```json
+{
+	"error": "ACTIVE_TASK_EXISTS",
+	"message": "Cannot create a new task while an active task exists",
+	"details": {
+		"id": "550e8400-e29b-41d4-a716-446655440000",
+		"name": "Meditate",
+		"startedAt": "2026-06-19T10:00:00Z"
+	}
+}
+```
+
+The same `details` shape is included on every `409 ACTIVE_TASK_EXISTS` response —
+on `PATCH /api/tasks/{id}/start` (the _other_ task that's blocking) and on
+`DELETE /api/tasks/{id}` (the active task you tried to delete).
+
 ---
 
 ### GET /api/tasks

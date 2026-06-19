@@ -38,7 +38,7 @@ export default function TaskDetailScreen() {
 	const startMutation = useStartTaskMutation()
 	const completeMutation = useCompleteTaskMutation()
 	const deleteMutation = useDeleteTaskMutation()
-	const { startBlocking, stopBlocking } = useBlocker()
+	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
 	const { token } = useAuth()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
@@ -57,6 +57,21 @@ export default function TaskDetailScreen() {
 			refetch()
 		}, [refetch]),
 	)
+
+	useEffect(() => {
+		if (!isActive || isBlocking || !task || !token || selectedApps.length === 0) return
+		try {
+			startBlocking(
+				selectedApps,
+				task.id,
+				token,
+				API_BASE_URL,
+				maxBlockTimeMinutes * 60 * 1000,
+				blockNotifications,
+				task.minimumDurationSeconds * 1000,
+			)
+		} catch {}
+	}, [isActive, isBlocking, task, token, selectedApps, maxBlockTimeMinutes, blockNotifications, startBlocking])
 
 	useEffect(() => {
 		if (!isActive || canComplete) return

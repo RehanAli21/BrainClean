@@ -1,8 +1,9 @@
-import { TASK_POLL_INTERVAL_MS } from '@/constants/config'
+import { API_BASE_URL, TASK_POLL_INTERVAL_MS } from '@/constants/config'
 import { Colors } from '@/constants/theme'
 import { TOKEN_EXPIRY_BUFFER_MS, useAuth } from '@/context/AuthContext'
 import { useTasksQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
+import { useUiStore } from '@/store/uiStore'
 import type { Task } from '@/types/task'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -76,8 +77,11 @@ export default function TaskListScreen() {
 	const [selectedDate, setSelectedDate] = useState(getTodayDate)
 	const [showPicker, setShowPicker] = useState(false)
 	const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate)
-	const { isBlocking, stopBlocking } = useBlocker()
-	const { tokenExpiresAt, logout } = useAuth()
+	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
+	const { token, tokenExpiresAt, logout } = useAuth()
+	const selectedApps = useUiStore(s => s.selectedApps)
+	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
+	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 
 	// Proactively log the user out 1 day before their JWT actually expires, so
@@ -104,8 +108,23 @@ export default function TaskListScreen() {
 		}
 	}, [tasks, hasActiveTask, isBlocking, stopBlocking])
 
-	// Poll for task completion — delay until 1 min before minimum duration elapses
+	// Re-engage blocking if task is active but service isn't running (e.g. after app update)
 	const activeTask = tasks?.find(t => t.started && !t.completed)
+
+	useEffect(() => {
+		if (!activeTask || isBlocking || !token || selectedApps.length === 0) return
+		try {
+			startBlocking(
+				selectedApps,
+				activeTask.id,
+				token,
+				API_BASE_URL,
+				maxBlockTimeMinutes * 60 * 1000,
+				blockNotifications,
+				activeTask.minimumDurationSeconds * 1000,
+			)
+		} catch {}
+	}, [activeTask, isBlocking, token, selectedApps, maxBlockTimeMinutes, blockNotifications, startBlocking])
 	const activeStartedAt = activeTask?.startedAt
 	const activeMinDuration = activeTask?.minimumDurationSeconds
 

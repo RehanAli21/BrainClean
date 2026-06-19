@@ -38,7 +38,7 @@ export default function TaskDetailScreen() {
 	const startMutation = useStartTaskMutation()
 	const completeMutation = useCompleteTaskMutation()
 	const deleteMutation = useDeleteTaskMutation()
-	const { startBlocking, stopBlocking } = useBlocker()
+	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
 	const { token } = useAuth()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
@@ -57,6 +57,21 @@ export default function TaskDetailScreen() {
 			refetch()
 		}, [refetch]),
 	)
+
+	useEffect(() => {
+		if (!isActive || isBlocking || !task || !token || selectedApps.length === 0) return
+		try {
+			startBlocking(
+				selectedApps,
+				task.id,
+				token,
+				API_BASE_URL,
+				maxBlockTimeMinutes * 60 * 1000,
+				blockNotifications,
+				task.minimumDurationSeconds * 1000,
+			)
+		} catch {}
+	}, [isActive, isBlocking, task, token, selectedApps, maxBlockTimeMinutes, blockNotifications, startBlocking])
 
 	useEffect(() => {
 		if (!isActive || canComplete) return
@@ -114,7 +129,18 @@ export default function TaskDetailScreen() {
 			onError: (err: any) => {
 				const code = err.response?.data?.error
 				if (code === 'ACTIVE_TASK_EXISTS') {
-					setApiError('Another task is already active.')
+					const details = err.response?.data?.details
+					if (details?.name && details?.startedAt) {
+						const startedDate = new Date(details.startedAt).toLocaleDateString('en-US', {
+							month: 'short',
+							day: 'numeric',
+							hour: '2-digit',
+							minute: '2-digit',
+						})
+						setApiError(`"${details.name}" is already active (started ${startedDate}).`)
+					} else {
+						setApiError('Another task is already active.')
+					}
 				} else if (code === 'TASK_ALREADY_STARTED') {
 					setApiError('This task has already been started.')
 				} else if (code === 'TASK_ALREADY_COMPLETED') {
@@ -140,7 +166,18 @@ export default function TaskDetailScreen() {
 						onError: (err: any) => {
 							const code = err.response?.data?.error
 							if (code === 'ACTIVE_TASK_EXISTS') {
-								setApiError('Cannot delete an active task.')
+								const details = err.response?.data?.details
+								if (details?.name && details?.startedAt) {
+									const startedDate = new Date(details.startedAt).toLocaleDateString('en-US', {
+										month: 'short',
+										day: 'numeric',
+										hour: '2-digit',
+										minute: '2-digit',
+									})
+									setApiError(`Cannot delete — "${details.name}" is active (started ${startedDate}).`)
+								} else {
+									setApiError('Cannot delete an active task.')
+								}
 							} else {
 								setApiError('Failed to delete task. Please try again.')
 							}

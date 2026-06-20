@@ -9,7 +9,7 @@ import {
 } from '@/modules/blocker'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { ActivityIndicator, BackHandler, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export default function PermissionsScreen() {
@@ -98,6 +98,14 @@ export default function PermissionsScreen() {
 
 function PermissionCard({ title, description, granted, onRequest }: { title: string; description: string; granted: boolean; onRequest: () => void }) {
 	const theme = Colors.dark
+	const cooldown = useRef(false)
+
+	const handlePress = () => {
+		if (cooldown.current) return
+		cooldown.current = true
+		onRequest()
+		setTimeout(() => { cooldown.current = false }, 1000)
+	}
 
 	return (
 		<View style={[styles.card, { backgroundColor: theme.surface, borderColor: granted ? theme.success : theme.border }]}>
@@ -113,7 +121,7 @@ function PermissionCard({ title, description, granted, onRequest }: { title: str
 			{!granted ? (
 				<TouchableOpacity
 					style={[styles.grantButton, { backgroundColor: theme.primary }]}
-					onPress={onRequest}
+					onPress={handlePress}
 					activeOpacity={0.7}>
 					<Text style={styles.grantButtonText}>Grant Permission</Text>
 				</TouchableOpacity>

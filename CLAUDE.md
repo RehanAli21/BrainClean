@@ -339,6 +339,14 @@ This screen MUST be shown on first launch before the user can create any tasks o
 - Show validation errors inline next to the relevant input field.
 - Keep form state local to the component — do not put form input values in Zustand.
 
+### Button Behavior
+
+- Every button must be **single-click guarded**: disable on press, stay disabled during API call, re-enable in a `finally` block after a minimum 1-second cooldown.
+- Disable the button BEFORE calling the API, not after.
+- For mutation buttons (PrimaryButton with `isLoading`): pass `disabled={busy}` and set busy state before the mutation call.
+- For non-mutation buttons (TouchableOpacity, FAB): use a `useRef<boolean>(false)` guard or `useState` + `setTimeout(1000)` cooldown.
+- This applies to ALL buttons in the app — auth forms, task actions, navigation actions, toggles that trigger side effects.
+
 ### Error Handling
 
 - API errors caught by axios interceptor for 401/403 (triggers logout via AuthContext, skips auth endpoints).

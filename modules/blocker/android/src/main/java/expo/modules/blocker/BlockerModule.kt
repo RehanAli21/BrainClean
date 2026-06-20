@@ -25,8 +25,8 @@ class BlockerModule : Module() {
 
         Events("onBlockedAppDetected", "onServiceStopped")
 
-        Function("getInstalledApps") {
-            val context = appContext.reactContext ?: return@Function emptyList<Map<String, Any?>>()
+        AsyncFunction("getInstalledApps") {
+            val context = appContext.reactContext ?: return@AsyncFunction emptyList<Map<String, Any?>>()
             val pm = context.packageManager
 
             val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {

@@ -61,17 +61,20 @@ export default function AppsScreen() {
 	const { isBlocking } = useBlocker()
 
 	useEffect(() => {
+		let cancelled = false
 		const handle = InteractionManager.runAfterInteractions(() => {
-			try {
-				const installedApps: AppInfo[] = getInstalledApps()
-				setApps(installedApps)
-			} catch {
-				setError('Failed to load installed apps. Make sure you are running on a device.')
-			} finally {
-				setIsLoading(false)
-			}
+			getInstalledApps()
+				.then(installedApps => {
+					if (!cancelled) setApps(installedApps)
+				})
+				.catch(() => {
+					if (!cancelled) setError('Failed to load installed apps. Make sure you are running on a device.')
+				})
+				.finally(() => {
+					if (!cancelled) setIsLoading(false)
+				})
 		})
-		return () => handle.cancel()
+		return () => { cancelled = true; handle.cancel() }
 	}, [])
 
 	const filteredApps = useMemo(() => {

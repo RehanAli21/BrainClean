@@ -4,7 +4,7 @@ import type { AppInfo, PermissionStatus } from '@/types/blocker';
 
 const BlockerModule = requireNativeModule('BlockerModule');
 
-export function getInstalledApps(): AppInfo[] {
+export async function getInstalledApps(): Promise<AppInfo[]> {
   return BlockerModule.getInstalledApps();
 }
 

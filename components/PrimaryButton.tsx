@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useRef } from 'react'
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { Colors } from '../constants/theme'
 
@@ -6,16 +6,25 @@ interface PrimaryButtonProps {
 	title: string
 	onPress: () => void
 	isLoading?: boolean
+	disabled?: boolean
 }
 
-export function PrimaryButton({ title, onPress, isLoading }: PrimaryButtonProps) {
+export function PrimaryButton({ title, onPress, isLoading, disabled }: PrimaryButtonProps) {
 	const theme = Colors.dark
+	const cooldownRef = useRef(false)
+
+	const handlePress = useCallback(() => {
+		if (cooldownRef.current) return
+		cooldownRef.current = true
+		onPress()
+		setTimeout(() => { cooldownRef.current = false }, 1000)
+	}, [onPress])
 
 	return (
 		<TouchableOpacity
-			style={[styles.button, { backgroundColor: theme.primary }]}
-			onPress={onPress}
-			disabled={isLoading}
+			style={[styles.button, { backgroundColor: theme.primary }, (isLoading || disabled) && styles.disabled]}
+			onPress={handlePress}
+			disabled={isLoading || disabled || cooldownRef.current}
 			activeOpacity={0.8}>
 			{isLoading ? <ActivityIndicator color='#FFF' /> : <Text style={styles.text}>{title}</Text>}
 		</TouchableOpacity>
@@ -41,5 +50,8 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: '700',
 		letterSpacing: 0.5,
+	},
+	disabled: {
+		opacity: 0.6,
 	},
 })

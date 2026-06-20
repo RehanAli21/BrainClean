@@ -8,7 +8,7 @@ import type { Task } from '@/types/task'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useFocusEffect, useRouter } from 'expo-router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 function toDateString(d: Date): string {
@@ -83,6 +83,7 @@ export default function TaskListScreen() {
 	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
+	const fabCooldown = useRef(false)
 
 	// Proactively log the user out 1 day before their JWT actually expires, so
 	// they re-login while their session still works rather than getting a 401
@@ -227,7 +228,12 @@ export default function TaskListScreen() {
 			{hasActiveTask ? null : (
 				<TouchableOpacity
 					style={[styles.fab, { backgroundColor: theme.primary }]}
-					onPress={() => router.push('/(main)/(tabs)/tasks/new')}
+					onPress={() => {
+						if (fabCooldown.current) return
+						fabCooldown.current = true
+						router.push('/(main)/(tabs)/tasks/new')
+						setTimeout(() => { fabCooldown.current = false }, 1000)
+					}}
 					activeOpacity={0.8}>
 					<Ionicons
 						name='add'

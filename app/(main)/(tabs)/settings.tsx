@@ -44,6 +44,7 @@ export default function SettingsScreen() {
 	const [saved, setSaved] = useState(false)
 	const [deleting, setDeleting] = useState(false)
 	const pendingNotificationToggle = useRef(false)
+	const saveCooldown = useRef(false)
 
 	useEffect(() => {
 		const sub = AppState.addEventListener('change', state => {
@@ -58,18 +59,22 @@ export default function SettingsScreen() {
 	}, [setBlockNotifications])
 
 	const handleSaveMaxTime = () => {
+		if (saveCooldown.current) return
+		saveCooldown.current = true
 		const value = parseInt(timeInput, 10)
 		if (isNaN(value) || value < 1) {
 			Alert.alert('Invalid Value', 'Minimum block time is 1 minute.')
+			setTimeout(() => { saveCooldown.current = false }, 1000)
 			return
 		}
 		if (value > 1440) {
 			Alert.alert('Invalid Value', 'Maximum block time is 1440 minutes (24 hours).')
+			setTimeout(() => { saveCooldown.current = false }, 1000)
 			return
 		}
 		setMaxBlockTime(value)
 		setSaved(true)
-		setTimeout(() => setSaved(false), 2000)
+		setTimeout(() => { setSaved(false); saveCooldown.current = false }, 2000)
 	}
 
 	const handleToggleNotifications = (value: boolean) => {
@@ -325,6 +330,14 @@ function PermissionRow({
 	onRequest: () => void
 }) {
 	const theme = Colors.dark
+	const cooldown = useRef(false)
+
+	const handlePress = () => {
+		if (cooldown.current) return
+		cooldown.current = true
+		onRequest()
+		setTimeout(() => { cooldown.current = false }, 1000)
+	}
 
 	return (
 		<View style={styles.permRow}>
@@ -351,7 +364,7 @@ function PermissionRow({
 			) : (
 				<TouchableOpacity
 					style={[styles.permButton, { backgroundColor: theme.primary }, disabled && styles.disabled]}
-					onPress={onRequest}
+					onPress={handlePress}
 					activeOpacity={0.7}
 					disabled={disabled}>
 					<Text style={styles.permButtonText}>Grant</Text>

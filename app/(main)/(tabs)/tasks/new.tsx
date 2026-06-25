@@ -4,6 +4,7 @@ import { Colors } from '@/constants/theme'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
 import { taskService } from '@/services/api/tasks'
+import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
@@ -27,6 +28,7 @@ export default function NewTaskScreen() {
 	const queryClient = useQueryClient()
 	const createMutation = useCreateTaskMutation()
 	const { isLoading: permsLoading, allGranted } = usePermissions()
+	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 
 	const [name, setName] = useState('')
 	const [durationMinutes, setDurationMinutes] = useState('')
@@ -59,6 +61,7 @@ export default function NewTaskScreen() {
 			{
 				name: result.data.name,
 				minimumDurationSeconds: result.data.durationMinutes * 60,
+				maximumDurationSeconds: maxBlockTimeMinutes * 60,
 			},
 			{
 				onSuccess: () => router.back(),

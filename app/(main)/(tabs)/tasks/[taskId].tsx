@@ -264,8 +264,19 @@ export default function TaskDetailScreen() {
 						size={18}
 						color={theme.icon}
 					/>
-					<Text style={[styles.detailText, { color: theme.icon }]}>{formatDuration(task.minimumDurationSeconds)}</Text>
+					<Text style={[styles.detailText, { color: theme.icon }]}>Min: {formatDuration(task.minimumDurationSeconds)}</Text>
 				</View>
+
+				{task.maximumDurationSeconds ? (
+					<View style={styles.row}>
+						<Ionicons
+							name='hourglass-outline'
+							size={18}
+							color={theme.icon}
+						/>
+						<Text style={[styles.detailText, { color: theme.icon }]}>Max: {formatDuration(task.maximumDurationSeconds)}</Text>
+					</View>
+				) : null}
 
 				<View style={styles.row}>
 					<Ionicons
@@ -274,7 +285,13 @@ export default function TaskDetailScreen() {
 						color={task.completed ? '#10B981' : task.started ? theme.primary : theme.icon}
 					/>
 					<Text style={[styles.detailText, { color: task.completed ? '#10B981' : task.started ? theme.primary : theme.icon }]}>
-						{task.completed ? 'Completed' : task.started ? 'Active' : 'Pending'}
+						{task.completed
+							? task.autoCompleted
+								? 'Auto-Completed'
+								: 'Completed'
+							: task.started
+								? 'Active'
+								: 'Pending'}
 					</Text>
 				</View>
 

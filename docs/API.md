@@ -233,17 +233,19 @@ Create a new task.
 
 **Request Body:**
 
-| Field                  | Type    | Validation              |
-| ---------------------- | ------- | ----------------------- |
-| name                   | string  | Required, max 255 chars |
-| minimumDurationSeconds | integer | Required, min 1         |
+| Field                  | Type               | Validation                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name                   | string             | Required, max 255 chars                                                                                                                                                                                                                                                                                                                                    |
+| minimumDurationSeconds | integer            | Required, min 1                                                                                                                                                                                                                                                                                                                                            |
+| maximumDurationSeconds | integer (nullable) | Optional. If set, must be `> minimumDurationSeconds`. When the task is started and this many seconds pass, the backend will auto-complete it (sets `completed=true`, `autoCompleted=true`). Omit (or send `null`) for no cap. The same field is returned on every task response: `null` if the task has no cap, otherwise the configured value in seconds. |
 
 **Example Request:**
 
 ```json
 {
 	"name": "Read 10 pages",
-	"minimumDurationSeconds": 600
+	"minimumDurationSeconds": 600,
+	"maximumDurationSeconds": 3600
 }
 ```
 
@@ -254,21 +256,28 @@ Create a new task.
 	"id": "550e8400-e29b-41d4-a716-446655440000",
 	"name": "Read 10 pages",
 	"minimumDurationSeconds": 600,
+	"maximumDurationSeconds": 3600,
 	"started": false,
 	"startedAt": null,
 	"completed": false,
 	"completedAt": null,
+	"autoCompleted": false,
+	"userCompleted": false,
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```
 
+> `maximumDurationSeconds` is `null` when the task was created without a cap.
+> Tasks created before this feature shipped will all have `null` here.
+
 **Error Responses:**
 
-| Status | Error Code         | When                                           |
-| ------ | ------------------ | ---------------------------------------------- |
-| 400    | VALIDATION_ERROR   | Invalid or missing fields                      |
-| 409    | ACTIVE_TASK_EXISTS | User already has a started, non-completed task |
-| 401    | —                  | Missing or invalid JWT                         |
+| Status | Error Code         | When                                                                        |
+| ------ | ------------------ | --------------------------------------------------------------------------- |
+| 400    | VALIDATION_ERROR   | Invalid or missing fields                                                   |
+| 400    | INVALID_DURATION   | `maximumDurationSeconds <= minimumDurationSeconds`                          |
+| 409    | ACTIVE_TASK_EXISTS | User already has a started, non-completed task (and it has not yet expired) |
+| 401    | —                  | Missing or invalid JWT                                                      |
 
 When `ACTIVE_TASK_EXISTS` is returned, the body includes a `details` object with the
 active task's `id`, `name`, and `startedAt` so the client can show when the existing
@@ -289,6 +298,31 @@ task was started:
 The same `details` shape is included on every `409 ACTIVE_TASK_EXISTS` response —
 on `PATCH /api/tasks/{id}/start` (the _other_ task that's blocking) and on
 `DELETE /api/tasks/{id}` (the active task you tried to delete).
+
+#### Auto-completion (max duration)
+
+If a task is created with `maximumDurationSeconds` and is then started, the backend
+will automatically mark it `completed` once that many seconds have elapsed since
+`startedAt`. The auto-completion happens in two places:
+
+1. **Periodic sweep** — a background job runs every **2 minutes** and bulk-completes
+   any active tasks that have crossed their `maximumDurationSeconds`. Mobile sees the
+   `completed: true` state on its next status poll and lifts the block.
+2. **Inline check on writes** — if the user calls `POST /api/tasks`, `PATCH /tasks/{id}/start`,
+   or `DELETE /tasks/{id}` while there's an active task that's already crossed its max,
+   the backend auto-completes that active task in place before processing the new request
+   (so users aren't blocked while waiting for the next sweep).
+
+Each completed task carries two flags so you can tell _how_ it ended:
+
+| Flag            | When it's `true`                                                 |
+| --------------- | ---------------------------------------------------------------- |
+| `completed`     | Always when the task is done, regardless of who/what finished it |
+| `autoCompleted` | The system finished it (sweep or inline expiry)                  |
+| `userCompleted` | The user finished it via `PATCH /api/tasks/{id}/complete`        |
+
+`autoCompleted` and `userCompleted` are mutually exclusive — at most one is `true`.
+Both stay `false` while the task is still active.
 
 ---
 
@@ -321,10 +355,13 @@ GET /api/tasks?start=2026-04-01T00:00:00Z&end=2026-04-02T00:00:00Z
 		"id": "550e8400-e29b-41d4-a716-446655440000",
 		"name": "Read 10 pages",
 		"minimumDurationSeconds": 600,
+		"maximumDurationSeconds": 3600,
 		"started": true,
 		"startedAt": "2026-03-29T12:00:00Z",
 		"completed": false,
 		"completedAt": null,
+		"autoCompleted": false,
+		"userCompleted": false,
 		"createdAt": "2026-04-01T10:00:00Z"
 	}
 ]
@@ -367,10 +404,13 @@ GET /api/tasks/by-date?date=2026-04-04
 		"id": "550e8400-e29b-41d4-a716-446655440000",
 		"name": "Read 10 pages",
 		"minimumDurationSeconds": 600,
+		"maximumDurationSeconds": 3600,
 		"started": false,
 		"startedAt": null,
 		"completed": false,
 		"completedAt": null,
+		"autoCompleted": false,
+		"userCompleted": false,
 		"createdAt": "2026-04-04T10:00:00Z"
 	}
 ]
@@ -430,10 +470,13 @@ Get a single task by ID. Only returns tasks owned by the authenticated user.
 	"id": "550e8400-e29b-41d4-a716-446655440000",
 	"name": "Read 10 pages",
 	"minimumDurationSeconds": 600,
+	"maximumDurationSeconds": 3600,
 	"started": false,
 	"startedAt": null,
 	"completed": false,
 	"completedAt": null,
+	"autoCompleted": false,
+	"userCompleted": false,
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```
@@ -479,10 +522,13 @@ Called from mobile to begin app blocking.
 	"id": "550e8400-e29b-41d4-a716-446655440000",
 	"name": "Read 10 pages",
 	"minimumDurationSeconds": 600,
+	"maximumDurationSeconds": 3600,
 	"started": true,
 	"startedAt": "2026-03-29T12:00:00Z",
 	"completed": false,
 	"completedAt": null,
+	"autoCompleted": false,
+	"userCompleted": false,
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```
@@ -513,10 +559,13 @@ server-side check).
 	"id": "550e8400-e29b-41d4-a716-446655440000",
 	"name": "Read 10 pages",
 	"minimumDurationSeconds": 600,
+	"maximumDurationSeconds": 3600,
 	"started": true,
 	"startedAt": "2026-03-29T12:00:00Z",
 	"completed": true,
 	"completedAt": "2026-03-29T12:10:00Z",
+	"autoCompleted": false,
+	"userCompleted": false,
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```

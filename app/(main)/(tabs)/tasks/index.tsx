@@ -59,7 +59,10 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 						numberOfLines={1}>
 						{task.name}
 					</Text>
-					<Text style={[styles.taskDuration, { color: theme.icon }]}>{formatDuration(task.minimumDurationSeconds)}</Text>
+					<Text style={[styles.taskDuration, { color: theme.icon }]}>
+						{formatDuration(task.minimumDurationSeconds)}
+						{task.maximumDurationSeconds ? ` · Max ${formatDuration(task.maximumDurationSeconds)}` : ''}
+					</Text>
 				</View>
 				<Ionicons
 					name={status.icon}

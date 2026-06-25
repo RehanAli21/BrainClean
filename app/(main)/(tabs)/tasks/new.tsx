@@ -4,6 +4,7 @@ import { Colors } from '@/constants/theme'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
 import { taskService } from '@/services/api/tasks'
+import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
@@ -27,6 +28,7 @@ export default function NewTaskScreen() {
 	const queryClient = useQueryClient()
 	const createMutation = useCreateTaskMutation()
 	const { isLoading: permsLoading, allGranted } = usePermissions()
+	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 
 	const [name, setName] = useState('')
 	const [durationMinutes, setDurationMinutes] = useState('')
@@ -59,9 +61,15 @@ export default function NewTaskScreen() {
 			{
 				name: result.data.name,
 				minimumDurationSeconds: result.data.durationMinutes * 60,
+				maximumDurationSeconds: maxBlockTimeMinutes * 60,
 			},
 			{
-				onSuccess: () => router.back(),
+				onSuccess: (task) => {
+					router.replace({
+						pathname: '/(main)/(tabs)/tasks/[taskId]',
+						params: { taskId: task.id },
+					})
+				},
 				onError: async (err: any) => {
 					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
 					const code = err.response?.data?.error
@@ -69,14 +77,11 @@ export default function NewTaskScreen() {
 						setApiError(err.response?.data?.message || 'Invalid input.')
 					} else if (code === 'ACTIVE_TASK_EXISTS') {
 						const details = err.response?.data?.details
-						if (details?.name && details?.startedAt) {
-							const startedDate = new Date(details.startedAt).toLocaleDateString('en-US', {
-								month: 'short',
-								day: 'numeric',
-								hour: '2-digit',
-								minute: '2-digit',
+						if (details?.id) {
+							router.replace({
+								pathname: '/(main)/(tabs)/tasks/[taskId]',
+								params: { taskId: details.id, finishFirst: '1' },
 							})
-							setApiError(`"${details.name}" is already active (started ${startedDate}). Complete it first.`)
 						} else {
 							setApiError('You already have an active task. Complete it first.')
 						}
@@ -86,8 +91,12 @@ export default function NewTaskScreen() {
 								queryKey: ['tasks', getTodayDate()],
 								queryFn: () => taskService.getByDate(getTodayDate()),
 							})
-							if (tasks.some(t => t.name === result.data.name)) {
-								router.back()
+							const created = tasks.find(t => t.name === result.data.name)
+							if (created) {
+								router.replace({
+									pathname: '/(main)/(tabs)/tasks/[taskId]',
+									params: { taskId: created.id },
+								})
 								return
 							}
 						} catch {}

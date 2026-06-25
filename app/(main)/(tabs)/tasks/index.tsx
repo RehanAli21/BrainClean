@@ -63,6 +63,7 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 						{formatDuration(task.minimumDurationSeconds)}
 						{task.maximumDurationSeconds ? ` · Max ${formatDuration(task.maximumDurationSeconds)}` : ''}
 					</Text>
+					<Text style={[styles.taskHint, { color: theme.primary, marginTop: 10 }]}>Tap to view details</Text>
 				</View>
 				<Ionicons
 					name={status.icon}
@@ -235,7 +236,9 @@ export default function TaskListScreen() {
 						if (fabCooldown.current) return
 						fabCooldown.current = true
 						router.push('/(main)/(tabs)/tasks/new')
-						setTimeout(() => { fabCooldown.current = false }, 1000)
+						setTimeout(() => {
+							fabCooldown.current = false
+						}, 1000)
 					}}
 					activeOpacity={0.8}>
 					<Ionicons
@@ -289,6 +292,7 @@ const styles = StyleSheet.create({
 	taskName: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
 	taskNameCompleted: { textDecorationLine: 'line-through', opacity: 0.6 },
 	taskDuration: { fontSize: 13 },
+	taskHint: { fontSize: 11, marginTop: 2 },
 	fab: {
 		position: 'absolute',
 		bottom: 24,

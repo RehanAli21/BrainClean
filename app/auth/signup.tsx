@@ -3,7 +3,7 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { authService } from '@/services/api/auth'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
@@ -22,6 +22,7 @@ const signupSchema = z
 
 export default function SignupScreen() {
 	const theme = Colors.dark
+	const router = useRouter()
 	const { login } = useAuth()
 	const [email, setEmail] = useState('')
 	const [username, setUsername] = useState('')
@@ -30,11 +31,13 @@ export default function SignupScreen() {
 	const [acceptedTerms, setAcceptedTerms] = useState(false)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
+	const [emailExists, setEmailExists] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 
 	const handleSignup = async () => {
 		setErrors({})
 		setApiError('')
+		setEmailExists(false)
 
 		const result = signupSchema.safeParse({ email, username, password, confirmPassword })
 		if (!result.success) {
@@ -59,7 +62,7 @@ export default function SignupScreen() {
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'EMAIL_ALREADY_EXISTS') {
-				setApiError('An account with this email already exists.')
+				setEmailExists(true)
 			} else if (code === 'USERNAME_ALREADY_EXISTS') {
 				setApiError('This username is already taken.')
 			} else {
@@ -78,7 +81,21 @@ export default function SignupScreen() {
 			</View>
 
 			<View style={styles.form}>
-				{apiError ? (
+				{emailExists ? (
+					<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
+						<Text style={[styles.errorBannerText, { color: theme.accent }]}>
+							Account already exists.{' '}
+							<Text style={styles.errorLink} onPress={() => router.replace('/auth/login')}>
+								Login
+							</Text>
+							{' '}or if you want to change password go to{' '}
+							<Text style={styles.errorLink} onPress={() => router.replace('/auth/forgot-password')}>
+								Forgot Password
+							</Text>
+							.
+						</Text>
+					</View>
+				) : apiError ? (
 					<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
 						<Text style={[styles.errorBannerText, { color: theme.accent }]}>{apiError}</Text>
 					</View>
@@ -180,7 +197,8 @@ const styles = StyleSheet.create({
 	linkText: { fontWeight: '600' },
 	footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
 	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
-	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
+	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center', lineHeight: 20 },
+	errorLink: { fontWeight: '700', textDecorationLine: 'underline' },
 	fieldError: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
 	termsRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16, marginTop: 4 },
 	checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, marginRight: 12, alignItems: 'center', justifyContent: 'center', marginTop: 1 },

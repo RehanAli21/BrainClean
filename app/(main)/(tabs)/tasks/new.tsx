@@ -64,7 +64,12 @@ export default function NewTaskScreen() {
 				maximumDurationSeconds: maxBlockTimeMinutes * 60,
 			},
 			{
-				onSuccess: () => router.back(),
+				onSuccess: (task) => {
+					router.replace({
+						pathname: '/(main)/(tabs)/tasks/[taskId]',
+						params: { taskId: task.id },
+					})
+				},
 				onError: async (err: any) => {
 					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
 					const code = err.response?.data?.error
@@ -86,8 +91,12 @@ export default function NewTaskScreen() {
 								queryKey: ['tasks', getTodayDate()],
 								queryFn: () => taskService.getByDate(getTodayDate()),
 							})
-							if (tasks.some(t => t.name === result.data.name)) {
-								router.back()
+							const created = tasks.find(t => t.name === result.data.name)
+							if (created) {
+								router.replace({
+									pathname: '/(main)/(tabs)/tasks/[taskId]',
+									params: { taskId: created.id },
+								})
 								return
 							}
 						} catch {}

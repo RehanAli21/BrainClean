@@ -33,7 +33,7 @@ function formatDate(iso: string): string {
 export default function TaskDetailScreen() {
 	const theme = Colors.dark
 	const router = useRouter()
-	const { taskId } = useLocalSearchParams<{ taskId: string }>()
+	const { taskId, finishFirst } = useLocalSearchParams<{ taskId: string; finishFirst?: string }>()
 	const { data: task, isLoading, isError, refetch } = useTaskQuery(taskId!)
 	const startMutation = useStartTaskMutation()
 	const completeMutation = useCompleteTaskMutation()
@@ -239,6 +239,15 @@ export default function TaskDetailScreen() {
 				<Text style={[styles.headerTitle, { color: theme.text }]}>Task Details</Text>
 				<View style={{ width: 24 }} />
 			</View>
+
+			{finishFirst === '1' && isActive ? (
+				<View style={[styles.infoBanner, { backgroundColor: theme.primary + '1A' }]}>
+					<Ionicons name='information-circle-outline' size={18} color={theme.primary} />
+					<Text style={[styles.infoBannerText, { color: theme.primary }]}>
+						To create a new task, finish this one first.
+					</Text>
+				</View>
+			) : null}
 
 			{apiError ? (
 				<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>

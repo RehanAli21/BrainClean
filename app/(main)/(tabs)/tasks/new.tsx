@@ -69,14 +69,11 @@ export default function NewTaskScreen() {
 						setApiError(err.response?.data?.message || 'Invalid input.')
 					} else if (code === 'ACTIVE_TASK_EXISTS') {
 						const details = err.response?.data?.details
-						if (details?.name && details?.startedAt) {
-							const startedDate = new Date(details.startedAt).toLocaleDateString('en-US', {
-								month: 'short',
-								day: 'numeric',
-								hour: '2-digit',
-								minute: '2-digit',
+						if (details?.id) {
+							router.replace({
+								pathname: '/(main)/(tabs)/tasks/[taskId]',
+								params: { taskId: details.id, finishFirst: '1' },
 							})
-							setApiError(`"${details.name}" is already active (started ${startedDate}). Complete it first.`)
 						} else {
 							setApiError('You already have an active task. Complete it first.')
 						}

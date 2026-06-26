@@ -46,6 +46,10 @@ class BlockerService : Service() {
         acquireWakeLock(state.getMaxBlockTimeMs())
         BlockerWatchdogReceiver.schedule(this)
 
+        if (state.shouldBlockNotifications()) {
+            NotificationBlockerService.ensureBound(this)
+        }
+
         appMonitor.start(
             context = this,
             packages = blockedPackages,

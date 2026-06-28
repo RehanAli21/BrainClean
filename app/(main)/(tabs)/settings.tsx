@@ -1,4 +1,6 @@
 import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
+import { TutorialOverlay } from '@/components/TutorialOverlay'
+import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { useBlocker } from '@/hooks/useBlocker'
@@ -38,7 +40,16 @@ export default function SettingsScreen() {
 	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const setBlockNotifications = useUiStore(s => s.setBlockNotifications)
 	const [deleting, setDeleting] = useState(false)
+	const [showTutorial, setShowTutorial] = useState(false)
 	const pendingNotificationToggle = useRef(false)
+	const notifRef = useRef<View | null>(null)
+	const permsRef = useRef<View | null>(null)
+
+	useEffect(() => {
+		registerRef('settings-notifications', notifRef)
+		registerRef('settings-permissions', permsRef)
+		return () => { unregisterRef('settings-notifications'); unregisterRef('settings-permissions') }
+	}, [])
 
 	useEffect(() => {
 		const sub = AppState.addEventListener('change', state => {
@@ -149,7 +160,7 @@ export default function SettingsScreen() {
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>BLOCKING</Text>
 
 				{/* Notification Blocking */}
-				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+				<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 					<View style={styles.toggleRow}>
 						<View style={styles.toggleInfo}>
 							<Ionicons
@@ -174,7 +185,7 @@ export default function SettingsScreen() {
 
 				{/* Permissions Section */}
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>PERMISSIONS</Text>
-				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+				<View ref={permsRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 					<PermissionRow
 						icon='stats-chart-outline'
 						title='Usage Access'
@@ -214,6 +225,17 @@ export default function SettingsScreen() {
 						<PadlockProtectionCard manufacturer={manufacturer} />
 					</View>
 				) : null}
+
+				{/* Tutorial */}
+				<TouchableOpacity
+					style={[styles.tutorialButton, { backgroundColor: theme.primary }]}
+					onPress={() => setShowTutorial(true)}
+					activeOpacity={0.7}>
+					<Ionicons name='help-circle-outline' size={20} color='#FFFFFF' />
+					<Text style={styles.tutorialButtonText}>Show Tutorial</Text>
+				</TouchableOpacity>
+
+				<TutorialOverlay visible={showTutorial} onClose={() => setShowTutorial(false)} />
 
 				{/* Logout */}
 				<TouchableOpacity
@@ -334,6 +356,16 @@ const styles = StyleSheet.create({
 	hint: { fontSize: 12, marginTop: 2 },
 	toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 	toggleInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flex: 1 },
+	tutorialButton: {
+		borderRadius: 12,
+		height: 52,
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		gap: 8,
+		marginBottom: 12,
+	},
+	tutorialButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 	logoutButton: {
 		borderWidth: 1,
 		borderRadius: 12,

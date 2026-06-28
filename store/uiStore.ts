@@ -19,6 +19,8 @@ interface UiState {
   // Used to hide the padlock-tutorial card once the user has done it.
   padlockConfirmedAt: number | null;
   setPadlockConfirmed: (confirmed: boolean) => void;
+  tutorialSeen: boolean;
+  setTutorialSeen: (seen: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -49,6 +51,12 @@ export const useUiStore = create<UiState>()(
 
       setPadlockConfirmed: (confirmed: boolean) => {
         set({ padlockConfirmedAt: confirmed ? Date.now() : null });
+      },
+
+      tutorialSeen: false,
+
+      setTutorialSeen: (seen: boolean) => {
+        set({ tutorialSeen: seen });
       },
     }),
     {

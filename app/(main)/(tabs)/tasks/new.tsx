@@ -1,4 +1,5 @@
 import { PrimaryButton } from '@/components/PrimaryButton'
+import { isWalkthroughActive, registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
@@ -6,7 +7,7 @@ import { taskService } from '@/services/api/tasks'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
@@ -47,6 +48,23 @@ export default function NewTaskScreen() {
 	const [maxMinutes, setMaxMinutes] = useState('0')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
+	const nameRef = useRef<View>(null)
+	const minRef = useRef<View>(null)
+	const maxRef = useRef<View>(null)
+	const createRef = useRef<View>(null)
+
+	useEffect(() => {
+		registerRef('newtask-name', nameRef)
+		registerRef('newtask-min', minRef)
+		registerRef('newtask-max', maxRef)
+		registerRef('newtask-create', createRef)
+		return () => {
+			unregisterRef('newtask-name')
+			unregisterRef('newtask-min')
+			unregisterRef('newtask-max')
+			unregisterRef('newtask-create')
+		}
+	}, [])
 
 	const handleCreate = () => {
 		setErrors({})
@@ -146,7 +164,7 @@ export default function NewTaskScreen() {
 						color={theme.primary}
 					/>
 				</View>
-			) : !allGranted ? (
+			) : !allGranted && !isWalkthroughActive() ? (
 				<View style={styles.form}>
 					<View style={[styles.permsBanner, { backgroundColor: theme.accent + '1A' }]}>
 						<Ionicons
@@ -177,6 +195,7 @@ export default function NewTaskScreen() {
 						</View>
 					) : null}
 
+					<View ref={nameRef}>
 					<Text style={[styles.inputLabel, { color: theme.icon }]}>Task Name</Text>
 					<TextInput
 						style={[styles.textInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
@@ -186,8 +205,10 @@ export default function NewTaskScreen() {
 						onChangeText={setName}
 						autoCapitalize='sentences'
 					/>
+					</View>
 					{errors.name ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.name}</Text> : null}
 
+					<View ref={minRef}>
 					<Text style={[styles.inputLabel, { color: theme.icon }]}>Min Duration</Text>
 					<View style={styles.timeRow}>
 						<View style={styles.timeField}>
@@ -215,8 +236,10 @@ export default function NewTaskScreen() {
 							<Text style={[styles.timeUnit, { color: theme.icon }]}>min</Text>
 						</View>
 					</View>
+					</View>
 					{errors.durationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.durationMinutes}</Text> : null}
 
+					<View ref={maxRef}>
 					<Text style={[styles.inputLabel, { color: theme.icon }]}>Max Duration</Text>
 					<View style={styles.timeRow}>
 						<View style={styles.timeField}>
@@ -244,10 +267,11 @@ export default function NewTaskScreen() {
 							<Text style={[styles.timeUnit, { color: theme.icon }]}>min</Text>
 						</View>
 					</View>
+					</View>
 					<Text style={[styles.hintText, { color: theme.icon }]}>Auto-unblock after this duration</Text>
 					{errors.maxDurationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.maxDurationMinutes}</Text> : null}
 
-					<View style={{ marginTop: 8 }}>
+					<View ref={createRef} style={{ marginTop: 8 }}>
 						<PrimaryButton
 							title='Create Task'
 							onPress={handleCreate}

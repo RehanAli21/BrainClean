@@ -1,10 +1,27 @@
+import { TutorialOverlay } from '@/components/TutorialOverlay'
+import { WalkthroughOverlay } from '@/components/WalkthroughOverlay'
+import { onShowWalkthrough } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
+import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs } from 'expo-router'
+import React, { useEffect, useState } from 'react'
 
 export default function TabsLayout() {
 	const theme = Colors.dark
+	const tutorialSeen = useUiStore(s => s.tutorialSeen)
+	const [showTutorial, setShowTutorial] = useState(!tutorialSeen)
+	const [showWalkthrough, setShowWalkthrough] = useState(false)
+
+	useEffect(() => {
+		onShowWalkthrough(() => setShowWalkthrough(true))
+		return () => onShowWalkthrough(null)
+	}, [])
+
 	return (
+		<>
+		<TutorialOverlay visible={showTutorial} onClose={() => setShowTutorial(false)} />
+		<WalkthroughOverlay visible={showWalkthrough} onClose={() => setShowWalkthrough(false)} />
 		<Tabs
 			screenOptions={{
 				headerShown: false,
@@ -56,5 +73,6 @@ export default function TabsLayout() {
 				}}
 			/>
 		</Tabs>
+		</>
 	)
 }

@@ -33,6 +33,13 @@ ${KEEP_RULES_MARKER}
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 -keepclassmembers class kotlinx.coroutines.** { volatile <fields>; }
+
+# Google Auth module
+-keep class expo.modules.googleauth.** { *; }
+
+# Credential Manager + Google Identity
+-keep class androidx.credentials.** { *; }
+-keep class com.google.android.libraries.identity.googleid.** { *; }
 # END BrainClean ProGuard rules
 `;
 
@@ -67,6 +74,11 @@ const withGradlePropertyFlags = (config) =>
 	withGradleProperties(config, (cfg) => {
 		setGradleProperty(cfg.modResults, 'android.enableMinifyInReleaseBuilds', 'true');
 		setGradleProperty(cfg.modResults, 'android.enableShrinkResourcesInReleaseBuilds', 'true');
+		setGradleProperty(
+			cfg.modResults,
+			'GOOGLE_WEB_CLIENT_ID',
+			'492066566680-n051drfsfnnkm5ls4mdogfpfj4ori87c.apps.googleusercontent.com',
+		);
 		return cfg;
 	});
 

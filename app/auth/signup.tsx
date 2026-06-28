@@ -1,11 +1,13 @@
 import { AuthInput } from '@/components/AuthInput'
 import { PrimaryButton } from '@/components/PrimaryButton'
+import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
+import { signInWithGoogle } from '@/modules/google-auth'
 import { authService } from '@/services/api/auth'
 import { Link, useRouter } from 'expo-router'
-import React, { useState } from 'react'
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useRef, useState } from 'react'
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
 const signupSchema = z
@@ -33,6 +35,8 @@ export default function SignupScreen() {
 	const [apiError, setApiError] = useState('')
 	const [emailExists, setEmailExists] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const [googleLoading, setGoogleLoading] = useState(false)
+	const googleCooldown = useRef(false)
 
 	const handleSignup = async () => {
 		setErrors({})
@@ -70,6 +74,38 @@ export default function SignupScreen() {
 			}
 		} finally {
 			setIsLoading(false)
+		}
+	}
+
+	const handleGoogleSignIn = async () => {
+		if (googleCooldown.current) return
+		googleCooldown.current = true
+		setApiError('')
+		setEmailExists(false)
+		setGoogleLoading(true)
+		try {
+			const idToken = await signInWithGoogle()
+			const data = await authService.googleLogin(idToken)
+			login(data.token, data.user.email, data.expiresAt)
+		} catch (err: any) {
+			const nativeCode = err.code
+			if (nativeCode === 'SIGN_IN_CANCELLED') {
+				// silent dismissal
+			} else {
+				const code = err.response?.data?.error
+				if (code === 'INVALID_ID_TOKEN') {
+					setApiError("Couldn't sign in with Google. Please try again.")
+				} else if (code === 'ACCOUNT_DEACTIVATED') {
+					setApiError('This account has been deactivated. Contact support.')
+				} else if (code === 'RATE_LIMIT_EXCEEDED') {
+					setApiError('Too many attempts. Please wait a minute and try again.')
+				} else {
+					setApiError('Something went wrong. Please try again.')
+				}
+			}
+		} finally {
+			setGoogleLoading(false)
+			setTimeout(() => { googleCooldown.current = false }, 1000)
 		}
 	}
 
@@ -172,6 +208,21 @@ export default function SignupScreen() {
 					onPress={handleSignup}
 					isLoading={isLoading}
 				/>
+
+				{Platform.OS === 'android' ? (
+					<>
+						<View style={styles.dividerRow}>
+							<View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+							<Text style={[styles.dividerText, { color: theme.icon }]}>or</Text>
+							<View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+						</View>
+
+						<SocialButton
+							title={googleLoading ? 'Signing in...' : 'Sign up with Google'}
+							onPress={handleGoogleSignIn}
+						/>
+					</>
+				) : null}
 			</View>
 
 			<View style={styles.footer}>
@@ -205,4 +256,7 @@ const styles = StyleSheet.create({
 	checkmark: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', lineHeight: 16 },
 	termsText: { flex: 1, fontSize: 13, lineHeight: 19 },
 	termsLink: { fontWeight: '600', textDecorationLine: 'underline' },
+	dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
+	dividerLine: { flex: 1, height: 1 },
+	dividerText: { marginHorizontal: 12, fontSize: 13, fontWeight: '500' },
 })

@@ -42,7 +42,6 @@ export default function TaskDetailScreen() {
 	const { token } = useAuth()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const [apiError, setApiError] = useState('')
 	const [now, setNow] = useState(Date.now)
@@ -66,12 +65,12 @@ export default function TaskDetailScreen() {
 				task.id,
 				token,
 				API_BASE_URL,
-				maxBlockTimeMinutes * 60 * 1000,
+				(task.maximumDurationSeconds ?? 36000) * 1000,
 				blockNotifications,
 				task.minimumDurationSeconds * 1000,
 			)
 		} catch {}
-	}, [isActive, isBlocking, task, token, selectedApps, maxBlockTimeMinutes, blockNotifications, startBlocking])
+	}, [isActive, isBlocking, task, token, selectedApps, blockNotifications, startBlocking])
 
 	useEffect(() => {
 		if (!isActive || canComplete) return
@@ -118,7 +117,7 @@ export default function TaskDetailScreen() {
 						taskId!,
 						token!,
 						API_BASE_URL,
-						maxBlockTimeMinutes * 60 * 1000,
+						(task!.maximumDurationSeconds ?? 36000) * 1000,
 						blockNotifications,
 						task!.minimumDurationSeconds * 1000,
 					)

@@ -4,7 +4,6 @@ import { Colors } from '@/constants/theme'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
 import { taskService } from '@/services/api/tasks'
-import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
@@ -20,6 +19,10 @@ function getTodayDate(): string {
 const createTaskSchema = z.object({
 	name: z.string().min(1, 'Task name is required').max(255, 'Task name is too long'),
 	durationMinutes: z.number().min(1, 'Duration must be at least 1 minute'),
+	maxDurationMinutes: z.number().min(1, 'Max duration must be at least 1 minute').max(1440, 'Max duration cannot exceed 1440 minutes (24 hours)'),
+}).refine(data => data.maxDurationMinutes >= data.durationMinutes, {
+	message: 'Max duration must be greater than or equal to min duration',
+	path: ['maxDurationMinutes'],
 })
 
 export default function NewTaskScreen() {
@@ -28,10 +31,10 @@ export default function NewTaskScreen() {
 	const queryClient = useQueryClient()
 	const createMutation = useCreateTaskMutation()
 	const { isLoading: permsLoading, allGranted } = usePermissions()
-	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 
 	const [name, setName] = useState('')
 	const [durationMinutes, setDurationMinutes] = useState('')
+	const [maxDurationMinutes, setMaxDurationMinutes] = useState('600')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
 
@@ -40,9 +43,11 @@ export default function NewTaskScreen() {
 		setApiError('')
 
 		const parsed = parseInt(durationMinutes, 10)
+		const parsedMax = parseInt(maxDurationMinutes, 10)
 		const result = createTaskSchema.safeParse({
 			name: name.trim(),
 			durationMinutes: isNaN(parsed) ? 0 : parsed,
+			maxDurationMinutes: isNaN(parsedMax) ? 0 : parsedMax,
 		})
 
 		console.log(result)
@@ -61,7 +66,7 @@ export default function NewTaskScreen() {
 			{
 				name: result.data.name,
 				minimumDurationSeconds: result.data.durationMinutes * 60,
-				maximumDurationSeconds: maxBlockTimeMinutes * 60,
+				maximumDurationSeconds: result.data.maxDurationMinutes * 60,
 			},
 			{
 				onSuccess: (task) => {
@@ -181,6 +186,16 @@ export default function NewTaskScreen() {
 					/>
 					{errors.durationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.durationMinutes}</Text> : null}
 
+					<AuthInput
+						label='Max Duration (minutes)'
+						placeholder='e.g. 600'
+						value={maxDurationMinutes}
+						onChangeText={setMaxDurationMinutes}
+						keyboardType='numeric'
+					/>
+					<Text style={[styles.hintText, { color: theme.icon }]}>Auto-unblock after this duration (1–1440 min)</Text>
+					{errors.maxDurationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.maxDurationMinutes}</Text> : null}
+
 					<View style={{ marginTop: 8 }}>
 						<PrimaryButton
 							title='Create Task'
@@ -209,6 +224,7 @@ const styles = StyleSheet.create({
 	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
 	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
 	fieldError: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
+	hintText: { fontSize: 12, marginTop: -8, marginBottom: 8, marginLeft: 4 },
 	permsBanner: {
 		flexDirection: 'row',
 		alignItems: 'center',

@@ -12,8 +12,6 @@ interface UiState {
   selectedApps: string[];
   toggleApp: (packageName: string) => void;
   isAppSelected: (packageName: string) => boolean;
-  maxBlockTimeMinutes: number;
-  setMaxBlockTime: (minutes: number) => void;
   blockNotifications: boolean;
   setBlockNotifications: (enabled: boolean) => void;
   // Timestamp (ms) the user confirmed they padlocked BrainClean in the recents
@@ -39,12 +37,6 @@ export const useUiStore = create<UiState>()(
 
       isAppSelected: (packageName: string) => {
         return get().selectedApps.includes(packageName);
-      },
-
-      maxBlockTimeMinutes: 600,
-
-      setMaxBlockTime: (minutes: number) => {
-        set({ maxBlockTimeMinutes: minutes });
       },
 
       blockNotifications: false,

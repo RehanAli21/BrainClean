@@ -1,3 +1,4 @@
+import { registerRef, triggerWalkthrough, unregisterRef } from '@/components/walkthroughRegistry'
 import { API_BASE_URL, TASK_POLL_INTERVAL_MS } from '@/constants/config'
 import { Colors } from '@/constants/theme'
 import { TOKEN_EXPIRY_BUFFER_MS, useAuth } from '@/context/AuthContext'
@@ -84,10 +85,17 @@ export default function TaskListScreen() {
 	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 	const fabCooldown = useRef(false)
+	const fabRef = useRef<View>(null)
+	const dateRef = useRef<View>(null)
+
+	useEffect(() => {
+		registerRef('tasks-fab', fabRef)
+		registerRef('tasks-date', dateRef)
+		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date') }
+	}, [])
 
 	// Proactively log the user out 1 day before their JWT actually expires, so
 	// they re-login while their session still works rather than getting a 401
@@ -124,12 +132,12 @@ export default function TaskListScreen() {
 				activeTask.id,
 				token,
 				API_BASE_URL,
-				maxBlockTimeMinutes * 60 * 1000,
+				(activeTask.maximumDurationSeconds ?? 36000) * 1000,
 				blockNotifications,
 				activeTask.minimumDurationSeconds * 1000,
 			)
 		} catch {}
-	}, [activeTask, isBlocking, token, selectedApps, maxBlockTimeMinutes, blockNotifications, startBlocking])
+	}, [activeTask, isBlocking, token, selectedApps, blockNotifications, startBlocking])
 	const activeStartedAt = activeTask?.startedAt
 	const activeMinDuration = activeTask?.minimumDurationSeconds
 
@@ -164,9 +172,13 @@ export default function TaskListScreen() {
 		<View style={[styles.container, { backgroundColor: theme.background }]}>
 			<View style={styles.header}>
 				<Text style={[styles.title, { color: theme.text }]}>Tasks</Text>
+				<TouchableOpacity onPress={triggerWalkthrough} hitSlop={12}>
+					<Ionicons name='help-circle-outline' size={26} color={theme.icon} />
+				</TouchableOpacity>
 			</View>
 
 			<TouchableOpacity
+				ref={dateRef}
 				style={[styles.datePicker, { backgroundColor: theme.surface, borderColor: theme.border }]}
 				onPress={() => setShowPicker(true)}
 				activeOpacity={0.7}>
@@ -231,6 +243,7 @@ export default function TaskListScreen() {
 
 			{hasActiveTask ? null : (
 				<TouchableOpacity
+					ref={fabRef}
 					style={[styles.fab, { backgroundColor: theme.primary }]}
 					onPress={() => {
 						if (fabCooldown.current) return

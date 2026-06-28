@@ -112,6 +112,65 @@ Authenticate an existing user.
 
 ---
 
+### POST /api/auth/google
+
+Sign in or sign up with a Google ID token (the JWT issued by Google's OAuth flow on
+the client side). The backend verifies the token's signature, issuer, audience
+(one of the configured Web or Android client IDs), and expiry. If the email is
+already registered, signs the user in. Otherwise creates a new user with
+`authProvider=GOOGLE` and a username auto-generated from the email prefix.
+
+**Auth:** Public
+
+**Request Body:**
+
+| Field   | Type   | Validation                                                     |
+| ------- | ------ | -------------------------------------------------------------- |
+| idToken | string | Required. The ID token returned by Google's SDK on the client. |
+
+**Example Request:**
+
+```json
+{
+	"idToken": "eyJhbGciOiJSUzI1NiIs..."
+}
+```
+
+**Success Response:** `200 OK`
+
+Returns the same `AuthResponse` shape as `/api/auth/login`:
+
+```json
+{
+	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+	"expiresAt": "2026-04-27T12:00:00Z",
+	"user": {
+		"id": "550e8400-e29b-41d4-a716-446655440000",
+		"email": "user@gmail.com",
+		"username": "user",
+		"emailVerified": true,
+		"createdAt": "2026-03-28T12:00:00Z"
+	}
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code          | When                                                              |
+| ------ | ------------------- | ----------------------------------------------------------------- |
+| 401    | INVALID_ID_TOKEN    | Signature invalid, expired, wrong audience, or email not verified |
+| 403    | ACCOUNT_DEACTIVATED | Email matches a user whose `isActive=false`                       |
+| 400    | VALIDATION_ERROR    | Missing `idToken` field                                           |
+
+**Required env vars (backend):**
+
+- `GOOGLE_OAUTH_WEB_CLIENT_ID` — accept tokens from the Web OAuth client
+- `GOOGLE_OAUTH_ANDROID_CLIENT_ID` — accept tokens from the Android OAuth client
+
+At least one must be set, or the application fails to start.
+
+---
+
 ### POST /api/auth/forgot-password
 
 Request a password reset code. If the email is registered, a 6-digit code is sent to

@@ -1,10 +1,11 @@
+import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
 import { useBlocker } from '@/hooks/useBlocker'
 import { getInstalledApps } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
 import type { AppInfo } from '@/types/blocker'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, Image, InteractionManager, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 
 function AppRow({ app, disabled }: { app: AppInfo; disabled: boolean }) {
@@ -59,6 +60,12 @@ export default function AppsScreen() {
 	const [search, setSearch] = useState('')
 	const selectedCount = useUiStore(s => s.selectedApps.length)
 	const { isBlocking } = useBlocker()
+	const searchRef = useRef<View>(null)
+
+	useEffect(() => {
+		registerRef('apps-search', searchRef)
+		return () => unregisterRef('apps-search')
+	}, [])
 
 	useEffect(() => {
 		let cancelled = false
@@ -105,7 +112,7 @@ export default function AppsScreen() {
 				</View>
 			) : null}
 
-			<View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+			<View ref={searchRef} style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 				<Ionicons
 					name='search-outline'
 					size={18}

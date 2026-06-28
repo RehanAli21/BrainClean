@@ -1,4 +1,6 @@
 import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
+import { TutorialOverlay } from '@/components/TutorialOverlay'
+import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { useBlocker } from '@/hooks/useBlocker'
@@ -25,7 +27,6 @@ import {
 	StyleSheet,
 	Switch,
 	Text,
-	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native'
@@ -36,15 +37,19 @@ export default function SettingsScreen() {
 	const { permissions, recheck } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 	const { isBlocking } = useBlocker()
-	const maxBlockTimeMinutes = useUiStore(s => s.maxBlockTimeMinutes)
-	const setMaxBlockTime = useUiStore(s => s.setMaxBlockTime)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const setBlockNotifications = useUiStore(s => s.setBlockNotifications)
-	const [timeInput, setTimeInput] = useState(String(maxBlockTimeMinutes))
-	const [saved, setSaved] = useState(false)
 	const [deleting, setDeleting] = useState(false)
+	const [showTutorial, setShowTutorial] = useState(false)
 	const pendingNotificationToggle = useRef(false)
-	const saveCooldown = useRef(false)
+	const notifRef = useRef<View | null>(null)
+	const permsRef = useRef<View | null>(null)
+
+	useEffect(() => {
+		registerRef('settings-notifications', notifRef)
+		registerRef('settings-permissions', permsRef)
+		return () => { unregisterRef('settings-notifications'); unregisterRef('settings-permissions') }
+	}, [])
 
 	useEffect(() => {
 		const sub = AppState.addEventListener('change', state => {
@@ -57,25 +62,6 @@ export default function SettingsScreen() {
 		})
 		return () => sub.remove()
 	}, [setBlockNotifications])
-
-	const handleSaveMaxTime = () => {
-		if (saveCooldown.current) return
-		saveCooldown.current = true
-		const value = parseInt(timeInput, 10)
-		if (isNaN(value) || value < 1) {
-			Alert.alert('Invalid Value', 'Minimum block time is 1 minute.')
-			setTimeout(() => { saveCooldown.current = false }, 1000)
-			return
-		}
-		if (value > 1440) {
-			Alert.alert('Invalid Value', 'Maximum block time is 1440 minutes (24 hours).')
-			setTimeout(() => { saveCooldown.current = false }, 1000)
-			return
-		}
-		setMaxBlockTime(value)
-		setSaved(true)
-		setTimeout(() => { setSaved(false); saveCooldown.current = false }, 2000)
-	}
 
 	const handleToggleNotifications = (value: boolean) => {
 		if (value) {
@@ -172,42 +158,9 @@ export default function SettingsScreen() {
 
 				{/* Blocking Settings Section */}
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>BLOCKING</Text>
-				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-					<View style={styles.settingRow}>
-						<View style={styles.settingInfo}>
-							<Ionicons
-								name='timer-outline'
-								size={20}
-								color={theme.icon}
-							/>
-							<View style={styles.rowText}>
-								<Text style={[styles.label, { color: theme.icon }]}>Max Block Time</Text>
-								<Text style={[styles.hint, { color: theme.icon }]}>Auto-unblock after this duration (1–1440 min)</Text>
-							</View>
-						</View>
-						<View style={[styles.inputRow, isBlocking && styles.disabled]}>
-							<TextInput
-								style={[styles.input, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
-								value={timeInput}
-								onChangeText={setTimeInput}
-								keyboardType='number-pad'
-								maxLength={4}
-								editable={!isBlocking}
-							/>
-							<Text style={[styles.unit, { color: theme.icon }]}>min</Text>
-							<TouchableOpacity
-								style={[styles.saveButton, { backgroundColor: saved ? theme.success : theme.primary }]}
-								onPress={handleSaveMaxTime}
-								activeOpacity={0.7}
-								disabled={isBlocking}>
-								<Text style={styles.saveButtonText}>{saved ? 'Saved' : 'Save'}</Text>
-							</TouchableOpacity>
-						</View>
-					</View>
-				</View>
 
 				{/* Notification Blocking */}
-				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+				<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 					<View style={styles.toggleRow}>
 						<View style={styles.toggleInfo}>
 							<Ionicons
@@ -232,7 +185,7 @@ export default function SettingsScreen() {
 
 				{/* Permissions Section */}
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>PERMISSIONS</Text>
-				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+				<View ref={permsRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 					<PermissionRow
 						icon='stats-chart-outline'
 						title='Usage Access'
@@ -272,6 +225,17 @@ export default function SettingsScreen() {
 						<PadlockProtectionCard manufacturer={manufacturer} />
 					</View>
 				) : null}
+
+				{/* Tutorial */}
+				<TouchableOpacity
+					style={[styles.tutorialButton, { backgroundColor: theme.primary }]}
+					onPress={() => setShowTutorial(true)}
+					activeOpacity={0.7}>
+					<Ionicons name='help-circle-outline' size={20} color='#FFFFFF' />
+					<Text style={styles.tutorialButtonText}>Show Tutorial</Text>
+				</TouchableOpacity>
+
+				<TutorialOverlay visible={showTutorial} onClose={() => setShowTutorial(false)} />
 
 				{/* Logout */}
 				<TouchableOpacity
@@ -390,29 +354,18 @@ const styles = StyleSheet.create({
 	label: { fontSize: 12, fontWeight: '500', marginBottom: 2 },
 	value: { fontSize: 16, fontWeight: '500' },
 	hint: { fontSize: 12, marginTop: 2 },
-	settingRow: { gap: 12 },
-	settingInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 	toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 	toggleInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flex: 1 },
-	inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 32 },
-	input: {
-		borderWidth: 1,
-		borderRadius: 8,
-		height: 40,
-		width: 80,
-		textAlign: 'center',
-		fontSize: 16,
-		fontWeight: '600',
-	},
-	unit: { fontSize: 14, fontWeight: '500' },
-	saveButton: {
-		height: 40,
-		paddingHorizontal: 16,
-		borderRadius: 8,
+	tutorialButton: {
+		borderRadius: 12,
+		height: 52,
+		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
+		gap: 8,
+		marginBottom: 12,
 	},
-	saveButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+	tutorialButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 	logoutButton: {
 		borderWidth: 1,
 		borderRadius: 12,

@@ -1,4 +1,3 @@
-import { AuthInput } from '@/components/AuthInput'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { Colors } from '@/constants/theme'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
@@ -8,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
 function getTodayDate(): string {
@@ -16,10 +15,19 @@ function getTodayDate(): string {
 	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
+function clampTimeInput(text: string, max: number): string {
+	const cleaned = text.replace(/[^0-9]/g, '')
+	if (cleaned === '') return ''
+	const num = parseInt(cleaned, 10)
+	if (num < 0) return '0'
+	if (num > max) return String(max)
+	return String(num)
+}
+
 const createTaskSchema = z.object({
 	name: z.string().min(1, 'Task name is required').max(255, 'Task name is too long'),
 	durationMinutes: z.number().min(1, 'Duration must be at least 1 minute'),
-	maxDurationMinutes: z.number().min(1, 'Max duration must be at least 1 minute').max(1440, 'Max duration cannot exceed 1440 minutes (24 hours)'),
+	maxDurationMinutes: z.number().min(1, 'Max duration must be at least 1 minute').max(1440, 'Max duration cannot exceed 24 hours'),
 }).refine(data => data.maxDurationMinutes >= data.durationMinutes, {
 	message: 'Max duration must be greater than or equal to min duration',
 	path: ['maxDurationMinutes'],
@@ -33,8 +41,10 @@ export default function NewTaskScreen() {
 	const { isLoading: permsLoading, allGranted } = usePermissions()
 
 	const [name, setName] = useState('')
-	const [durationMinutes, setDurationMinutes] = useState('')
-	const [maxDurationMinutes, setMaxDurationMinutes] = useState('600')
+	const [minHours, setMinHours] = useState('')
+	const [minMinutes, setMinMinutes] = useState('')
+	const [maxHours, setMaxHours] = useState('10')
+	const [maxMinutes, setMaxMinutes] = useState('0')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
 
@@ -42,15 +52,14 @@ export default function NewTaskScreen() {
 		setErrors({})
 		setApiError('')
 
-		const parsed = parseInt(durationMinutes, 10)
-		const parsedMax = parseInt(maxDurationMinutes, 10)
+		const totalMin = (parseInt(minHours, 10) || 0) * 60 + (parseInt(minMinutes, 10) || 0)
+		const totalMax = (parseInt(maxHours, 10) || 0) * 60 + (parseInt(maxMinutes, 10) || 0)
+
 		const result = createTaskSchema.safeParse({
 			name: name.trim(),
-			durationMinutes: isNaN(parsed) ? 0 : parsed,
-			maxDurationMinutes: isNaN(parsedMax) ? 0 : parsedMax,
+			durationMinutes: totalMin,
+			maxDurationMinutes: totalMax,
 		})
-
-		console.log(result)
 
 		if (!result.success) {
 			const fieldErrors: Record<string, string> = {}
@@ -168,32 +177,74 @@ export default function NewTaskScreen() {
 						</View>
 					) : null}
 
-					<AuthInput
-						label='Task Name'
+					<Text style={[styles.inputLabel, { color: theme.icon }]}>Task Name</Text>
+					<TextInput
+						style={[styles.textInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
 						placeholder='e.g. Read 10 pages'
+						placeholderTextColor={theme.icon + '80'}
 						value={name}
 						onChangeText={setName}
 						autoCapitalize='sentences'
 					/>
 					{errors.name ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.name}</Text> : null}
 
-					<AuthInput
-						label='Duration (minutes)'
-						placeholder='e.g. 10'
-						value={durationMinutes}
-						onChangeText={setDurationMinutes}
-						keyboardType='numeric'
-					/>
+					<Text style={[styles.inputLabel, { color: theme.icon }]}>Min Duration</Text>
+					<View style={styles.timeRow}>
+						<View style={styles.timeField}>
+							<TextInput
+								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+								placeholder='0'
+								placeholderTextColor={theme.icon + '80'}
+								value={minHours}
+								onChangeText={t => setMinHours(clampTimeInput(t, 24))}
+								keyboardType='number-pad'
+								maxLength={2}
+							/>
+							<Text style={[styles.timeUnit, { color: theme.icon }]}>hrs</Text>
+						</View>
+						<View style={styles.timeField}>
+							<TextInput
+								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+								placeholder='0'
+								placeholderTextColor={theme.icon + '80'}
+								value={minMinutes}
+								onChangeText={t => setMinMinutes(clampTimeInput(t, 59))}
+								keyboardType='number-pad'
+								maxLength={2}
+							/>
+							<Text style={[styles.timeUnit, { color: theme.icon }]}>min</Text>
+						</View>
+					</View>
 					{errors.durationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.durationMinutes}</Text> : null}
 
-					<AuthInput
-						label='Max Duration (minutes)'
-						placeholder='e.g. 600'
-						value={maxDurationMinutes}
-						onChangeText={setMaxDurationMinutes}
-						keyboardType='numeric'
-					/>
-					<Text style={[styles.hintText, { color: theme.icon }]}>Auto-unblock after this duration (1–1440 min)</Text>
+					<Text style={[styles.inputLabel, { color: theme.icon }]}>Max Duration</Text>
+					<View style={styles.timeRow}>
+						<View style={styles.timeField}>
+							<TextInput
+								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+								placeholder='0'
+								placeholderTextColor={theme.icon + '80'}
+								value={maxHours}
+								onChangeText={t => setMaxHours(clampTimeInput(t, 24))}
+								keyboardType='number-pad'
+								maxLength={2}
+							/>
+							<Text style={[styles.timeUnit, { color: theme.icon }]}>hrs</Text>
+						</View>
+						<View style={styles.timeField}>
+							<TextInput
+								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+								placeholder='0'
+								placeholderTextColor={theme.icon + '80'}
+								value={maxMinutes}
+								onChangeText={t => setMaxMinutes(clampTimeInput(t, 59))}
+								keyboardType='number-pad'
+								maxLength={2}
+							/>
+							<Text style={[styles.timeUnit, { color: theme.icon }]}>min</Text>
+						</View>
+					</View>
+					<Text style={[styles.hintText, { color: theme.icon }]}>Auto-unblock after this duration</Text>
 					{errors.maxDurationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.maxDurationMinutes}</Text> : null}
 
 					<View style={{ marginTop: 8 }}>
@@ -223,8 +274,38 @@ const styles = StyleSheet.create({
 	form: { width: '100%' },
 	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
 	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
+	inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginLeft: 4 },
+	textInput: {
+		borderWidth: 1,
+		borderRadius: 12,
+		height: 50,
+		paddingHorizontal: 16,
+		fontSize: 16,
+		marginBottom: 16,
+	},
+	timeRow: {
+		flexDirection: 'row',
+		gap: 12,
+		marginBottom: 16,
+	},
+	timeField: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 8,
+	},
+	timeInput: {
+		borderWidth: 1,
+		borderRadius: 12,
+		height: 50,
+		flex: 1,
+		textAlign: 'center',
+		fontSize: 18,
+		fontWeight: '600',
+	},
+	timeUnit: { fontSize: 14, fontWeight: '500' },
 	fieldError: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
-	hintText: { fontSize: 12, marginTop: -8, marginBottom: 8, marginLeft: 4 },
+	hintText: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
 	permsBanner: {
 		flexDirection: 'row',
 		alignItems: 'center',

@@ -1,3 +1,4 @@
+import { useUiStore } from '@/store/uiStore'
 import { useNavigationContainerRef, useRouter, useSegments } from 'expo-router'
 import * as SecureStore from 'expo-secure-store'
 import React, { createContext, useContext, useEffect, useState } from 'react'
@@ -88,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		await SecureStore.deleteItemAsync('user_token')
 		await SecureStore.deleteItemAsync('user_email')
 		await SecureStore.deleteItemAsync('user_token_expires_at')
+		useUiStore.getState().setHasRated(false)
 		setToken(null)
 		setEmail(null)
 		setTokenExpiresAt(null)

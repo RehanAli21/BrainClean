@@ -9,7 +9,7 @@ import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 function formatDuration(seconds: number): string {
 	const mins = Math.floor(seconds / 60)
@@ -43,6 +43,8 @@ export default function TaskDetailScreen() {
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
+	const hasRated = useUiStore(s => s.hasRated)
+	const setHasRated = useUiStore(s => s.setHasRated)
 	const [apiError, setApiError] = useState('')
 	const [now, setNow] = useState(Date.now)
 
@@ -374,6 +376,33 @@ export default function TaskDetailScreen() {
 						)}
 					</TouchableOpacity>
 				) : null}
+
+				{task.completed && !hasRated ? (
+					<View style={[styles.rateCard, { backgroundColor: theme.surface, borderColor: theme.primary + '40' }]}>
+						<View style={styles.rateCardContent}>
+							<Ionicons name='star' size={22} color='#FBBF24' />
+							<View style={styles.rateCardText}>
+								<Text style={[styles.rateCardTitle, { color: theme.text }]}>Enjoying BrainClean?</Text>
+								<Text style={[styles.rateCardHint, { color: theme.icon }]}>Rate us on the Play Store!</Text>
+							</View>
+						</View>
+						<View style={styles.rateCardActions}>
+							<TouchableOpacity onPress={() => setHasRated(true)} hitSlop={8}>
+								<Text style={[styles.rateCardDismiss, { color: theme.icon }]}>Later</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={[styles.rateCardButton, { backgroundColor: theme.primary }]}
+								onPress={() => {
+									Linking.openURL('https://play.google.com/store/apps/details?id=com.brainclean.app')
+									setHasRated(true)
+								}}
+								activeOpacity={0.8}>
+								<Ionicons name='star-outline' size={16} color='#FFFFFF' />
+								<Text style={styles.rateCardButtonText}>Rate Now</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				) : null}
 			</View>
 		</View>
 	)
@@ -414,4 +443,35 @@ const styles = StyleSheet.create({
 	deleteButtonText: { fontSize: 16, fontWeight: '600' },
 	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
 	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
+	rateCard: {
+		borderWidth: 1,
+		borderRadius: 12,
+		padding: 14,
+		marginTop: 16,
+	},
+	rateCardContent: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 10,
+		marginBottom: 12,
+	},
+	rateCardText: { flex: 1 },
+	rateCardTitle: { fontSize: 15, fontWeight: '600' },
+	rateCardHint: { fontSize: 13, marginTop: 2 },
+	rateCardActions: {
+		flexDirection: 'row',
+		justifyContent: 'flex-end',
+		alignItems: 'center',
+		gap: 16,
+	},
+	rateCardDismiss: { fontSize: 14, fontWeight: '500' },
+	rateCardButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 6,
+		borderRadius: 8,
+		paddingHorizontal: 14,
+		paddingVertical: 8,
+	},
+	rateCardButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
 })

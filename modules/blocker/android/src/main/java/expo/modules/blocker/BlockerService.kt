@@ -68,7 +68,7 @@ class BlockerService : Service() {
         val baseUrl = state.getBaseUrl()
         if (authToken.isNotEmpty() && baseUrl.isNotEmpty()) {
             val minDurationMs = state.getMinimumDurationMs()
-            val elapsed = System.currentTimeMillis() - state.getStartedAt()
+            val elapsed = state.getElapsedSinceStart()
             val pollDelay = maxOf(0L, minDurationMs - 60_000L - elapsed)
 
             taskStatusChecker.start(
@@ -89,7 +89,7 @@ class BlockerService : Service() {
         // Enforce max block time
         val maxBlockTimeMs = state.getMaxBlockTimeMs()
         if (maxBlockTimeMs > 0) {
-            val elapsed = System.currentTimeMillis() - state.getStartedAt()
+            val elapsed = state.getElapsedSinceStart()
             val remaining = maxBlockTimeMs - elapsed
             if (remaining <= 0) {
                 Log.i(TAG, "Max block time already exceeded, stopping blocker")

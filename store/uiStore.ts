@@ -21,6 +21,8 @@ interface UiState {
   setPadlockConfirmed: (confirmed: boolean) => void;
   tutorialSeen: boolean;
   setTutorialSeen: (seen: boolean) => void;
+  hasRated: boolean;
+  setHasRated: (rated: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -57,6 +59,12 @@ export const useUiStore = create<UiState>()(
 
       setTutorialSeen: (seen: boolean) => {
         set({ tutorialSeen: seen });
+      },
+
+      hasRated: false,
+
+      setHasRated: (rated: boolean) => {
+        set({ hasRated: rated });
       },
     }),
     {

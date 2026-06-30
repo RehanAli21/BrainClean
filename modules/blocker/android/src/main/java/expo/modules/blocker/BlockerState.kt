@@ -2,6 +2,7 @@ package expo.modules.blocker
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.SystemClock
 
 class BlockerState private constructor(context: Context) {
     private val prefs: SharedPreferences =
@@ -13,6 +14,7 @@ class BlockerState private constructor(context: Context) {
             .putStringSet(KEY_BLOCKED_PACKAGES, packages.toSet())
             .putString(KEY_SESSION_ID, sessionId)
             .putLong(KEY_STARTED_AT, System.currentTimeMillis())
+            .putLong(KEY_ELAPSED_REALTIME_AT_START, SystemClock.elapsedRealtime())
             .putString(KEY_AUTH_TOKEN, authToken)
             .putString(KEY_BASE_URL, baseUrl)
             .putLong(KEY_MAX_BLOCK_TIME_MS, maxBlockTimeMs)
@@ -27,6 +29,7 @@ class BlockerState private constructor(context: Context) {
             .putStringSet(KEY_BLOCKED_PACKAGES, emptySet())
             .putString(KEY_SESSION_ID, "")
             .putLong(KEY_STARTED_AT, 0L)
+            .putLong(KEY_ELAPSED_REALTIME_AT_START, 0L)
             .putString(KEY_AUTH_TOKEN, "")
             .putString(KEY_BASE_URL, "")
             .putLong(KEY_MAX_BLOCK_TIME_MS, 0L)
@@ -44,6 +47,24 @@ class BlockerState private constructor(context: Context) {
 
     fun getStartedAt(): Long = prefs.getLong(KEY_STARTED_AT, 0L)
 
+    fun getElapsedRealtimeAtStart(): Long = prefs.getLong(KEY_ELAPSED_REALTIME_AT_START, 0L)
+
+    /**
+     * Returns elapsed ms since session started using monotonic clock when available.
+     * Falls back to wall clock after reboot (elapsedRealtime resets to 0).
+     */
+    fun getElapsedSinceStart(): Long {
+        val realtimeAtStart = getElapsedRealtimeAtStart()
+        if (realtimeAtStart > 0 && SystemClock.elapsedRealtime() >= realtimeAtStart) {
+            return SystemClock.elapsedRealtime() - realtimeAtStart
+        }
+        val startedAt = getStartedAt()
+        if (startedAt > 0) {
+            return System.currentTimeMillis() - startedAt
+        }
+        return 0L
+    }
+
     fun getAuthToken(): String = prefs.getString(KEY_AUTH_TOKEN, "") ?: ""
 
     fun getBaseUrl(): String = prefs.getString(KEY_BASE_URL, "") ?: ""
@@ -60,6 +81,7 @@ class BlockerState private constructor(context: Context) {
         private const val KEY_BLOCKED_PACKAGES = "blocked_packages"
         private const val KEY_SESSION_ID = "session_id"
         private const val KEY_STARTED_AT = "started_at"
+        private const val KEY_ELAPSED_REALTIME_AT_START = "elapsed_realtime_at_start"
         private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_BASE_URL = "base_url"
         private const val KEY_MAX_BLOCK_TIME_MS = "max_block_time_ms"

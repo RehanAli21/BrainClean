@@ -7,6 +7,7 @@ import {
   startBlocking as nativeStartBlocking,
   stopBlocking as nativeStopBlocking,
 } from '@/modules/blocker';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
 export function useBlocker() {
@@ -32,6 +33,22 @@ export function useBlocker() {
     setBlockedApps([]);
     setActiveSessionId(null);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const actual = nativeIsBlocking();
+      if (actual !== blocking) {
+        setBlocking(actual);
+        if (actual) {
+          setBlockedApps(getBlockedApps());
+          setActiveSessionId(getActiveSessionId());
+        } else {
+          setBlockedApps([]);
+          setActiveSessionId(null);
+        }
+      }
+    }, [blocking]),
+  );
 
   useEffect(() => {
     const blockedSub = addBlockedAppListener((_event) => {

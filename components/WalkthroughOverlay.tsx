@@ -41,17 +41,10 @@ const STEPS: WalkthroughStep[] = [
 		tooltipPosition: 'bottom',
 	},
 	{
-		key: 'newtask-min',
+		key: 'newtask-duration',
 		route: '/(main)/(tabs)/tasks/new',
-		title: 'Min Duration',
-		description: 'Set the minimum time you must focus before you can finish the task. You won\'t be able to stop blocking until this time passes.',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'newtask-max',
-		route: '/(main)/(tabs)/tasks/new',
-		title: 'Max Duration',
-		description: 'Set the maximum blocking time. Apps auto-unblock after this duration even if you haven\'t finished.',
+		title: 'Duration',
+		description: 'Set how long your focus session will last. Apps will be blocked for this entire duration.',
 		tooltipPosition: 'bottom',
 	},
 	{

@@ -32,7 +32,7 @@ const STEPS: TutorialStep[] = [
 		iconColor: '#2563EB',
 		title: 'Create a Task',
 		description:
-			'In the Tasks tab, tap the + button to create a new task. Set a name, minimum duration (how long before you can finish), and maximum duration (auto-unblock safety limit).',
+			'In the Tasks tab, tap the + button to create a new task. Set a name and pick how long your focus session will last using the hour and minute rollers.',
 	},
 	{
 		icon: 'play-circle-outline',

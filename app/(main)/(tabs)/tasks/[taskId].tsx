@@ -265,17 +265,17 @@ export default function TaskDetailScreen() {
 						size={18}
 						color={theme.icon}
 					/>
-					<Text style={[styles.detailText, { color: theme.icon }]}>Min: {formatDuration(task.minimumDurationSeconds)}</Text>
+					<Text style={[styles.detailText, { color: theme.icon }]}>Duration: {formatDuration(task.minimumDurationSeconds)}</Text>
 				</View>
 
-				{task.maximumDurationSeconds ? (
+				{task.maximumDurationSeconds && task.maximumDurationSeconds > task.minimumDurationSeconds + 60 ? (
 					<View style={styles.row}>
 						<Ionicons
 							name='hourglass-outline'
 							size={18}
 							color={theme.icon}
 						/>
-						<Text style={[styles.detailText, { color: theme.icon }]}>Max: {formatDuration(task.maximumDurationSeconds)}</Text>
+						<Text style={[styles.detailText, { color: theme.icon }]}>Auto-complete: {formatDuration(task.maximumDurationSeconds)}</Text>
 					</View>
 				) : null}
 

@@ -62,7 +62,9 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 					</Text>
 					<Text style={[styles.taskDuration, { color: theme.icon }]}>
 						{formatDuration(task.minimumDurationSeconds)}
-						{task.maximumDurationSeconds ? ` · Max ${formatDuration(task.maximumDurationSeconds)}` : ''}
+						{task.maximumDurationSeconds && task.maximumDurationSeconds > task.minimumDurationSeconds + 60
+							? ` · Auto-complete ${formatDuration(task.maximumDurationSeconds)}`
+							: ''}
 					</Text>
 					<Text style={[styles.taskHint, { color: theme.primary, marginTop: 10 }]}>Tap to view details</Text>
 				</View>

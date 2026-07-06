@@ -1,3 +1,4 @@
+import i18n from '@/i18n'
 import { Colors } from '@/constants/theme'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -6,7 +7,9 @@ import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useCallback, useEffect, useState } from 'react'
 import { AppState, Platform, StyleSheet, Text, TouchableOpacity, View, type AppStateStatus } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { isBlocking as nativeIsBlocking } from '@/modules/blocker'
+import { useUiStore } from '@/store/uiStore'
 import { AuthProvider } from '../context/AuthContext'
 
 SplashScreen.preventAutoHideAsync()
@@ -61,21 +64,22 @@ function useForceUpdate() {
 
 function UpdateBlocker({ onRetry }: { onRetry: () => void }) {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	return (
 		<View style={[updateStyles.container, { backgroundColor: theme.background }]}>
 			<View style={[updateStyles.iconCircle, { backgroundColor: theme.primary + '1A' }]}>
 				<Ionicons name='cloud-download-outline' size={56} color={theme.primary} />
 			</View>
-			<Text style={[updateStyles.title, { color: theme.text }]}>Update Required</Text>
+			<Text style={[updateStyles.title, { color: theme.text }]}>{t('update.title')}</Text>
 			<Text style={[updateStyles.message, { color: theme.icon }]}>
-				A new version of BrainClean is available. Please update to continue using the app.
+				{t('update.message')}
 			</Text>
 			<TouchableOpacity
 				style={[updateStyles.button, { backgroundColor: theme.primary }]}
 				onPress={onRetry}
 				activeOpacity={0.8}>
 				<Ionicons name='download-outline' size={20} color='#FFFFFF' />
-				<Text style={updateStyles.buttonText}>Update Now</Text>
+				<Text style={updateStyles.buttonText}>{t('update.button')}</Text>
 			</TouchableOpacity>
 		</View>
 	)
@@ -123,6 +127,21 @@ const updateStyles = StyleSheet.create({
 	},
 })
 
+function useSyncLanguage() {
+	useEffect(() => {
+		const unsub = useUiStore.persist.onFinishHydration((state) => {
+			if (state.selectedLanguage && state.selectedLanguage !== i18n.language) {
+				i18n.changeLanguage(state.selectedLanguage)
+			}
+		})
+		const state = useUiStore.getState()
+		if (state.selectedLanguage && state.selectedLanguage !== i18n.language) {
+			i18n.changeLanguage(state.selectedLanguage)
+		}
+		return unsub
+	}, [])
+}
+
 export default function RootLayout() {
 	const [queryClient] = useState(
 		() =>
@@ -136,6 +155,7 @@ export default function RootLayout() {
 	)
 
 	useAppStateFocusManager()
+	useSyncLanguage()
 	const { updateRequired, retry } = useForceUpdate()
 
 	if (updateRequired) {

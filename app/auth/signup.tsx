@@ -6,24 +6,14 @@ import { useAuth } from '@/context/AuthContext'
 import { signInWithGoogle } from '@/modules/google-auth'
 import { authService } from '@/services/api/auth'
 import { Link, useRouter } from 'expo-router'
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
-const signupSchema = z
-	.object({
-		email: z.string().email('Please enter a valid email'),
-		username: z.string().min(3, 'Username must be at least 3 characters').max(50, 'Username must be at most 50 characters'),
-		password: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password must be at most 128 characters'),
-		confirmPassword: z.string().min(1, 'Please confirm your password'),
-	})
-	.refine(data => data.password === data.confirmPassword, {
-		message: 'Passwords do not match',
-		path: ['confirmPassword'],
-	})
-
 export default function SignupScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
 	const { login } = useAuth()
 	const [email, setEmail] = useState('')
@@ -37,6 +27,18 @@ export default function SignupScreen() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [googleLoading, setGoogleLoading] = useState(false)
 	const googleCooldown = useRef(false)
+
+	const signupSchema = useMemo(() => z
+		.object({
+			email: z.string().email(t('validation.emailInvalid')),
+			username: z.string().min(3, t('validation.usernameMin')).max(50, t('validation.usernameMax')),
+			password: z.string().min(8, t('validation.passwordMin')).max(128, t('validation.passwordMax')),
+			confirmPassword: z.string().min(1, t('validation.confirmRequired')),
+		})
+		.refine(data => data.password === data.confirmPassword, {
+			message: t('validation.passwordsMismatch'),
+			path: ['confirmPassword'],
+		}), [t])
 
 	const handleSignup = async () => {
 		setErrors({})
@@ -55,7 +57,7 @@ export default function SignupScreen() {
 		}
 
 		if (!acceptedTerms) {
-			setErrors({ terms: 'You must accept the Privacy Policy and Terms & Conditions to continue.' })
+			setErrors({ terms: t('auth.signup.mustAcceptTerms') })
 			return
 		}
 
@@ -68,9 +70,9 @@ export default function SignupScreen() {
 			if (code === 'EMAIL_ALREADY_EXISTS') {
 				setEmailExists(true)
 			} else if (code === 'USERNAME_ALREADY_EXISTS') {
-				setApiError('This username is already taken.')
+				setApiError(t('auth.signup.usernameTaken'))
 			} else {
-				setApiError('Something went wrong. Please try again.')
+				setApiError(t('common.somethingWentWrong'))
 			}
 		} finally {
 			setIsLoading(false)
@@ -94,13 +96,13 @@ export default function SignupScreen() {
 			} else {
 				const code = err.response?.data?.error
 				if (code === 'INVALID_ID_TOKEN') {
-					setApiError("Couldn't sign in with Google. Please try again.")
+					setApiError(t('auth.login.googleFailed'))
 				} else if (code === 'ACCOUNT_DEACTIVATED') {
-					setApiError('This account has been deactivated. Contact support.')
+					setApiError(t('auth.login.deactivatedContact'))
 				} else if (code === 'RATE_LIMIT_EXCEEDED') {
-					setApiError('Too many attempts. Please wait a minute and try again.')
+					setApiError(t('auth.login.rateLimited'))
 				} else {
-					setApiError('Something went wrong. Please try again.')
+					setApiError(t('common.somethingWentWrong'))
 				}
 			}
 		} finally {
@@ -112,21 +114,21 @@ export default function SignupScreen() {
 	return (
 		<View style={[styles.container, { backgroundColor: theme.background }]}>
 			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>Create Account</Text>
-				<Text style={[styles.subtitle, { color: theme.icon }]}>Start your digital wellness journey.</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('auth.signup.title')}</Text>
+				<Text style={[styles.subtitle, { color: theme.icon }]}>{t('auth.signup.subtitle')}</Text>
 			</View>
 
 			<View style={styles.form}>
 				{emailExists ? (
 					<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
 						<Text style={[styles.errorBannerText, { color: theme.accent }]}>
-							Account already exists.{' '}
+							{t('auth.signup.accountExists')}{' '}
 							<Text style={styles.errorLink} onPress={() => router.replace('/auth/login')}>
-								Login
+								{t('auth.signup.accountExistsLogin')}
 							</Text>
-							{' '}or if you want to change password go to{' '}
+							{' '}{t('auth.signup.accountExistsOr')}{' '}
 							<Text style={styles.errorLink} onPress={() => router.replace('/auth/forgot-password')}>
-								Forgot Password
+								{t('auth.signup.accountExistsForgot')}
 							</Text>
 							.
 						</Text>
@@ -138,8 +140,8 @@ export default function SignupScreen() {
 				) : null}
 
 				<AuthInput
-					label='Username'
-					placeholder='johndoe'
+					label={t('auth.signup.usernameLabel')}
+					placeholder={t('auth.signup.usernamePlaceholder')}
 					autoCapitalize='none'
 					value={username}
 					onChangeText={setUsername}
@@ -147,8 +149,8 @@ export default function SignupScreen() {
 				{errors.username ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.username}</Text> : null}
 
 				<AuthInput
-					label='Email Address'
-					placeholder='user@brainclean.com'
+					label={t('auth.login.emailLabel')}
+					placeholder={t('auth.login.emailPlaceholder')}
 					keyboardType='email-address'
 					autoCapitalize='none'
 					value={email}
@@ -157,7 +159,7 @@ export default function SignupScreen() {
 				{errors.email ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.email}</Text> : null}
 
 				<AuthInput
-					label='Password'
+					label={t('auth.login.passwordLabel')}
 					placeholder='••••••••'
 					isPassword
 					value={password}
@@ -166,7 +168,7 @@ export default function SignupScreen() {
 				{errors.password ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.password}</Text> : null}
 
 				<AuthInput
-					label='Confirm Password'
+					label={t('auth.signup.confirmPasswordLabel')}
 					placeholder='••••••••'
 					isPassword
 					value={confirmPassword}
@@ -186,17 +188,17 @@ export default function SignupScreen() {
 						{acceptedTerms ? <Text style={styles.checkmark}>✓</Text> : null}
 					</View>
 					<Text style={[styles.termsText, { color: theme.icon }]}>
-						I agree to the{' '}
+						{t('auth.signup.agreeToTerms')}{' '}
 						<Text
 							style={[styles.termsLink, { color: theme.primary }]}
 							onPress={() => Linking.openURL('https://brainclean.app/legal/privacy')}>
-							Privacy Policy
+							{t('auth.signup.privacyPolicy')}
 						</Text>
-						{' '}and{' '}
+						{' '}{t('auth.signup.and')}{' '}
 						<Text
 							style={[styles.termsLink, { color: theme.primary }]}
 							onPress={() => Linking.openURL('https://brainclean.app/legal/terms')}>
-							Terms & Conditions
+							{t('auth.signup.termsConditions')}
 						</Text>
 						.
 					</Text>
@@ -204,7 +206,7 @@ export default function SignupScreen() {
 				{errors.terms ? <Text style={[styles.fieldError, { color: theme.accent, marginTop: 0 }]}>{errors.terms}</Text> : null}
 
 				<PrimaryButton
-					title='Create Account'
+					title={t('auth.signup.createAccount')}
 					onPress={handleSignup}
 					isLoading={isLoading}
 				/>
@@ -213,12 +215,12 @@ export default function SignupScreen() {
 					<>
 						<View style={styles.dividerRow}>
 							<View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-							<Text style={[styles.dividerText, { color: theme.icon }]}>or</Text>
+							<Text style={[styles.dividerText, { color: theme.icon }]}>{t('common.or')}</Text>
 							<View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
 						</View>
 
 						<SocialButton
-							title={googleLoading ? 'Signing in...' : 'Sign up with Google'}
+							title={googleLoading ? t('auth.login.signingIn') : t('auth.signup.signUpWithGoogle')}
 							onPress={handleGoogleSignIn}
 						/>
 					</>
@@ -226,12 +228,12 @@ export default function SignupScreen() {
 			</View>
 
 			<View style={styles.footer}>
-				<Text style={{ color: theme.icon }}>Already have an account? </Text>
+				<Text style={{ color: theme.icon }}>{t('auth.signup.hasAccount')} </Text>
 				<Link
 					href='/auth/login'
 					asChild>
 					<TouchableOpacity>
-						<Text style={[styles.linkText, { color: theme.primary }]}>Sign In</Text>
+						<Text style={[styles.linkText, { color: theme.primary }]}>{t('auth.login.signIn')}</Text>
 					</TouchableOpacity>
 				</Link>
 			</View>

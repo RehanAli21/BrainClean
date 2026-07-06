@@ -3,6 +3,7 @@ import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { getRef, setWalkthroughActive } from './walkthroughRegistry'
 
@@ -13,68 +14,20 @@ const HIGHLIGHT_RADIUS = 12
 interface WalkthroughStep {
 	key: string
 	route: string
-	title: string
-	description: string
+	titleKey: string
+	descriptionKey: string
 	tooltipPosition: 'top' | 'bottom'
 }
 
 const STEPS: WalkthroughStep[] = [
-	{
-		key: 'tasks-fab',
-		route: '/(main)/(tabs)/tasks',
-		title: 'Create a Task',
-		description: 'Tap the + button to create a new focus task.',
-		tooltipPosition: 'top',
-	},
-	{
-		key: 'tasks-date',
-		route: '/(main)/(tabs)/tasks',
-		title: 'Filter by Date',
-		description: 'Use the calendar to browse tasks from different days.',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'newtask-name',
-		route: '/(main)/(tabs)/tasks/new',
-		title: 'Task Name',
-		description: 'Enter a name for your task — what you want to accomplish during this focus session.',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'newtask-duration',
-		route: '/(main)/(tabs)/tasks/new',
-		title: 'Duration',
-		description: 'Set how long your focus session will last. Apps will be blocked for this entire duration.',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'newtask-create',
-		route: '/(main)/(tabs)/tasks/new',
-		title: 'Create Task',
-		description: 'Tap here to create the task. You\'ll see the task detail page where you can start it.',
-		tooltipPosition: 'top',
-	},
-	{
-		key: 'apps-search',
-		route: '/(main)/(tabs)/apps',
-		title: 'Find & Select Apps',
-		description: 'Search for apps and toggle them on. Selected apps will be blocked when you start a task.',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'settings-notifications',
-		route: '/(main)/(tabs)/settings',
-		title: 'Block Notifications',
-		description: 'Enable this to silence notifications from blocked apps during your focus sessions.',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'settings-permissions',
-		route: '/(main)/(tabs)/settings',
-		title: 'Grant Permissions',
-		description: "All permissions must be granted for blocking to work. Check them here if something isn't working.",
-		tooltipPosition: 'top',
-	},
+	{ key: 'tasks-fab', route: '/(main)/(tabs)/tasks', titleKey: 'walkthrough.createTask', descriptionKey: 'walkthrough.createTaskDesc', tooltipPosition: 'top' },
+	{ key: 'tasks-date', route: '/(main)/(tabs)/tasks', titleKey: 'walkthrough.filterDate', descriptionKey: 'walkthrough.filterDateDesc', tooltipPosition: 'bottom' },
+	{ key: 'newtask-name', route: '/(main)/(tabs)/tasks/new', titleKey: 'walkthrough.taskName', descriptionKey: 'walkthrough.taskNameDesc', tooltipPosition: 'bottom' },
+	{ key: 'newtask-duration', route: '/(main)/(tabs)/tasks/new', titleKey: 'walkthrough.duration', descriptionKey: 'walkthrough.durationDesc', tooltipPosition: 'bottom' },
+	{ key: 'newtask-create', route: '/(main)/(tabs)/tasks/new', titleKey: 'walkthrough.createButton', descriptionKey: 'walkthrough.createButtonDesc', tooltipPosition: 'top' },
+	{ key: 'apps-search', route: '/(main)/(tabs)/apps', titleKey: 'walkthrough.findApps', descriptionKey: 'walkthrough.findAppsDesc', tooltipPosition: 'bottom' },
+	{ key: 'settings-notifications', route: '/(main)/(tabs)/settings', titleKey: 'walkthrough.blockNotifs', descriptionKey: 'walkthrough.blockNotifsDesc', tooltipPosition: 'bottom' },
+	{ key: 'settings-permissions', route: '/(main)/(tabs)/settings', titleKey: 'walkthrough.grantPerms', descriptionKey: 'walkthrough.grantPermsDesc', tooltipPosition: 'top' },
 ]
 
 interface TargetRect {
@@ -91,6 +44,7 @@ interface Props {
 
 export function WalkthroughOverlay({ visible, onClose }: Props) {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
 	const setTutorialSeen = useUiStore(s => s.setTutorialSeen)
 	const [currentIndex, setCurrentIndex] = useState(0)
@@ -163,13 +117,9 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 			<View style={styles.container}>
 				{targetRect ? (
 					<>
-						{/* Top dark region */}
 						<View style={[styles.darkRegion, { top: 0, left: 0, right: 0, height: targetRect.y }]} />
-						{/* Bottom dark region */}
 						<View style={[styles.darkRegion, { top: targetRect.y + targetRect.height, left: 0, right: 0, bottom: 0 }]} />
-						{/* Left dark region */}
 						<View style={[styles.darkRegion, { top: targetRect.y, left: 0, width: targetRect.x, height: targetRect.height }]} />
-						{/* Right dark region */}
 						<View
 							style={[
 								styles.darkRegion,
@@ -177,7 +127,6 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 							]}
 						/>
 
-						{/* Highlight border */}
 						<View
 							style={[
 								styles.highlightBorder,
@@ -195,7 +144,6 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 					<View style={[styles.darkRegion, StyleSheet.absoluteFill]} />
 				)}
 
-				{/* Tooltip */}
 				<View
 					style={[
 						styles.tooltip,
@@ -213,12 +161,12 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 						<TouchableOpacity
 							onPress={handleFinish}
 							hitSlop={12}>
-							<Text style={[styles.skipText, { color: theme.icon }]}>Skip</Text>
+							<Text style={[styles.skipText, { color: theme.icon }]}>{t('common.skip')}</Text>
 						</TouchableOpacity>
 					</View>
 
-					<Text style={[styles.tooltipTitle, { color: theme.text }]}>{step.title}</Text>
-					<Text style={[styles.tooltipDescription, { color: theme.icon }]}>{step.description}</Text>
+					<Text style={[styles.tooltipTitle, { color: theme.text }]}>{t(step.titleKey)}</Text>
+					<Text style={[styles.tooltipDescription, { color: theme.icon }]}>{t(step.descriptionKey)}</Text>
 
 					<View style={styles.tooltipFooter}>
 						{currentIndex > 0 ? (
@@ -234,7 +182,7 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 									size={16}
 									color={theme.text}
 								/>
-								<Text style={[styles.backBtnText, { color: theme.text }]}>Back</Text>
+								<Text style={[styles.backBtnText, { color: theme.text }]}>{t('common.back')}</Text>
 							</TouchableOpacity>
 						) : (
 							<View />
@@ -244,7 +192,7 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 							style={[styles.nextBtn, { backgroundColor: theme.primary }]}
 							onPress={handleNext}
 							activeOpacity={0.8}>
-							<Text style={styles.nextBtnText}>{isLast ? 'Done' : 'Next'}</Text>
+							<Text style={styles.nextBtnText}>{isLast ? t('common.done') : t('common.next')}</Text>
 							{!isLast ? (
 								<Ionicons
 									name='arrow-forward'

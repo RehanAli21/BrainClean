@@ -1,7 +1,9 @@
+import { LanguagePicker } from '@/components/LanguagePicker'
 import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
 import { TutorialOverlay } from '@/components/TutorialOverlay'
 import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
+import { SUPPORTED_LANGUAGES } from '@/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { useBlocker } from '@/hooks/useBlocker'
 import { useOemAutoStart } from '@/hooks/useOemAutoStart'
@@ -17,6 +19,7 @@ import { userService } from '@/services/api/users'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
 	ActivityIndicator,
 	Alert,
@@ -33,6 +36,7 @@ import {
 
 export default function SettingsScreen() {
 	const theme = Colors.dark
+	const { t, i18n } = useTranslation()
 	const { email, logout } = useAuth()
 	const { permissions, recheck } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
@@ -41,6 +45,7 @@ export default function SettingsScreen() {
 	const setBlockNotifications = useUiStore(s => s.setBlockNotifications)
 	const [deleting, setDeleting] = useState(false)
 	const [showTutorial, setShowTutorial] = useState(false)
+	const [showLanguagePicker, setShowLanguagePicker] = useState(false)
 	const pendingNotificationToggle = useRef(false)
 	const notifRef = useRef<View | null>(null)
 	const permsRef = useRef<View | null>(null)
@@ -68,12 +73,12 @@ export default function SettingsScreen() {
 			const enabled = isNotificationListenerEnabled()
 			if (!enabled) {
 				Alert.alert(
-					'Permission Required',
-					'BrainClean needs notification access to block notifications from selected apps during sessions. You will be taken to Settings to grant this permission.',
+					t('settings.notifPermTitle'),
+					t('settings.notifPermMessage'),
 					[
-						{ text: 'Cancel', style: 'cancel' },
+						{ text: t('common.cancel'), style: 'cancel' },
 						{
-							text: 'Open Settings',
+							text: t('settings.openSettings'),
 							onPress: () => {
 								pendingNotificationToggle.current = true
 								requestNotificationListenerPermission()
@@ -88,20 +93,20 @@ export default function SettingsScreen() {
 	}
 
 	const handleLogout = () => {
-		Alert.alert('Logout', 'Are you sure you want to logout?', [
-			{ text: 'Cancel', style: 'cancel' },
-			{ text: 'Logout', style: 'destructive', onPress: logout },
+		Alert.alert(t('settings.logout'), t('settings.logoutConfirm'), [
+			{ text: t('common.cancel'), style: 'cancel' },
+			{ text: t('settings.logout'), style: 'destructive', onPress: logout },
 		])
 	}
 
 	const handleDeleteAccount = () => {
 		Alert.alert(
-			'Delete Account',
-			'All your data will be deleted from our system, and it cannot be recovered. Are you sure you want to continue?',
+			t('settings.deleteAccount'),
+			t('settings.deleteConfirm'),
 			[
-				{ text: 'Cancel', style: 'cancel' },
+				{ text: t('common.cancel'), style: 'cancel' },
 				{
-					text: 'Delete',
+					text: t('common.delete'),
 					style: 'destructive',
 					onPress: async () => {
 						setDeleting(true)
@@ -110,7 +115,7 @@ export default function SettingsScreen() {
 							await logout()
 						} catch {
 							setDeleting(false)
-							Alert.alert('Error', 'Failed to delete account. Please try again.')
+							Alert.alert(t('common.error'), t('settings.deleteFailed'))
 						}
 					},
 				},
@@ -125,7 +130,7 @@ export default function SettingsScreen() {
 			<ScrollView
 				style={[styles.container, { backgroundColor: theme.background }]}
 				contentContainerStyle={styles.content}>
-				<Text style={[styles.title, { color: theme.text }]}>Settings</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('settings.title')}</Text>
 
 				{isBlocking ? (
 					<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
@@ -135,13 +140,12 @@ export default function SettingsScreen() {
 							color={theme.primary}
 						/>
 						<Text style={[styles.lockBannerText, { color: theme.text }]}>
-							Settings are locked while a task is active. Complete the task to make changes.
+							{t('settings.locked')}
 						</Text>
 					</View>
 				) : null}
 
-				{/* Profile Section */}
-				<Text style={[styles.sectionTitle, { color: theme.icon }]}>PROFILE</Text>
+				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.profile')}</Text>
 				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 					<View style={styles.row}>
 						<Ionicons
@@ -150,16 +154,34 @@ export default function SettingsScreen() {
 							color={theme.icon}
 						/>
 						<View style={styles.rowText}>
-							<Text style={[styles.label, { color: theme.icon }]}>Email</Text>
-							<Text style={[styles.value, { color: theme.text }]}>{email ?? 'Not available'}</Text>
+							<Text style={[styles.label, { color: theme.icon }]}>{t('settings.email')}</Text>
+							<Text style={[styles.value, { color: theme.text }]}>{email ?? t('settings.notAvailable')}</Text>
 						</View>
 					</View>
 				</View>
 
-				{/* Blocking Settings Section */}
-				<Text style={[styles.sectionTitle, { color: theme.icon }]}>BLOCKING</Text>
+				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.language')}</Text>
+				<TouchableOpacity
+					style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}
+					onPress={() => setShowLanguagePicker(true)}
+					activeOpacity={0.7}
+					disabled={isBlocking}>
+					<View style={styles.row}>
+						<Ionicons name='language-outline' size={20} color={theme.icon} />
+						<View style={styles.rowText}>
+							<Text style={[styles.label, { color: theme.icon }]}>{t('settings.currentLanguage')}</Text>
+							<Text style={[styles.value, { color: theme.text }]}>
+								{SUPPORTED_LANGUAGES.find(l => l.code === i18n.language)?.nativeName ?? 'English'}
+							</Text>
+						</View>
+						<Ionicons name='chevron-forward' size={20} color={theme.icon} />
+					</View>
+				</TouchableOpacity>
 
-				{/* Notification Blocking */}
+				<LanguagePicker visible={showLanguagePicker} onClose={() => setShowLanguagePicker(false)} />
+
+				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.blocking')}</Text>
+
 				<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 					<View style={styles.toggleRow}>
 						<View style={styles.toggleInfo}>
@@ -169,8 +191,8 @@ export default function SettingsScreen() {
 								color={theme.icon}
 							/>
 							<View style={styles.rowText}>
-								<Text style={[styles.label, { color: theme.icon }]}>Block Notifications</Text>
-								<Text style={[styles.hint, { color: theme.icon }]}>Silence notifications from blocked apps during sessions</Text>
+								<Text style={[styles.label, { color: theme.icon }]}>{t('settings.blockNotifications')}</Text>
+								<Text style={[styles.hint, { color: theme.icon }]}>{t('settings.blockNotificationsHint')}</Text>
 							</View>
 						</View>
 						<Switch
@@ -183,13 +205,12 @@ export default function SettingsScreen() {
 					</View>
 				</View>
 
-				{/* Permissions Section */}
-				<Text style={[styles.sectionTitle, { color: theme.icon }]}>PERMISSIONS</Text>
+				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.permissionsSection')}</Text>
 				<View ref={permsRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 					<PermissionRow
 						icon='stats-chart-outline'
-						title='Usage Access'
-						description='Detect which app is in the foreground'
+						title={t('settings.usageAccess')}
+						description={t('settings.usageAccessDesc')}
 						granted={permissions?.usageStats ?? false}
 						disabled={isBlocking}
 						onRequest={() => {
@@ -199,8 +220,8 @@ export default function SettingsScreen() {
 					<View style={[styles.permDivider, { backgroundColor: theme.border }]} />
 					<PermissionRow
 						icon='layers-outline'
-						title='Display Over Other Apps'
-						description='Show blocking overlay on blocked apps'
+						title={t('settings.overlay')}
+						description={t('settings.overlayDesc')}
 						granted={permissions?.overlay ?? false}
 						disabled={isBlocking}
 						onRequest={() => {
@@ -210,8 +231,8 @@ export default function SettingsScreen() {
 					<View style={[styles.permDivider, { backgroundColor: theme.border }]} />
 					<PermissionRow
 						icon='battery-charging-outline'
-						title='Unrestricted Background'
-						description='Keeps blocking running while the screen is off'
+						title={t('settings.battery')}
+						description={t('settings.batteryDesc')}
 						granted={permissions?.batteryOptimization ?? false}
 						disabled={isBlocking}
 						onRequest={() => {
@@ -226,18 +247,16 @@ export default function SettingsScreen() {
 					</View>
 				) : null}
 
-				{/* Tutorial */}
 				<TouchableOpacity
 					style={[styles.tutorialButton, { backgroundColor: theme.primary }]}
 					onPress={() => setShowTutorial(true)}
 					activeOpacity={0.7}>
 					<Ionicons name='help-circle-outline' size={20} color='#FFFFFF' />
-					<Text style={styles.tutorialButtonText}>Show Tutorial</Text>
+					<Text style={styles.tutorialButtonText}>{t('settings.showTutorial')}</Text>
 				</TouchableOpacity>
 
 				<TutorialOverlay visible={showTutorial} onClose={() => setShowTutorial(false)} />
 
-				{/* Logout */}
 				<TouchableOpacity
 					style={[styles.logoutButton, { borderColor: theme.accent }, isBlocking && styles.disabled]}
 					onPress={handleLogout}
@@ -248,10 +267,9 @@ export default function SettingsScreen() {
 						size={20}
 						color={theme.accent}
 					/>
-					<Text style={[styles.logoutText, { color: theme.accent }]}>Logout</Text>
+					<Text style={[styles.logoutText, { color: theme.accent }]}>{t('settings.logout')}</Text>
 				</TouchableOpacity>
 
-				{/* Delete Account */}
 				<TouchableOpacity
 					style={[styles.deleteButton, { backgroundColor: theme.accent }, isBlocking && styles.disabled]}
 					onPress={handleDeleteAccount}
@@ -269,7 +287,7 @@ export default function SettingsScreen() {
 								size={20}
 								color='#FFFFFF'
 							/>
-							<Text style={styles.deleteText}>Delete Account</Text>
+							<Text style={styles.deleteText}>{t('settings.deleteAccount')}</Text>
 						</>
 					)}
 				</TouchableOpacity>
@@ -294,6 +312,7 @@ function PermissionRow({
 	onRequest: () => void
 }) {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const cooldown = useRef(false)
 
 	const handlePress = () => {
@@ -323,7 +342,7 @@ function PermissionRow({
 						size={14}
 						color={theme.success}
 					/>
-					<Text style={[styles.permBadgeText, { color: theme.success }]}>Granted</Text>
+					<Text style={[styles.permBadgeText, { color: theme.success }]}>{t('common.granted')}</Text>
 				</View>
 			) : (
 				<TouchableOpacity
@@ -331,7 +350,7 @@ function PermissionRow({
 					onPress={handlePress}
 					activeOpacity={0.7}
 					disabled={disabled}>
-					<Text style={styles.permButtonText}>Grant</Text>
+					<Text style={styles.permButtonText}>{t('common.grant')}</Text>
 				</TouchableOpacity>
 			)}
 		</View>

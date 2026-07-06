@@ -2,10 +2,12 @@ import { Colors } from '@/constants/theme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export function PadlockProtectionCard({ manufacturer }: { manufacturer: string }) {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const padlockConfirmedAt = useUiStore(s => s.padlockConfirmedAt)
 	const setPadlockConfirmed = useUiStore(s => s.setPadlockConfirmed)
 	const brandLabel = manufacturer ? manufacturer.charAt(0).toUpperCase() + manufacturer.slice(1) : 'Your phone'
@@ -15,17 +17,16 @@ export function PadlockProtectionCard({ manufacturer }: { manufacturer: string }
 			<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.success }]}>
 				<View style={styles.cardHeader}>
 					<Ionicons name='shield-checkmark' size={24} color={theme.success} />
-					<Text style={[styles.cardTitle, { color: theme.text }]}>Locked in Recents</Text>
+					<Text style={[styles.cardTitle, { color: theme.text }]}>{t('padlock.lockedTitle')}</Text>
 				</View>
 				<Text style={[styles.cardDescription, { color: theme.icon }]}>
-					You&apos;ve marked BrainClean as locked. If blocking ever stops working when your
-					screen is off, tap below to redo the step.
+					{t('padlock.lockedDesc')}
 				</Text>
 				<TouchableOpacity
 					style={styles.linkButton}
 					onPress={() => setPadlockConfirmed(false)}
 					activeOpacity={0.7}>
-					<Text style={[styles.linkButtonText, { color: theme.icon }]}>Show instructions again</Text>
+					<Text style={[styles.linkButtonText, { color: theme.icon }]}>{t('padlock.showInstructions')}</Text>
 				</TouchableOpacity>
 			</View>
 		)
@@ -35,12 +36,11 @@ export function PadlockProtectionCard({ manufacturer }: { manufacturer: string }
 		<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
 			<View style={styles.cardHeader}>
 				<Ionicons name='warning' size={24} color={theme.accent} />
-				<Text style={[styles.cardTitle, { color: theme.text }]}>Lock in Recent Apps</Text>
+				<Text style={[styles.cardTitle, { color: theme.text }]}>{t('padlock.lockTitle')}</Text>
 			</View>
 			<Text style={[styles.cardDescription, { color: theme.icon }]}>
-				{brandLabel} kills background apps after ~1 minute. To stop this, open the recent apps
-				view, tap the menu icon next to BrainClean, and tap{' '}
-				<Text style={{ color: theme.text, fontWeight: '600' }}>Lock</Text>. One-time setup.
+				{t('padlock.lockDesc', { brand: brandLabel })}{' '}
+				<Text style={{ color: theme.text, fontWeight: '600' }}>{t('padlock.lock')}</Text>. {t('padlock.oneTime')}
 			</Text>
 
 			<GestureIllustration />
@@ -49,7 +49,7 @@ export function PadlockProtectionCard({ manufacturer }: { manufacturer: string }
 				style={[styles.primaryButton, { backgroundColor: theme.accent }]}
 				onPress={() => setPadlockConfirmed(true)}
 				activeOpacity={0.7}>
-				<Text style={styles.primaryButtonText}>I&apos;ve Locked It</Text>
+				<Text style={styles.primaryButtonText}>{t('padlock.confirmed')}</Text>
 			</TouchableOpacity>
 		</View>
 	)
@@ -57,13 +57,14 @@ export function PadlockProtectionCard({ manufacturer }: { manufacturer: string }
 
 function GestureIllustration() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	return (
 		<View style={styles.illustration}>
-			<Step n={1} icon='apps' label='Open recent apps' />
+			<Step n={1} icon='apps' label={t('padlock.step1')} />
 			<Ionicons name='chevron-forward' size={16} color={theme.icon} />
-			<Step n={2} icon='ellipsis-vertical' label='Tap the menu next to BrainClean' />
+			<Step n={2} icon='ellipsis-vertical' label={t('padlock.step2')} />
 			<Ionicons name='chevron-forward' size={16} color={theme.icon} />
-			<Step n={3} icon='lock-closed' label='Tap Lock' />
+			<Step n={3} icon='lock-closed' label={t('padlock.step3')} />
 		</View>
 	)
 }

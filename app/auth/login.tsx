@@ -6,17 +6,14 @@ import { useAuth } from '@/context/AuthContext'
 import { signInWithGoogle } from '@/modules/google-auth'
 import { authService } from '@/services/api/auth'
 import { Link } from 'expo-router'
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
-const loginSchema = z.object({
-	email: z.string().email('Please enter a valid email'),
-	password: z.string().min(1, 'Password is required'),
-})
-
 export default function LoginScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const { login } = useAuth()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
@@ -25,6 +22,11 @@ export default function LoginScreen() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [googleLoading, setGoogleLoading] = useState(false)
 	const googleCooldown = useRef(false)
+
+	const loginSchema = useMemo(() => z.object({
+		email: z.string().email(t('validation.emailInvalid')),
+		password: z.string().min(1, t('validation.passwordRequired')),
+	}), [t])
 
 	const handleLogin = async () => {
 		setErrors({})
@@ -48,11 +50,11 @@ export default function LoginScreen() {
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'INVALID_CREDENTIALS') {
-				setApiError('Invalid email or password.')
+				setApiError(t('auth.login.invalidCredentials'))
 			} else if (code === 'ACCOUNT_DEACTIVATED') {
-				setApiError('Your account has been deactivated.')
+				setApiError(t('auth.login.accountDeactivated'))
 			} else {
-				setApiError('Something went wrong. Please try again.')
+				setApiError(t('common.somethingWentWrong'))
 			}
 		} finally {
 			setIsLoading(false)
@@ -76,13 +78,13 @@ export default function LoginScreen() {
 			} else {
 				const code = err.response?.data?.error
 				if (code === 'INVALID_ID_TOKEN') {
-					setApiError("Couldn't sign in with Google. Please try again.")
+					setApiError(t('auth.login.googleFailed'))
 				} else if (code === 'ACCOUNT_DEACTIVATED') {
-					setApiError('This account has been deactivated. Contact support.')
+					setApiError(t('auth.login.deactivatedContact'))
 				} else if (code === 'RATE_LIMIT_EXCEEDED') {
-					setApiError('Too many attempts. Please wait a minute and try again.')
+					setApiError(t('auth.login.rateLimited'))
 				} else {
-					setApiError('Something went wrong. Please try again.')
+					setApiError(t('common.somethingWentWrong'))
 				}
 			}
 		} finally {
@@ -94,8 +96,8 @@ export default function LoginScreen() {
 	return (
 		<View style={[styles.container, { backgroundColor: theme.background }]}>
 			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>Welcome Back</Text>
-				<Text style={[styles.subtitle, { color: theme.icon }]}>Sign in to manage your focus guard.</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('auth.login.title')}</Text>
+				<Text style={[styles.subtitle, { color: theme.icon }]}>{t('auth.login.subtitle')}</Text>
 			</View>
 
 			<View style={styles.form}>
@@ -106,8 +108,8 @@ export default function LoginScreen() {
 				) : null}
 
 				<AuthInput
-					label='Email Address'
-					placeholder='user@brainclean.com'
+					label={t('auth.login.emailLabel')}
+					placeholder={t('auth.login.emailPlaceholder')}
 					keyboardType='email-address'
 					autoCapitalize='none'
 					value={email}
@@ -116,7 +118,7 @@ export default function LoginScreen() {
 				{errors.email ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.email}</Text> : null}
 
 				<AuthInput
-					label='Password'
+					label={t('auth.login.passwordLabel')}
 					placeholder='••••••••'
 					isPassword
 					value={password}
@@ -129,13 +131,13 @@ export default function LoginScreen() {
 						href='/auth/forgot-password'
 						asChild>
 						<TouchableOpacity>
-							<Text style={[styles.linkText, { color: theme.primary }]}>Forgot Password?</Text>
+							<Text style={[styles.linkText, { color: theme.primary }]}>{t('auth.login.forgotPassword')}</Text>
 						</TouchableOpacity>
 					</Link>
 				</View>
 
 				<PrimaryButton
-					title='Sign In'
+					title={t('auth.login.signIn')}
 					onPress={handleLogin}
 					isLoading={isLoading}
 				/>
@@ -144,12 +146,12 @@ export default function LoginScreen() {
 					<>
 						<View style={styles.dividerRow}>
 							<View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-							<Text style={[styles.dividerText, { color: theme.icon }]}>or</Text>
+							<Text style={[styles.dividerText, { color: theme.icon }]}>{t('common.or')}</Text>
 							<View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
 						</View>
 
 						<SocialButton
-							title={googleLoading ? 'Signing in...' : 'Sign in with Google'}
+							title={googleLoading ? t('auth.login.signingIn') : t('auth.login.signInWithGoogle')}
 							onPress={handleGoogleSignIn}
 						/>
 					</>
@@ -157,12 +159,12 @@ export default function LoginScreen() {
 			</View>
 
 			<View style={styles.footer}>
-				<Text style={{ color: theme.icon }}>Don{"'"}t have an account? </Text>
+				<Text style={{ color: theme.icon }}>{t('auth.login.noAccount')} </Text>
 				<Link
 					href='/auth/signup'
 					asChild>
 					<TouchableOpacity>
-						<Text style={[styles.linkText, { color: theme.primary }]}>Sign Up</Text>
+						<Text style={[styles.linkText, { color: theme.primary }]}>{t('auth.login.signUp')}</Text>
 					</TouchableOpacity>
 				</Link>
 			</View>

@@ -1,3 +1,4 @@
+import { LanguagePicker } from '@/components/LanguagePicker'
 import { TutorialOverlay } from '@/components/TutorialOverlay'
 import { WalkthroughOverlay } from '@/components/WalkthroughOverlay'
 import { onShowWalkthrough } from '@/components/walkthroughRegistry'
@@ -6,11 +7,15 @@ import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs } from 'expo-router'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export default function TabsLayout() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const tutorialSeen = useUiStore(s => s.tutorialSeen)
-	const [showTutorial, setShowTutorial] = useState(!tutorialSeen)
+	const selectedLanguage = useUiStore(s => s.selectedLanguage)
+	const [showLanguagePicker, setShowLanguagePicker] = useState(selectedLanguage === null)
+	const [showTutorial, setShowTutorial] = useState(false)
 	const [showWalkthrough, setShowWalkthrough] = useState(false)
 
 	useEffect(() => {
@@ -18,9 +23,17 @@ export default function TabsLayout() {
 		return () => onShowWalkthrough(null)
 	}, [])
 
+	const handleLanguagePickerClose = () => {
+		setShowLanguagePicker(false)
+		if (!tutorialSeen) {
+			setShowTutorial(true)
+		}
+	}
+
 	return (
 		<>
-		<TutorialOverlay visible={showTutorial} onClose={() => setShowTutorial(false)} />
+		<LanguagePicker visible={showLanguagePicker} onClose={handleLanguagePickerClose} dismissable={false} />
+		<TutorialOverlay visible={!showLanguagePicker && showTutorial} onClose={() => setShowTutorial(false)} />
 		<WalkthroughOverlay visible={showWalkthrough} onClose={() => setShowWalkthrough(false)} />
 		<Tabs
 			screenOptions={{
@@ -36,7 +49,7 @@ export default function TabsLayout() {
 			<Tabs.Screen
 				name='tasks'
 				options={{
-					title: 'Tasks',
+					title: t('tabs.tasks'),
 					tabBarIcon: ({ color, size }) => (
 						<Ionicons
 							name='checkmark-circle-outline'
@@ -49,7 +62,7 @@ export default function TabsLayout() {
 			<Tabs.Screen
 				name='apps'
 				options={{
-					title: 'Apps',
+					title: t('tabs.apps'),
 					tabBarIcon: ({ color, size }) => (
 						<Ionicons
 							name='grid-outline'
@@ -62,7 +75,7 @@ export default function TabsLayout() {
 			<Tabs.Screen
 				name='settings'
 				options={{
-					title: 'Settings',
+					title: t('tabs.settings'),
 					tabBarIcon: ({ color, size }) => (
 						<Ionicons
 							name='settings-outline'

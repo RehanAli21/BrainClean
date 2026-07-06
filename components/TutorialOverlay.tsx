@@ -2,6 +2,7 @@ import { Colors } from '@/constants/theme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Dimensions, FlatList, Modal, StyleSheet, Text, TouchableOpacity, View, type ViewToken } from 'react-native'
 import { triggerWalkthrough } from './walkthroughRegistry'
 
@@ -10,50 +11,17 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
 interface TutorialStep {
 	icon: keyof typeof Ionicons.glyphMap
 	iconColor: string
-	title: string
-	description: string
+	titleKey: string
+	descriptionKey: string
 }
 
 const STEPS: TutorialStep[] = [
-	{
-		icon: 'shield-checkmark',
-		iconColor: '#2563EB',
-		title: 'Welcome to BrainClean',
-		description: "BrainClean helps you stay focused by blocking distracting apps until you complete your tasks. Let's walk through how it works.",
-	},
-	{
-		icon: 'grid-outline',
-		iconColor: '#06B6D4',
-		title: 'Select Apps to Block',
-		description: 'Go to the Apps tab and toggle on the apps you want blocked during focus sessions. These will be locked when you start a task.',
-	},
-	{
-		icon: 'add-circle-outline',
-		iconColor: '#2563EB',
-		title: 'Create a Task',
-		description:
-			'In the Tasks tab, tap the + button to create a new task. Set a name and pick how long your focus session will last using the hour and minute rollers.',
-	},
-	{
-		icon: 'play-circle-outline',
-		iconColor: '#10B981',
-		title: 'Start Your Task',
-		description:
-			'After creating a task, tap Start. Your selected apps will be blocked immediately. A full-screen overlay appears if you try to open them.',
-	},
-	{
-		icon: 'checkmark-circle',
-		iconColor: '#10B981',
-		title: 'Complete Your Task',
-		description:
-			'Once the minimum time has passed, the Finish button appears. Complete your task to unblock your apps. You can also scan a QR code from the web dashboard.',
-	},
-	{
-		icon: 'rocket-outline',
-		iconColor: '#06B6D4',
-		title: "You're Ready!",
-		description: "That's it! Create your first task and start building focus. You can replay this tutorial anytime from Settings.",
-	},
+	{ icon: 'shield-checkmark', iconColor: '#2563EB', titleKey: 'tutorial.welcome', descriptionKey: 'tutorial.welcomeDesc' },
+	{ icon: 'grid-outline', iconColor: '#06B6D4', titleKey: 'tutorial.selectApps', descriptionKey: 'tutorial.selectAppsDesc' },
+	{ icon: 'add-circle-outline', iconColor: '#2563EB', titleKey: 'tutorial.createTask', descriptionKey: 'tutorial.createTaskDesc' },
+	{ icon: 'play-circle-outline', iconColor: '#10B981', titleKey: 'tutorial.startTask', descriptionKey: 'tutorial.startTaskDesc' },
+	{ icon: 'checkmark-circle', iconColor: '#10B981', titleKey: 'tutorial.completeTask', descriptionKey: 'tutorial.completeTaskDesc' },
+	{ icon: 'rocket-outline', iconColor: '#06B6D4', titleKey: 'tutorial.ready', descriptionKey: 'tutorial.readyDesc' },
 ]
 
 interface Props {
@@ -63,6 +31,7 @@ interface Props {
 
 export function TutorialOverlay({ visible, onClose }: Props) {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const setTutorialSeen = useUiStore(s => s.setTutorialSeen)
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const flatListRef = useRef<FlatList>(null)
@@ -100,8 +69,8 @@ export function TutorialOverlay({ visible, onClose }: Props) {
 					color={item.iconColor}
 				/>
 			</View>
-			<Text style={[styles.stepTitle, { color: theme.text }]}>{item.title}</Text>
-			<Text style={[styles.stepDescription, { color: theme.icon }]}>{item.description}</Text>
+			<Text style={[styles.stepTitle, { color: theme.text }]}>{t(item.titleKey)}</Text>
+			<Text style={[styles.stepDescription, { color: theme.icon }]}>{t(item.descriptionKey)}</Text>
 		</View>
 	)
 
@@ -116,7 +85,7 @@ export function TutorialOverlay({ visible, onClose }: Props) {
 					<TouchableOpacity
 						onPress={handleSkip}
 						style={styles.skipButton}>
-						<Text style={[styles.skipText, { color: theme.icon }]}>Skip</Text>
+						<Text style={[styles.skipText, { color: theme.icon }]}>{t('common.skip')}</Text>
 					</TouchableOpacity>
 				</View>
 
@@ -159,13 +128,13 @@ export function TutorialOverlay({ visible, onClose }: Props) {
 								}}
 								activeOpacity={0.8}>
 								<Ionicons name='finger-print-outline' size={18} color='#FFFFFF' />
-								<Text style={styles.nextButtonText}>Interactive Walkthrough</Text>
+								<Text style={styles.nextButtonText}>{t('tutorial.interactive')}</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
 								style={[styles.skipOutlineButton, { borderColor: theme.border }]}
 								onPress={handleDone}
 								activeOpacity={0.7}>
-								<Text style={[styles.skipOutlineText, { color: theme.icon }]}>Skip</Text>
+								<Text style={[styles.skipOutlineText, { color: theme.icon }]}>{t('common.skip')}</Text>
 							</TouchableOpacity>
 						</View>
 					) : (
@@ -173,7 +142,7 @@ export function TutorialOverlay({ visible, onClose }: Props) {
 							style={[styles.nextButton, { backgroundColor: theme.primary }]}
 							onPress={handleNext}
 							activeOpacity={0.8}>
-							<Text style={styles.nextButtonText}>Next</Text>
+							<Text style={styles.nextButtonText}>{t('common.next')}</Text>
 							<Ionicons
 								name='arrow-forward'
 								size={18}

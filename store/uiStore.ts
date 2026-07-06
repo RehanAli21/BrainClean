@@ -23,6 +23,8 @@ interface UiState {
   setTutorialSeen: (seen: boolean) => void;
   hasRated: boolean;
   setHasRated: (rated: boolean) => void;
+  selectedLanguage: string | null;
+  setSelectedLanguage: (language: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -65,6 +67,12 @@ export const useUiStore = create<UiState>()(
 
       setHasRated: (rated: boolean) => {
         set({ hasRated: rated });
+      },
+
+      selectedLanguage: null,
+
+      setSelectedLanguage: (language: string) => {
+        set({ selectedLanguage: language });
       },
     }),
     {

@@ -7,7 +7,8 @@ import { taskService } from '@/services/api/tasks'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
 	ActivityIndicator,
 	NativeScrollEvent,
@@ -33,11 +34,6 @@ const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i)
 const MINUTES = Array.from({ length: 60 }, (_, i) => i)
-
-const createTaskSchema = z.object({
-	name: z.string().min(1, 'Task name is required').max(255, 'Task name is too long'),
-	durationMinutes: z.number().min(1, 'Duration must be at least 1 minute').max(1440, 'Duration cannot exceed 24 hours'),
-})
 
 function RollerPicker({
 	data,
@@ -116,6 +112,7 @@ function RollerPicker({
 
 export default function NewTaskScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const createMutation = useCreateTaskMutation()
@@ -132,6 +129,11 @@ export default function NewTaskScreen() {
 	const nameRef = useRef<View | null>(null)
 	const durationRef = useRef<View | null>(null)
 	const createRef = useRef<View | null>(null)
+
+	const createTaskSchema = useMemo(() => z.object({
+		name: z.string().min(1, t('validation.taskNameRequired')).max(255, t('validation.taskNameMax')),
+		durationMinutes: z.number().min(1, t('validation.durationMin')).max(1440, t('validation.durationMax')),
+	}), [t])
 
 	useEffect(() => {
 		registerRef('newtask-name', nameRef)
@@ -172,7 +174,7 @@ export default function NewTaskScreen() {
 		if (autoComplete) {
 			const totalMaxMinutes = maxHours * 60 + maxMinutes
 			if (totalMaxMinutes <= result.data.durationMinutes) {
-				setErrors({ maxDuration: 'Auto-complete time must be greater than duration' })
+				setErrors({ maxDuration: t('newTask.autoCompleteError') })
 				return
 			}
 			maxSeconds = totalMaxMinutes * 60
@@ -195,7 +197,7 @@ export default function NewTaskScreen() {
 					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
 					const code = err.response?.data?.error
 					if (code === 'VALIDATION_ERROR') {
-						setApiError(err.response?.data?.message || 'Invalid input.')
+						setApiError(err.response?.data?.message || t('common.invalidInput'))
 					} else if (code === 'ACTIVE_TASK_EXISTS') {
 						const details = err.response?.data?.details
 						if (details?.id) {
@@ -204,7 +206,7 @@ export default function NewTaskScreen() {
 								params: { taskId: details.id, finishFirst: '1' },
 							})
 						} else {
-							setApiError('You already have an active task. Complete it first.')
+							setApiError(t('newTask.activeExists'))
 						}
 					} else if (!err.response) {
 						try {
@@ -221,9 +223,9 @@ export default function NewTaskScreen() {
 								return
 							}
 						} catch {}
-						setApiError('Something went wrong. Please try again.')
+						setApiError(t('common.somethingWentWrong'))
 					} else {
-						setApiError('Something went wrong. Please try again.')
+						setApiError(t('common.somethingWentWrong'))
 					}
 				},
 			},
@@ -242,7 +244,7 @@ export default function NewTaskScreen() {
 						color={theme.text}
 					/>
 				</TouchableOpacity>
-				<Text style={[styles.title, { color: theme.text }]}>New Task</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('newTask.title')}</Text>
 				<View style={{ width: 24 }} />
 			</View>
 
@@ -262,16 +264,15 @@ export default function NewTaskScreen() {
 							color={theme.accent}
 						/>
 						<Text style={[styles.permsBannerText, { color: theme.accent }]}>
-							All permissions must be granted before you can create a task.
+							{t('newTask.permsRequired')}
 						</Text>
 					</View>
 					<Text style={[styles.permsHint, { color: theme.icon }]}>
-						BrainClean needs Usage Access, Display Over Other Apps, and Unrestricted Background permissions to block apps during your
-						focus sessions.
+						{t('newTask.permsHint')}
 					</Text>
 					<View style={{ marginTop: 16 }}>
 						<PrimaryButton
-							title='Grant Permissions'
+							title={t('newTask.grantPerms')}
 							onPress={() => router.push('/(setup)/permissions')}
 						/>
 					</View>
@@ -285,10 +286,10 @@ export default function NewTaskScreen() {
 					) : null}
 
 					<View ref={nameRef}>
-						<Text style={[styles.inputLabel, { color: theme.icon }]}>Task Name</Text>
+						<Text style={[styles.inputLabel, { color: theme.icon }]}>{t('newTask.taskName')}</Text>
 						<TextInput
 							style={[styles.textInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
-							placeholder='e.g. Read 10 pages'
+							placeholder={t('newTask.taskNamePlaceholder')}
 							placeholderTextColor={theme.icon + '80'}
 							value={name}
 							onChangeText={setName}
@@ -298,30 +299,30 @@ export default function NewTaskScreen() {
 					{errors.name ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.name}</Text> : null}
 
 					<View ref={durationRef}>
-						<Text style={[styles.inputLabel, { color: theme.icon }]}>Duration</Text>
+						<Text style={[styles.inputLabel, { color: theme.icon }]}>{t('newTask.duration')}</Text>
 						<View style={styles.pickerRow}>
 							<RollerPicker
 								data={HOURS}
 								selectedIndex={hours}
 								onSelect={setHours}
-								label='Hours'
+								label={t('newTask.hours')}
 							/>
 							<Text style={[styles.pickerSeparator, { color: theme.icon }]}>:</Text>
 							<RollerPicker
 								data={MINUTES}
 								selectedIndex={minutes}
 								onSelect={setMinutes}
-								label='Minutes'
+								label={t('newTask.minutes')}
 							/>
 						</View>
-						<Text style={[styles.hintText, { color: theme.icon }]}>Apps will be blocked for this duration</Text>
+						<Text style={[styles.hintText, { color: theme.icon }]}>{t('newTask.blockedHint')}</Text>
 					</View>
 					{errors.durationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.durationMinutes}</Text> : null}
 
 					<View style={[styles.toggleRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 						<View style={styles.toggleInfo}>
-							<Text style={[styles.toggleTitle, { color: theme.text }]}>Auto-complete task</Text>
-							<Text style={[styles.toggleHint, { color: theme.icon }]}>Automatically finish after a set time</Text>
+							<Text style={[styles.toggleTitle, { color: theme.text }]}>{t('newTask.autoCompleteToggle')}</Text>
+							<Text style={[styles.toggleHint, { color: theme.icon }]}>{t('newTask.autoCompleteHint')}</Text>
 						</View>
 						<Switch
 							value={autoComplete}
@@ -333,23 +334,23 @@ export default function NewTaskScreen() {
 
 					{autoComplete ? (
 						<View>
-							<Text style={[styles.inputLabel, { color: theme.icon }]}>Auto-complete after</Text>
+							<Text style={[styles.inputLabel, { color: theme.icon }]}>{t('newTask.autoCompleteAfter')}</Text>
 							<View style={styles.pickerRow}>
 								<RollerPicker
 									data={HOURS}
 									selectedIndex={maxHours}
 									onSelect={setMaxHours}
-									label='Hours'
+									label={t('newTask.hours')}
 								/>
 								<Text style={[styles.pickerSeparator, { color: theme.icon }]}>:</Text>
 								<RollerPicker
 									data={MINUTES}
 									selectedIndex={maxMinutes}
 									onSelect={setMaxMinutes}
-									label='Minutes'
+									label={t('newTask.minutes')}
 								/>
 							</View>
-							<Text style={[styles.hintText, { color: theme.icon }]}>Task will auto-complete and apps will unblock after this time</Text>
+							<Text style={[styles.hintText, { color: theme.icon }]}>{t('newTask.autoCompleteDesc')}</Text>
 							{errors.maxDuration ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.maxDuration}</Text> : null}
 						</View>
 					) : null}
@@ -358,7 +359,7 @@ export default function NewTaskScreen() {
 						ref={createRef}
 						style={{ marginTop: 8 }}>
 						<PrimaryButton
-							title='Create Task'
+							title={t('newTask.createTask')}
 							onPress={handleCreate}
 							isLoading={createMutation.isPending}
 						/>

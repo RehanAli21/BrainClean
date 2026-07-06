@@ -9,19 +9,23 @@ import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
-function formatDuration(seconds: number): string {
-	const mins = Math.floor(seconds / 60)
-	if (mins < 60) return `${mins} min`
-	const hrs = Math.floor(mins / 60)
-	const remainMins = mins % 60
-	return remainMins > 0 ? `${hrs}h ${remainMins}m` : `${hrs}h`
+function useFormatDuration() {
+	const { t } = useTranslation()
+	return (seconds: number): string => {
+		const mins = Math.floor(seconds / 60)
+		if (mins < 60) return t('common.minutes', { count: mins })
+		const hrs = Math.floor(mins / 60)
+		const remainMins = mins % 60
+		return remainMins > 0 ? t('common.hoursMinutes', { hours: hrs, minutes: remainMins }) : t('common.hours', { count: hrs })
+	}
 }
 
 function formatDate(iso: string): string {
 	const date = new Date(iso)
-	return date.toLocaleDateString('en-US', {
+	return date.toLocaleDateString(undefined, {
 		month: 'short',
 		day: 'numeric',
 		year: 'numeric',
@@ -32,6 +36,8 @@ function formatDate(iso: string): string {
 
 export default function TaskDetailScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
+	const formatDuration = useFormatDuration()
 	const router = useRouter()
 	const { taskId, finishFirst } = useLocalSearchParams<{ taskId: string; finishFirst?: string }>()
 	const { data: task, isLoading, isError, refetch } = useTaskQuery(taskId!)
@@ -89,11 +95,11 @@ export default function TaskDetailScreen() {
 			onError: (err: any) => {
 				const code = err.response?.data?.error
 				if (code === 'TASK_NOT_ELIGIBLE') {
-					setApiError('Minimum duration has not elapsed yet.')
+					setApiError(t('taskDetail.notEligible'))
 				} else if (code === 'TASK_ALREADY_COMPLETED') {
-					setApiError('This task has already been completed.')
+					setApiError(t('taskDetail.alreadyCompleted'))
 				} else {
-					setApiError('Failed to complete task. Please try again.')
+					setApiError(t('taskDetail.completeFailed'))
 				}
 			},
 		})
@@ -101,12 +107,12 @@ export default function TaskDetailScreen() {
 
 	const handleStart = () => {
 		if (!allGranted) {
-			setApiError('Required permissions not granted. Go to Settings to grant them.')
+			setApiError(t('taskDetail.permsNotGranted'))
 			return
 		}
 
 		if (selectedApps.length === 0) {
-			setApiError('No apps selected for blocking. Select apps in the Apps tab first.')
+			setApiError(t('taskDetail.noApps'))
 			return
 		}
 
@@ -124,7 +130,7 @@ export default function TaskDetailScreen() {
 						task!.minimumDurationSeconds * 1000,
 					)
 				} catch {
-					setApiError('Task started but app blocking failed to engage.')
+					setApiError(t('taskDetail.blockingFailed'))
 				}
 			},
 			onError: (err: any) => {
@@ -132,32 +138,26 @@ export default function TaskDetailScreen() {
 				if (code === 'ACTIVE_TASK_EXISTS') {
 					const details = err.response?.data?.details
 					if (details?.name && details?.startedAt) {
-						const startedDate = new Date(details.startedAt).toLocaleDateString('en-US', {
-							month: 'short',
-							day: 'numeric',
-							hour: '2-digit',
-							minute: '2-digit',
-						})
-						setApiError(`"${details.name}" is already active (started ${startedDate}).`)
+						setApiError(t('taskDetail.activeNamed', { name: details.name, date: formatDate(details.startedAt) }))
 					} else {
-						setApiError('Another task is already active.')
+						setApiError(t('taskDetail.anotherActive'))
 					}
 				} else if (code === 'TASK_ALREADY_STARTED') {
-					setApiError('This task has already been started.')
+					setApiError(t('taskDetail.alreadyStarted'))
 				} else if (code === 'TASK_ALREADY_COMPLETED') {
-					setApiError('This task has already been completed.')
+					setApiError(t('taskDetail.alreadyCompleted'))
 				} else {
-					setApiError('Failed to start task. Please try again.')
+					setApiError(t('taskDetail.startFailed'))
 				}
 			},
 		})
 	}
 
 	const handleDelete = () => {
-		Alert.alert('Delete Task', 'Are you sure you want to delete this task?', [
-			{ text: 'Cancel', style: 'cancel' },
+		Alert.alert(t('taskDetail.deleteTask'), t('taskDetail.deleteConfirm'), [
+			{ text: t('common.cancel'), style: 'cancel' },
 			{
-				text: 'Delete',
+				text: t('common.delete'),
 				style: 'destructive',
 				onPress: () => {
 					deleteMutation.mutate(taskId!, {
@@ -169,18 +169,12 @@ export default function TaskDetailScreen() {
 							if (code === 'ACTIVE_TASK_EXISTS') {
 								const details = err.response?.data?.details
 								if (details?.name && details?.startedAt) {
-									const startedDate = new Date(details.startedAt).toLocaleDateString('en-US', {
-										month: 'short',
-										day: 'numeric',
-										hour: '2-digit',
-										minute: '2-digit',
-									})
-									setApiError(`Cannot delete — "${details.name}" is active (started ${startedDate}).`)
+									setApiError(t('taskDetail.cannotDeleteNamed', { name: details.name, date: formatDate(details.startedAt) }))
 								} else {
-									setApiError('Cannot delete an active task.')
+									setApiError(t('taskDetail.cannotDelete'))
 								}
 							} else {
-								setApiError('Failed to delete task. Please try again.')
+								setApiError(t('taskDetail.deleteFailed'))
 							}
 						},
 					})
@@ -213,11 +207,11 @@ export default function TaskDetailScreen() {
 							color={theme.text}
 						/>
 					</TouchableOpacity>
-					<Text style={[styles.headerTitle, { color: theme.text }]}>Task Details</Text>
+					<Text style={[styles.headerTitle, { color: theme.text }]}>{t('taskDetail.title')}</Text>
 					<View style={{ width: 24 }} />
 				</View>
 				<View style={styles.centered}>
-					<Text style={{ color: theme.icon, fontSize: 16 }}>Task not found.</Text>
+					<Text style={{ color: theme.icon, fontSize: 16 }}>{t('taskDetail.notFound')}</Text>
 				</View>
 			</View>
 		)
@@ -237,7 +231,7 @@ export default function TaskDetailScreen() {
 						color={theme.text}
 					/>
 				</TouchableOpacity>
-				<Text style={[styles.headerTitle, { color: theme.text }]}>Task Details</Text>
+				<Text style={[styles.headerTitle, { color: theme.text }]}>{t('taskDetail.title')}</Text>
 				<View style={{ width: 24 }} />
 			</View>
 
@@ -245,7 +239,7 @@ export default function TaskDetailScreen() {
 				<View style={[styles.infoBanner, { backgroundColor: theme.primary + '1A' }]}>
 					<Ionicons name='information-circle-outline' size={18} color={theme.primary} />
 					<Text style={[styles.infoBannerText, { color: theme.primary }]}>
-						To create a new task, finish this one first.
+						{t('taskDetail.finishFirst')}
 					</Text>
 				</View>
 			) : null}
@@ -265,7 +259,7 @@ export default function TaskDetailScreen() {
 						size={18}
 						color={theme.icon}
 					/>
-					<Text style={[styles.detailText, { color: theme.icon }]}>Duration: {formatDuration(task.minimumDurationSeconds)}</Text>
+					<Text style={[styles.detailText, { color: theme.icon }]}>{t('taskDetail.duration', { duration: formatDuration(task.minimumDurationSeconds) })}</Text>
 				</View>
 
 				{task.maximumDurationSeconds && task.maximumDurationSeconds > task.minimumDurationSeconds + 60 ? (
@@ -275,7 +269,7 @@ export default function TaskDetailScreen() {
 							size={18}
 							color={theme.icon}
 						/>
-						<Text style={[styles.detailText, { color: theme.icon }]}>Auto-complete: {formatDuration(task.maximumDurationSeconds)}</Text>
+						<Text style={[styles.detailText, { color: theme.icon }]}>{t('taskDetail.autoComplete', { duration: formatDuration(task.maximumDurationSeconds) })}</Text>
 					</View>
 				) : null}
 
@@ -288,11 +282,11 @@ export default function TaskDetailScreen() {
 					<Text style={[styles.detailText, { color: task.completed ? '#10B981' : task.started ? theme.primary : theme.icon }]}>
 						{task.completed
 							? task.autoCompleted
-								? 'Auto-Completed'
-								: 'Completed'
+								? t('taskDetail.autoCompleted')
+								: t('tasks.completed')
 							: task.started
-								? 'Active'
-								: 'Pending'}
+								? t('tasks.active')
+								: t('tasks.pending')}
 					</Text>
 				</View>
 
@@ -303,7 +297,7 @@ export default function TaskDetailScreen() {
 							size={18}
 							color={theme.icon}
 						/>
-						<Text style={[styles.detailText, { color: theme.icon }]}>Started {formatDate(task.startedAt)}</Text>
+						<Text style={[styles.detailText, { color: theme.icon }]}>{t('taskDetail.started', { date: formatDate(task.startedAt) })}</Text>
 					</View>
 				) : null}
 
@@ -314,7 +308,7 @@ export default function TaskDetailScreen() {
 							size={18}
 							color={theme.icon}
 						/>
-						<Text style={[styles.detailText, { color: theme.icon }]}>Completed {formatDate(task.completedAt)}</Text>
+						<Text style={[styles.detailText, { color: theme.icon }]}>{t('taskDetail.completedAt', { date: formatDate(task.completedAt) })}</Text>
 					</View>
 				) : null}
 
@@ -326,14 +320,14 @@ export default function TaskDetailScreen() {
 						size={18}
 						color={theme.icon}
 					/>
-					<Text style={[styles.detailText, { color: theme.icon }]}>Created {formatDate(task.createdAt)}</Text>
+					<Text style={[styles.detailText, { color: theme.icon }]}>{t('taskDetail.created', { date: formatDate(task.createdAt) })}</Text>
 				</View>
 			</View>
 
 			<View style={styles.actions}>
 				{isPending ? (
 					<PrimaryButton
-						title='Start Task'
+						title={t('taskDetail.startTask')}
 						onPress={handleStart}
 						isLoading={startMutation.isPending}
 					/>
@@ -341,7 +335,7 @@ export default function TaskDetailScreen() {
 
 				{isActive && canComplete ? (
 					<PrimaryButton
-						title='Finish Task'
+						title={t('taskDetail.finishTask')}
 						onPress={handleComplete}
 						isLoading={completeMutation.isPending}
 					/>
@@ -355,7 +349,7 @@ export default function TaskDetailScreen() {
 							color={theme.primary}
 						/>
 						<Text style={[styles.infoBannerText, { color: theme.primary }]}>
-							Task is active. {formatDuration(Math.ceil(remainingMs / 1000))} remaining.
+							{t('taskDetail.remaining', { duration: formatDuration(Math.ceil(remainingMs / 1000)) })}
 						</Text>
 					</View>
 				) : null}
@@ -372,7 +366,7 @@ export default function TaskDetailScreen() {
 								color={theme.accent}
 							/>
 						) : (
-							<Text style={[styles.deleteButtonText, { color: theme.accent }]}>Delete Task</Text>
+							<Text style={[styles.deleteButtonText, { color: theme.accent }]}>{t('taskDetail.deleteTask')}</Text>
 						)}
 					</TouchableOpacity>
 				) : null}
@@ -382,13 +376,13 @@ export default function TaskDetailScreen() {
 						<View style={styles.rateCardContent}>
 							<Ionicons name='star' size={22} color='#FBBF24' />
 							<View style={styles.rateCardText}>
-								<Text style={[styles.rateCardTitle, { color: theme.text }]}>Enjoying BrainClean?</Text>
-								<Text style={[styles.rateCardHint, { color: theme.icon }]}>Rate us on the Play Store!</Text>
+								<Text style={[styles.rateCardTitle, { color: theme.text }]}>{t('taskDetail.enjoyingApp')}</Text>
+								<Text style={[styles.rateCardHint, { color: theme.icon }]}>{t('taskDetail.rateHint')}</Text>
 							</View>
 						</View>
 						<View style={styles.rateCardActions}>
 							<TouchableOpacity onPress={() => setHasRated(true)} hitSlop={8}>
-								<Text style={[styles.rateCardDismiss, { color: theme.icon }]}>Later</Text>
+								<Text style={[styles.rateCardDismiss, { color: theme.icon }]}>{t('taskDetail.later')}</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
 								style={[styles.rateCardButton, { backgroundColor: theme.primary }]}
@@ -398,7 +392,7 @@ export default function TaskDetailScreen() {
 								}}
 								activeOpacity={0.8}>
 								<Ionicons name='star-outline' size={16} color='#FFFFFF' />
-								<Text style={styles.rateCardButtonText}>Rate Now</Text>
+								<Text style={styles.rateCardButtonText}>{t('taskDetail.rateNow')}</Text>
 							</TouchableOpacity>
 						</View>
 					</View>

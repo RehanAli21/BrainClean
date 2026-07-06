@@ -4,23 +4,14 @@ import { Colors } from '@/constants/theme'
 import { authService } from '@/services/api/auth'
 import { Ionicons } from '@expo/vector-icons'
 import { Link, useLocalSearchParams, useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
-const resetSchema = z
-	.object({
-		code: z.string().length(6, 'Code must be exactly 6 digits').regex(/^\d{6}$/, 'Code must be 6 digits'),
-		newPassword: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password must be at most 128 characters'),
-		confirmPassword: z.string(),
-	})
-	.refine(data => data.newPassword === data.confirmPassword, {
-		message: 'Passwords do not match',
-		path: ['confirmPassword'],
-	})
-
 export default function ResetPasswordScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
 	const { email } = useLocalSearchParams<{ email: string }>()
 	const [code, setCode] = useState('')
@@ -30,6 +21,17 @@ export default function ResetPasswordScreen() {
 	const [apiError, setApiError] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 	const [success, setSuccess] = useState(false)
+
+	const resetSchema = useMemo(() => z
+		.object({
+			code: z.string().length(6, t('validation.codeLength')).regex(/^\d{6}$/, t('validation.codeDigits')),
+			newPassword: z.string().min(8, t('validation.passwordMin')).max(128, t('validation.passwordMax')),
+			confirmPassword: z.string(),
+		})
+		.refine(data => data.newPassword === data.confirmPassword, {
+			message: t('validation.passwordsMismatch'),
+			path: ['confirmPassword'],
+		}), [t])
 
 	const handleReset = async () => {
 		setErrors({})
@@ -47,7 +49,7 @@ export default function ResetPasswordScreen() {
 		}
 
 		if (!email) {
-			setApiError('Email is missing. Please go back and try again.')
+			setApiError(t('auth.resetPassword.emailMissing'))
 			return
 		}
 
@@ -58,15 +60,15 @@ export default function ResetPasswordScreen() {
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'INVALID_TOKEN') {
-				setApiError('Invalid code. Please check and try again.')
+				setApiError(t('auth.resetPassword.invalidCode'))
 			} else if (code === 'TOKEN_EXPIRED') {
-				setApiError('This code has expired. Please request a new one.')
+				setApiError(t('auth.resetPassword.codeExpired'))
 			} else if (code === 'PASSWORD_MISMATCH') {
-				setApiError('Passwords do not match.')
+				setApiError(t('auth.resetPassword.passwordMismatch'))
 			} else if (code === 'VALIDATION_ERROR') {
-				setApiError(err.response?.data?.message || 'Invalid input.')
+				setApiError(err.response?.data?.message || t('common.invalidInput'))
 			} else {
-				setApiError('Something went wrong. Please try again.')
+				setApiError(t('common.somethingWentWrong'))
 			}
 		} finally {
 			setIsLoading(false)
@@ -82,13 +84,13 @@ export default function ResetPasswordScreen() {
 						size={64}
 						color='#10B981'
 					/>
-					<Text style={[styles.title, { color: theme.text, marginTop: 16 }]}>Password Reset</Text>
+					<Text style={[styles.title, { color: theme.text, marginTop: 16 }]}>{t('auth.resetPassword.successTitle')}</Text>
 					<Text style={[styles.subtitle, { color: theme.icon, textAlign: 'center' }]}>
-						Your password has been reset successfully. You can now sign in with your new password.
+						{t('auth.resetPassword.successMessage')}
 					</Text>
 					<View style={{ width: '100%', marginTop: 24 }}>
 						<PrimaryButton
-							title='Back to Login'
+							title={t('auth.resetPassword.backToLogin')}
 							onPress={() => router.replace('/auth/login')}
 						/>
 					</View>
@@ -109,14 +111,14 @@ export default function ResetPasswordScreen() {
 						color={theme.text}
 						style={{ marginRight: 8 }}
 					/>
-					<Text style={[styles.backText, { color: theme.text }]}>Back</Text>
+					<Text style={[styles.backText, { color: theme.text }]}>{t('common.back')}</Text>
 				</TouchableOpacity>
 			</Link>
 
 			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>New Password</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('auth.resetPassword.title')}</Text>
 				<Text style={[styles.subtitle, { color: theme.icon }]}>
-					Enter the 6-digit code sent to {email || 'your email'} and choose a new password.
+					{t('auth.resetPassword.subtitle', { email: email || t('auth.resetPassword.yourEmail') })}
 				</Text>
 			</View>
 
@@ -128,8 +130,8 @@ export default function ResetPasswordScreen() {
 				) : null}
 
 				<AuthInput
-					label='Reset Code'
-					placeholder='123456'
+					label={t('auth.resetPassword.codeLabel')}
+					placeholder={t('auth.resetPassword.codePlaceholder')}
 					keyboardType='number-pad'
 					autoCapitalize='none'
 					value={code}
@@ -139,7 +141,7 @@ export default function ResetPasswordScreen() {
 				{errors.code ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.code}</Text> : null}
 
 				<AuthInput
-					label='New Password'
+					label={t('auth.resetPassword.newPasswordLabel')}
 					placeholder='••••••••'
 					isPassword
 					value={newPassword}
@@ -148,7 +150,7 @@ export default function ResetPasswordScreen() {
 				{errors.newPassword ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.newPassword}</Text> : null}
 
 				<AuthInput
-					label='Confirm Password'
+					label={t('auth.signup.confirmPasswordLabel')}
 					placeholder='••••••••'
 					isPassword
 					value={confirmPassword}
@@ -157,7 +159,7 @@ export default function ResetPasswordScreen() {
 				{errors.confirmPassword ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.confirmPassword}</Text> : null}
 
 				<PrimaryButton
-					title='Reset Password'
+					title={t('auth.resetPassword.resetButton')}
 					onPress={handleReset}
 					isLoading={isLoading}
 				/>

@@ -10,22 +10,22 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import React, { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, BackHandler, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export default function PermissionsScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
 	const { permissions, isLoading, allGranted } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 
-	// Navigate to main app once all permissions are granted
 	useEffect(() => {
 		if (allGranted) {
 			router.replace('/(main)/(tabs)/tasks')
 		}
 	}, [allGranted, router])
 
-	// Close app on hardware back press if permissions not granted
 	useEffect(() => {
 		const handler = BackHandler.addEventListener('hardwareBackPress', () => {
 			if (!allGranted) {
@@ -58,28 +58,28 @@ export default function PermissionsScreen() {
 					size={48}
 					color={theme.primary}
 				/>
-				<Text style={[styles.title, { color: theme.text }]}>Permissions Required</Text>
-				<Text style={[styles.subtitle, { color: theme.icon }]}>BrainClean needs these permissions to block apps and protect your focus.</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('permissions.title')}</Text>
+				<Text style={[styles.subtitle, { color: theme.icon }]}>{t('permissions.subtitle')}</Text>
 			</View>
 
 			<View style={styles.cards}>
 				<PermissionCard
-					title='Usage Access'
-					description='Required to detect which app is in the foreground so BrainClean can block it.'
+					title={t('permissions.usageAccess')}
+					description={t('permissions.usageAccessDesc')}
 					granted={permissions.usageStats}
 					onRequest={requestUsageStatsPermission}
 				/>
 
 				<PermissionCard
-					title='Display Over Other Apps'
-					description='Required to show the blocking overlay when you open a blocked app.'
+					title={t('permissions.overlay')}
+					description={t('permissions.overlayDesc')}
 					granted={permissions.overlay}
 					onRequest={requestOverlayPermission}
 				/>
 
 				<PermissionCard
-					title='Unrestricted Background'
-					description='Required so BrainClean keeps blocking apps while your screen is off. Tap Grant, then Allow on the system dialog.'
+					title={t('permissions.battery')}
+					description={t('permissions.batteryDesc')}
 					granted={permissions.batteryOptimization}
 					onRequest={requestBatteryOptimizationExemption}
 				/>
@@ -90,7 +90,7 @@ export default function PermissionsScreen() {
 			</View>
 
 			<Text style={[styles.footerText, { color: theme.icon }]}>
-				Tap Grant on each card. Some open Android Settings; others show a quick Allow dialog.
+				{t('permissions.footer')}
 			</Text>
 		</ScrollView>
 	)
@@ -98,6 +98,7 @@ export default function PermissionsScreen() {
 
 function PermissionCard({ title, description, granted, onRequest }: { title: string; description: string; granted: boolean; onRequest: () => void }) {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const cooldown = useRef(false)
 
 	const handlePress = () => {
@@ -123,11 +124,11 @@ function PermissionCard({ title, description, granted, onRequest }: { title: str
 					style={[styles.grantButton, { backgroundColor: theme.primary }]}
 					onPress={handlePress}
 					activeOpacity={0.7}>
-					<Text style={styles.grantButtonText}>Grant Permission</Text>
+					<Text style={styles.grantButtonText}>{t('permissions.grantPermission')}</Text>
 				</TouchableOpacity>
 			) : (
 				<View style={[styles.grantedBadge, { backgroundColor: theme.success + '1A' }]}>
-					<Text style={[styles.grantedText, { color: theme.success }]}>Granted</Text>
+					<Text style={[styles.grantedText, { color: theme.success }]}>{t('common.granted')}</Text>
 				</View>
 			)}
 		</View>

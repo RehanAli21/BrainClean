@@ -10,6 +10,7 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useFocusEffect, useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 function toDateString(d: Date): string {
@@ -23,30 +24,42 @@ function getTodayDate(): string {
 	return toDateString(new Date())
 }
 
-function formatDateLabel(date: string): string {
-	const today = getTodayDate()
-	if (date === today) return 'Today'
-	const [y, m, d] = date.split('-').map(Number)
-	const dateObj = new Date(y, m - 1, d)
-	return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+function useFormatDateLabel() {
+	const { t } = useTranslation()
+	return (date: string): string => {
+		const today = getTodayDate()
+		if (date === today) return t('tasks.today')
+		const [y, m, d] = date.split('-').map(Number)
+		const dateObj = new Date(y, m - 1, d)
+		return dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+	}
 }
 
-function formatDuration(seconds: number): string {
-	const mins = Math.floor(seconds / 60)
-	if (mins < 60) return `${mins} min`
-	const hrs = Math.floor(mins / 60)
-	const remainMins = mins % 60
-	return remainMins > 0 ? `${hrs}h ${remainMins}m` : `${hrs}h`
+function useFormatDuration() {
+	const { t } = useTranslation()
+	return (seconds: number): string => {
+		const mins = Math.floor(seconds / 60)
+		if (mins < 60) return t('common.minutes', { count: mins })
+		const hrs = Math.floor(mins / 60)
+		const remainMins = mins % 60
+		return remainMins > 0 ? t('common.hoursMinutes', { hours: hrs, minutes: remainMins }) : t('common.hours', { count: hrs })
+	}
 }
 
-function getTaskStatus(task: Task) {
-	if (task.completed) return { icon: 'checkmark-circle' as const, color: '#10B981', label: 'Completed' }
-	if (task.started) return { icon: 'radio-button-on' as const, color: '#2563EB', label: 'Active' }
-	return { icon: 'ellipse-outline' as const, color: '#A1A1AA', label: 'Pending' }
+function useGetTaskStatus() {
+	const { t } = useTranslation()
+	return (task: Task) => {
+		if (task.completed) return { icon: 'checkmark-circle' as const, color: '#10B981', label: t('tasks.completed') }
+		if (task.started) return { icon: 'radio-button-on' as const, color: '#2563EB', label: t('tasks.active') }
+		return { icon: 'ellipse-outline' as const, color: '#A1A1AA', label: t('tasks.pending') }
+	}
 }
 
 function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 	const theme = Colors.dark
+	const { t } = useTranslation()
+	const formatDuration = useFormatDuration()
+	const getTaskStatus = useGetTaskStatus()
 	const status = getTaskStatus(task)
 	return (
 		<TouchableOpacity
@@ -62,9 +75,11 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 					</Text>
 					<Text style={[styles.taskDuration, { color: theme.icon }]}>
 						{formatDuration(task.minimumDurationSeconds)}
-						{task.maximumDurationSeconds ? ` · Max ${formatDuration(task.maximumDurationSeconds)}` : ''}
+						{task.maximumDurationSeconds && task.maximumDurationSeconds > task.minimumDurationSeconds + 60
+							? ` · ${t('tasks.autoComplete', { duration: formatDuration(task.maximumDurationSeconds) })}`
+							: ''}
 					</Text>
-					<Text style={[styles.taskHint, { color: theme.primary, marginTop: 10 }]}>Tap to view details</Text>
+					<Text style={[styles.taskHint, { color: theme.primary, marginTop: 10 }]}>{t('tasks.tapToView')}</Text>
 				</View>
 				<Ionicons
 					name={status.icon}
@@ -78,7 +93,9 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 
 export default function TaskListScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
+	const formatDateLabel = useFormatDateLabel()
 	const [selectedDate, setSelectedDate] = useState(getTodayDate)
 	const [showPicker, setShowPicker] = useState(false)
 	const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate)
@@ -97,9 +114,6 @@ export default function TaskListScreen() {
 		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date') }
 	}, [])
 
-	// Proactively log the user out 1 day before their JWT actually expires, so
-	// they re-login while their session still works rather than getting a 401
-	// mid-task. Runs every time the user lands on the Tasks screen.
 	useFocusEffect(
 		useCallback(() => {
 			if (tokenExpiresAt != null && Date.now() >= tokenExpiresAt - TOKEN_EXPIRY_BUFFER_MS) {
@@ -114,14 +128,12 @@ export default function TaskListScreen() {
 		}, [refetch]),
 	)
 
-	// Stop native blocking when no task is active (task completed from website)
 	useEffect(() => {
 		if (tasks && !hasActiveTask && isBlocking) {
 			stopBlocking()
 		}
 	}, [tasks, hasActiveTask, isBlocking, stopBlocking])
 
-	// Re-engage blocking if task is active but service isn't running (e.g. after app update)
 	const activeTask = tasks?.find(t => t.started && !t.completed)
 
 	useEffect(() => {
@@ -171,7 +183,7 @@ export default function TaskListScreen() {
 	return (
 		<View style={[styles.container, { backgroundColor: theme.background }]}>
 			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>Tasks</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('tasks.title')}</Text>
 				<TouchableOpacity onPress={triggerWalkthrough} hitSlop={12}>
 					<Ionicons name='help-circle-outline' size={26} color={theme.icon} />
 				</TouchableOpacity>
@@ -215,11 +227,11 @@ export default function TaskListScreen() {
 				</View>
 			) : isError ? (
 				<View style={styles.centered}>
-					<Text style={[styles.emptyText, { color: theme.icon }]}>Failed to load tasks.</Text>
+					<Text style={[styles.emptyText, { color: theme.icon }]}>{t('tasks.failedToLoad')}</Text>
 					<TouchableOpacity
 						onPress={() => refetch()}
 						style={{ marginTop: 12 }}>
-						<Text style={{ color: theme.primary, fontWeight: '600' }}>Retry</Text>
+						<Text style={{ color: theme.primary, fontWeight: '600' }}>{t('common.retry')}</Text>
 					</TouchableOpacity>
 				</View>
 			) : !tasks || tasks.length === 0 ? (
@@ -229,7 +241,7 @@ export default function TaskListScreen() {
 						size={48}
 						color={theme.border}
 					/>
-					<Text style={[styles.emptyText, { color: theme.icon, marginTop: 12 }]}>No tasks yet.{'\n'}Create your first task!</Text>
+					<Text style={[styles.emptyText, { color: theme.icon, marginTop: 12 }]}>{t('tasks.noTasks')}</Text>
 				</View>
 			) : (
 				<FlatList

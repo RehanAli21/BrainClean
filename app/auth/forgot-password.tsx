@@ -4,21 +4,23 @@ import { Colors } from '@/constants/theme'
 import { authService } from '@/services/api/auth'
 import { Ionicons } from '@expo/vector-icons'
 import { Link, useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
-const emailSchema = z.object({
-	email: z.string().email('Please enter a valid email'),
-})
-
 export default function ForgotPasswordScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
 	const [email, setEmail] = useState('')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
+
+	const emailSchema = useMemo(() => z.object({
+		email: z.string().email(t('validation.emailInvalid')),
+	}), [t])
 
 	const handleSubmit = async () => {
 		setErrors({})
@@ -42,11 +44,11 @@ export default function ForgotPasswordScreen() {
 		} catch (err: any) {
 			const code = err.response?.data?.error
 			if (code === 'VALIDATION_ERROR') {
-				setApiError('Please enter a valid email address.')
+				setApiError(t('auth.forgotPassword.invalidEmail'))
 			} else if (code === 'EMAIL_DELIVERY_FAILED') {
-				setApiError('Failed to send the reset code. Please try again later.')
+				setApiError(t('auth.forgotPassword.emailFailed'))
 			} else {
-				setApiError('Something went wrong. Please try again.')
+				setApiError(t('common.somethingWentWrong'))
 			}
 		} finally {
 			setIsLoading(false)
@@ -65,13 +67,13 @@ export default function ForgotPasswordScreen() {
 						color={theme.text}
 						style={{ marginRight: 8 }}
 					/>
-					<Text style={[styles.backText, { color: theme.text }]}>Back to Login</Text>
+					<Text style={[styles.backText, { color: theme.text }]}>{t('auth.forgotPassword.backToLogin')}</Text>
 				</TouchableOpacity>
 			</Link>
 
 			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>Reset Password</Text>
-				<Text style={[styles.subtitle, { color: theme.icon }]}>Enter your email and we{"'"}ll send you a 6-digit reset code.</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('auth.forgotPassword.title')}</Text>
+				<Text style={[styles.subtitle, { color: theme.icon }]}>{t('auth.forgotPassword.subtitle')}</Text>
 			</View>
 
 			<View style={styles.form}>
@@ -82,8 +84,8 @@ export default function ForgotPasswordScreen() {
 				) : null}
 
 				<AuthInput
-					label='Email Address'
-					placeholder='user@brainclean.com'
+					label={t('auth.login.emailLabel')}
+					placeholder={t('auth.login.emailPlaceholder')}
 					keyboardType='email-address'
 					autoCapitalize='none'
 					value={email}
@@ -92,7 +94,7 @@ export default function ForgotPasswordScreen() {
 				{errors.email ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.email}</Text> : null}
 
 				<PrimaryButton
-					title='Send Reset Code'
+					title={t('auth.forgotPassword.sendCode')}
 					onPress={handleSubmit}
 					isLoading={isLoading}
 				/>

@@ -7,8 +7,20 @@ import { taskService } from '@/services/api/tasks'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import React, { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import {
+	ActivityIndicator,
+	NativeScrollEvent,
+	NativeSyntheticEvent,
+	ScrollView,
+	StyleSheet,
+	Switch,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native'
 import { z } from 'zod'
 
 function getTodayDate(): string {
@@ -16,52 +28,120 @@ function getTodayDate(): string {
 	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
-function clampTimeInput(text: string, max: number): string {
-	const cleaned = text.replace(/[^0-9]/g, '')
-	if (cleaned === '') return ''
-	const num = parseInt(cleaned, 10)
-	if (num < 0) return '0'
-	if (num > max) return String(max)
-	return String(num)
-}
+const ITEM_HEIGHT = 32
+const VISIBLE_ITEMS = 3
+const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS
 
-const createTaskSchema = z.object({
-	name: z.string().min(1, 'Task name is required').max(255, 'Task name is too long'),
-	durationMinutes: z.number().min(1, 'Duration must be at least 1 minute'),
-	maxDurationMinutes: z.number().min(1, 'Max duration must be at least 1 minute').max(1440, 'Max duration cannot exceed 24 hours'),
-}).refine(data => data.maxDurationMinutes >= data.durationMinutes, {
-	message: 'Max duration must be greater than or equal to min duration',
-	path: ['maxDurationMinutes'],
-})
+const HOURS = Array.from({ length: 24 }, (_, i) => i)
+const MINUTES = Array.from({ length: 60 }, (_, i) => i)
+
+function RollerPicker({
+	data,
+	selectedIndex,
+	onSelect,
+	label,
+}: {
+	data: number[]
+	selectedIndex: number
+	onSelect: (index: number) => void
+	label: string
+}) {
+	const theme = Colors.dark
+	const scrollRef = useRef<ScrollView | null>(null)
+	const mounted = useRef(false)
+
+	useEffect(() => {
+		if (!mounted.current) {
+			mounted.current = true
+			setTimeout(() => {
+				scrollRef.current?.scrollTo({ y: selectedIndex * ITEM_HEIGHT, animated: false })
+			}, 50)
+		}
+	}, [selectedIndex])
+
+	const handleMomentumEnd = useCallback(
+		(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+			const y = e.nativeEvent.contentOffset.y
+			const index = Math.round(y / ITEM_HEIGHT)
+			const clamped = Math.max(0, Math.min(index, data.length - 1))
+			if (clamped !== selectedIndex) {
+				onSelect(clamped)
+			}
+		},
+		[data.length, selectedIndex, onSelect],
+	)
+
+	const padCount = Math.floor(VISIBLE_ITEMS / 2)
+
+	return (
+		<View style={styles.rollerContainer}>
+			<Text style={[styles.rollerLabel, { color: theme.icon }]}>{label}</Text>
+			<View style={styles.rollerWrapper}>
+				<View style={[styles.rollerHighlight, { backgroundColor: theme.primary + '20', borderColor: theme.primary + '40' }]} />
+				<ScrollView
+					ref={scrollRef}
+					style={styles.rollerScroll}
+					contentContainerStyle={{ paddingVertical: padCount * ITEM_HEIGHT }}
+					showsVerticalScrollIndicator={false}
+					snapToInterval={ITEM_HEIGHT}
+					decelerationRate='fast'
+					onMomentumScrollEnd={handleMomentumEnd}
+					nestedScrollEnabled>
+					{data.map((value, i) => {
+						const isSelected = i === selectedIndex
+						return (
+							<View
+								key={i}
+								style={styles.rollerItem}>
+								<Text
+									style={[
+										styles.rollerItemText,
+										{ color: isSelected ? theme.text : theme.icon + '60' },
+										isSelected && styles.rollerItemSelected,
+									]}>
+									{String(value).padStart(2, '0')}
+								</Text>
+							</View>
+						)
+					})}
+				</ScrollView>
+			</View>
+		</View>
+	)
+}
 
 export default function NewTaskScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const createMutation = useCreateTaskMutation()
 	const { isLoading: permsLoading, allGranted } = usePermissions()
 
 	const [name, setName] = useState('')
-	const [minHours, setMinHours] = useState('')
-	const [minMinutes, setMinMinutes] = useState('')
-	const [maxHours, setMaxHours] = useState('10')
-	const [maxMinutes, setMaxMinutes] = useState('0')
+	const [hours, setHours] = useState(1)
+	const [minutes, setMinutes] = useState(0)
+	const [autoComplete, setAutoComplete] = useState(false)
+	const [maxHours, setMaxHours] = useState(10)
+	const [maxMinutes, setMaxMinutes] = useState(0)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
-	const nameRef = useRef<View>(null)
-	const minRef = useRef<View>(null)
-	const maxRef = useRef<View>(null)
-	const createRef = useRef<View>(null)
+	const nameRef = useRef<View | null>(null)
+	const durationRef = useRef<View | null>(null)
+	const createRef = useRef<View | null>(null)
+
+	const createTaskSchema = useMemo(() => z.object({
+		name: z.string().min(1, t('validation.taskNameRequired')).max(255, t('validation.taskNameMax')),
+		durationMinutes: z.number().min(1, t('validation.durationMin')).max(1440, t('validation.durationMax')),
+	}), [t])
 
 	useEffect(() => {
 		registerRef('newtask-name', nameRef)
-		registerRef('newtask-min', minRef)
-		registerRef('newtask-max', maxRef)
+		registerRef('newtask-duration', durationRef)
 		registerRef('newtask-create', createRef)
 		return () => {
 			unregisterRef('newtask-name')
-			unregisterRef('newtask-min')
-			unregisterRef('newtask-max')
+			unregisterRef('newtask-duration')
 			unregisterRef('newtask-create')
 		}
 	}, [])
@@ -70,13 +150,11 @@ export default function NewTaskScreen() {
 		setErrors({})
 		setApiError('')
 
-		const totalMin = (parseInt(minHours, 10) || 0) * 60 + (parseInt(minMinutes, 10) || 0)
-		const totalMax = (parseInt(maxHours, 10) || 0) * 60 + (parseInt(maxMinutes, 10) || 0)
+		const totalMinutes = hours * 60 + minutes
 
 		const result = createTaskSchema.safeParse({
 			name: name.trim(),
-			durationMinutes: totalMin,
-			maxDurationMinutes: totalMax,
+			durationMinutes: totalMinutes,
 		})
 
 		if (!result.success) {
@@ -89,14 +167,27 @@ export default function NewTaskScreen() {
 			return
 		}
 
+		const durationSeconds = result.data.durationMinutes * 60
+
+		let maxSeconds: number | null = null
+
+		if (autoComplete) {
+			const totalMaxMinutes = maxHours * 60 + maxMinutes
+			if (totalMaxMinutes <= result.data.durationMinutes) {
+				setErrors({ maxDuration: t('newTask.autoCompleteError') })
+				return
+			}
+			maxSeconds = totalMaxMinutes * 60
+		}
+
 		createMutation.mutate(
 			{
 				name: result.data.name,
-				minimumDurationSeconds: result.data.durationMinutes * 60,
-				maximumDurationSeconds: result.data.maxDurationMinutes * 60,
+				minimumDurationSeconds: durationSeconds,
+				maximumDurationSeconds: maxSeconds,
 			},
 			{
-				onSuccess: (task) => {
+				onSuccess: task => {
 					router.replace({
 						pathname: '/(main)/(tabs)/tasks/[taskId]',
 						params: { taskId: task.id },
@@ -106,7 +197,7 @@ export default function NewTaskScreen() {
 					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
 					const code = err.response?.data?.error
 					if (code === 'VALIDATION_ERROR') {
-						setApiError(err.response?.data?.message || 'Invalid input.')
+						setApiError(err.response?.data?.message || t('common.invalidInput'))
 					} else if (code === 'ACTIVE_TASK_EXISTS') {
 						const details = err.response?.data?.details
 						if (details?.id) {
@@ -115,7 +206,7 @@ export default function NewTaskScreen() {
 								params: { taskId: details.id, finishFirst: '1' },
 							})
 						} else {
-							setApiError('You already have an active task. Complete it first.')
+							setApiError(t('newTask.activeExists'))
 						}
 					} else if (!err.response) {
 						try {
@@ -132,9 +223,9 @@ export default function NewTaskScreen() {
 								return
 							}
 						} catch {}
-						setApiError('Something went wrong. Please try again.')
+						setApiError(t('common.somethingWentWrong'))
 					} else {
-						setApiError('Something went wrong. Please try again.')
+						setApiError(t('common.somethingWentWrong'))
 					}
 				},
 			},
@@ -153,7 +244,7 @@ export default function NewTaskScreen() {
 						color={theme.text}
 					/>
 				</TouchableOpacity>
-				<Text style={[styles.title, { color: theme.text }]}>New Task</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('newTask.title')}</Text>
 				<View style={{ width: 24 }} />
 			</View>
 
@@ -173,16 +264,15 @@ export default function NewTaskScreen() {
 							color={theme.accent}
 						/>
 						<Text style={[styles.permsBannerText, { color: theme.accent }]}>
-							All permissions must be granted before you can create a task.
+							{t('newTask.permsRequired')}
 						</Text>
 					</View>
 					<Text style={[styles.permsHint, { color: theme.icon }]}>
-						BrainClean needs Usage Access, Display Over Other Apps, and Unrestricted Background permissions to block apps during your
-						focus sessions.
+						{t('newTask.permsHint')}
 					</Text>
 					<View style={{ marginTop: 16 }}>
 						<PrimaryButton
-							title='Grant Permissions'
+							title={t('newTask.grantPerms')}
 							onPress={() => router.push('/(setup)/permissions')}
 						/>
 					</View>
@@ -196,84 +286,80 @@ export default function NewTaskScreen() {
 					) : null}
 
 					<View ref={nameRef}>
-					<Text style={[styles.inputLabel, { color: theme.icon }]}>Task Name</Text>
-					<TextInput
-						style={[styles.textInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
-						placeholder='e.g. Read 10 pages'
-						placeholderTextColor={theme.icon + '80'}
-						value={name}
-						onChangeText={setName}
-						autoCapitalize='sentences'
-					/>
+						<Text style={[styles.inputLabel, { color: theme.icon }]}>{t('newTask.taskName')}</Text>
+						<TextInput
+							style={[styles.textInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
+							placeholder={t('newTask.taskNamePlaceholder')}
+							placeholderTextColor={theme.icon + '80'}
+							value={name}
+							onChangeText={setName}
+							autoCapitalize='sentences'
+						/>
 					</View>
 					{errors.name ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.name}</Text> : null}
 
-					<View ref={minRef}>
-					<Text style={[styles.inputLabel, { color: theme.icon }]}>Min Duration</Text>
-					<View style={styles.timeRow}>
-						<View style={styles.timeField}>
-							<TextInput
-								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
-								placeholder='0'
-								placeholderTextColor={theme.icon + '80'}
-								value={minHours}
-								onChangeText={t => setMinHours(clampTimeInput(t, 24))}
-								keyboardType='number-pad'
-								maxLength={2}
+					<View ref={durationRef}>
+						<Text style={[styles.inputLabel, { color: theme.icon }]}>{t('newTask.duration')}</Text>
+						<View style={styles.pickerRow}>
+							<RollerPicker
+								data={HOURS}
+								selectedIndex={hours}
+								onSelect={setHours}
+								label={t('newTask.hours')}
 							/>
-							<Text style={[styles.timeUnit, { color: theme.icon }]}>hrs</Text>
-						</View>
-						<View style={styles.timeField}>
-							<TextInput
-								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
-								placeholder='0'
-								placeholderTextColor={theme.icon + '80'}
-								value={minMinutes}
-								onChangeText={t => setMinMinutes(clampTimeInput(t, 59))}
-								keyboardType='number-pad'
-								maxLength={2}
+							<Text style={[styles.pickerSeparator, { color: theme.icon }]}>:</Text>
+							<RollerPicker
+								data={MINUTES}
+								selectedIndex={minutes}
+								onSelect={setMinutes}
+								label={t('newTask.minutes')}
 							/>
-							<Text style={[styles.timeUnit, { color: theme.icon }]}>min</Text>
 						</View>
-					</View>
+						<Text style={[styles.hintText, { color: theme.icon }]}>{t('newTask.blockedHint')}</Text>
 					</View>
 					{errors.durationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.durationMinutes}</Text> : null}
 
-					<View ref={maxRef}>
-					<Text style={[styles.inputLabel, { color: theme.icon }]}>Max Duration</Text>
-					<View style={styles.timeRow}>
-						<View style={styles.timeField}>
-							<TextInput
-								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
-								placeholder='0'
-								placeholderTextColor={theme.icon + '80'}
-								value={maxHours}
-								onChangeText={t => setMaxHours(clampTimeInput(t, 24))}
-								keyboardType='number-pad'
-								maxLength={2}
-							/>
-							<Text style={[styles.timeUnit, { color: theme.icon }]}>hrs</Text>
+					<View style={[styles.toggleRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+						<View style={styles.toggleInfo}>
+							<Text style={[styles.toggleTitle, { color: theme.text }]}>{t('newTask.autoCompleteToggle')}</Text>
+							<Text style={[styles.toggleHint, { color: theme.icon }]}>{t('newTask.autoCompleteHint')}</Text>
 						</View>
-						<View style={styles.timeField}>
-							<TextInput
-								style={[styles.timeInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
-								placeholder='0'
-								placeholderTextColor={theme.icon + '80'}
-								value={maxMinutes}
-								onChangeText={t => setMaxMinutes(clampTimeInput(t, 59))}
-								keyboardType='number-pad'
-								maxLength={2}
-							/>
-							<Text style={[styles.timeUnit, { color: theme.icon }]}>min</Text>
-						</View>
+						<Switch
+							value={autoComplete}
+							onValueChange={setAutoComplete}
+							trackColor={{ false: theme.border, true: theme.primary }}
+							thumbColor={theme.text}
+						/>
 					</View>
-					</View>
-					<Text style={[styles.hintText, { color: theme.icon }]}>Auto-unblock after this duration</Text>
-					{errors.maxDurationMinutes ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.maxDurationMinutes}</Text> : null}
 
-					<View ref={createRef} style={{ marginTop: 8 }}>
+					{autoComplete ? (
+						<View>
+							<Text style={[styles.inputLabel, { color: theme.icon }]}>{t('newTask.autoCompleteAfter')}</Text>
+							<View style={styles.pickerRow}>
+								<RollerPicker
+									data={HOURS}
+									selectedIndex={maxHours}
+									onSelect={setMaxHours}
+									label={t('newTask.hours')}
+								/>
+								<Text style={[styles.pickerSeparator, { color: theme.icon }]}>:</Text>
+								<RollerPicker
+									data={MINUTES}
+									selectedIndex={maxMinutes}
+									onSelect={setMaxMinutes}
+									label={t('newTask.minutes')}
+								/>
+							</View>
+							<Text style={[styles.hintText, { color: theme.icon }]}>{t('newTask.autoCompleteDesc')}</Text>
+							{errors.maxDuration ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.maxDuration}</Text> : null}
+						</View>
+					) : null}
+
+					<View
+						ref={createRef}
+						style={{ marginTop: 8 }}>
 						<PrimaryButton
-							title='Create Task'
+							title={t('newTask.createTask')}
 							onPress={handleCreate}
 							isLoading={createMutation.isPending}
 						/>
@@ -307,29 +393,72 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		marginBottom: 16,
 	},
-	timeRow: {
-		flexDirection: 'row',
-		gap: 12,
-		marginBottom: 16,
-	},
-	timeField: {
-		flex: 1,
+	pickerRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: 8,
+		justifyContent: 'center',
+		marginBottom: 8,
 	},
-	timeInput: {
+	pickerSeparator: {
+		fontSize: 18,
+		fontWeight: '700',
+		marginHorizontal: 4,
+		marginTop: 14,
+	},
+	rollerContainer: {
+		alignItems: 'center',
+	},
+	rollerLabel: {
+		fontSize: 11,
+		fontWeight: '500',
+		marginBottom: 4,
+	},
+	rollerWrapper: {
+		height: PICKER_HEIGHT,
+		width: 56,
+		borderWidth: 0,
+		borderRadius: 8,
+		overflow: 'hidden',
+		backgroundColor: 'transparent',
+	},
+	rollerHighlight: {
+		position: 'absolute',
+		top: ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2),
+		left: 2,
+		right: 2,
+		height: ITEM_HEIGHT,
+		borderRadius: 6,
+		borderWidth: 1,
+	},
+	rollerScroll: {
+		height: PICKER_HEIGHT,
+	},
+	rollerItem: {
+		height: ITEM_HEIGHT,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	rollerItemText: {
+		fontSize: 15,
+	},
+	rollerItemSelected: {
+		fontWeight: '700',
+		fontSize: 18,
+	},
+	fieldError: { fontSize: 12, marginTop: -4, marginBottom: 8, marginLeft: 4 },
+	hintText: { fontSize: 12, marginLeft: 4, marginBottom: 16 },
+	toggleRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
 		borderWidth: 1,
 		borderRadius: 12,
-		height: 50,
-		flex: 1,
-		textAlign: 'center',
-		fontSize: 18,
-		fontWeight: '600',
+		padding: 14,
+		marginBottom: 16,
 	},
-	timeUnit: { fontSize: 14, fontWeight: '500' },
-	fieldError: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
-	hintText: { fontSize: 12, marginTop: -12, marginBottom: 8, marginLeft: 4 },
+	toggleInfo: { flex: 1, marginRight: 12 },
+	toggleTitle: { fontSize: 15, fontWeight: '600' },
+	toggleHint: { fontSize: 12, marginTop: 2 },
 	permsBanner: {
 		flexDirection: 'row',
 		alignItems: 'center',

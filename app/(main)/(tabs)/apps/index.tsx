@@ -6,6 +6,7 @@ import { useUiStore } from '@/store/uiStore'
 import type { AppInfo } from '@/types/blocker'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, FlatList, Image, InteractionManager, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 
 function AppRow({ app, disabled }: { app: AppInfo; disabled: boolean }) {
@@ -54,6 +55,7 @@ function AppRow({ app, disabled }: { app: AppInfo; disabled: boolean }) {
 
 export default function AppsScreen() {
 	const theme = Colors.dark
+	const { t } = useTranslation()
 	const [apps, setApps] = useState<AppInfo[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState('')
@@ -75,14 +77,14 @@ export default function AppsScreen() {
 					if (!cancelled) setApps(installedApps)
 				})
 				.catch(() => {
-					if (!cancelled) setError('Failed to load installed apps. Make sure you are running on a device.')
+					if (!cancelled) setError(t('apps.loadError'))
 				})
 				.finally(() => {
 					if (!cancelled) setIsLoading(false)
 				})
 		})
 		return () => { cancelled = true; handle.cancel() }
-	}, [])
+	}, [t])
 
 	const filteredApps = useMemo(() => {
 		if (!search.trim()) return apps
@@ -93,9 +95,9 @@ export default function AppsScreen() {
 	return (
 		<View style={[styles.container, { backgroundColor: theme.background }]}>
 			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>Apps</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{t('apps.title')}</Text>
 				<Text style={[styles.count, { color: theme.icon }]}>
-					{selectedCount > 0 ? `${selectedCount} selected` : !isLoading && apps.length > 0 ? `${apps.length} installed` : ''}
+					{selectedCount > 0 ? t('apps.selected', { count: selectedCount }) : !isLoading && apps.length > 0 ? t('apps.installed', { count: apps.length }) : ''}
 				</Text>
 			</View>
 
@@ -107,7 +109,7 @@ export default function AppsScreen() {
 						color={theme.primary}
 					/>
 					<Text style={[styles.lockBannerText, { color: theme.text }]}>
-						App selection is locked while a task is active. Complete the task to make changes.
+						{t('apps.locked')}
 					</Text>
 				</View>
 			) : null}
@@ -120,7 +122,7 @@ export default function AppsScreen() {
 				/>
 				<TextInput
 					style={[styles.searchInput, { color: theme.text }]}
-					placeholder='Search apps...'
+					placeholder={t('apps.searchPlaceholder')}
 					placeholderTextColor={theme.icon}
 					value={search}
 					onChangeText={setSearch}
@@ -143,7 +145,7 @@ export default function AppsScreen() {
 						size='large'
 						color={theme.primary}
 					/>
-					<Text style={[styles.loadingText, { color: theme.icon }]}>Loading apps...</Text>
+					<Text style={[styles.loadingText, { color: theme.icon }]}>{t('apps.loading')}</Text>
 				</View>
 			) : error ? (
 				<View style={styles.centered}>
@@ -161,7 +163,7 @@ export default function AppsScreen() {
 						size={48}
 						color={theme.border}
 					/>
-					<Text style={[styles.emptyText, { color: theme.icon }]}>{search ? 'No apps match your search.' : 'No apps found.'}</Text>
+					<Text style={[styles.emptyText, { color: theme.icon }]}>{search ? t('apps.noMatch') : t('apps.noApps')}</Text>
 				</View>
 			) : (
 				<FlatList

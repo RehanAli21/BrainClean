@@ -269,6 +269,26 @@ export default {
   tabs: {
     tasks: '任务',
     apps: '应用',
+    wellness: '健康',
     settings: '设置',
+  },
+
+  wellness: {
+    title: '健康',
+    eyeCare: '护眼',
+    eyeBlinker: '护眼提醒',
+    eyeBlinkerHint: '定时提醒你让眼睛休息',
+    reminderInterval: '提醒间隔',
+    restDuration: '休息时长',
+    eyeBlinkerDesc: '每 {{interval}} 分钟，提醒将显示 {{duration}} 秒',
+    min: '分钟',
+    sec: '秒',
+    doomScrollBreaker: '刷屏打断器',
+    autoBlock: '自动锁定应用',
+    autoBlockHint: '连续使用超过限制时自动锁定应用',
+    usageLimit: '使用限制',
+    breakDuration: '休息时长',
+    monitorsApps: '监控应用标签中选择的应用',
+    autoBlockDesc: '连续使用 {{limit}} 分钟后，应用将被锁定 {{duration}} 秒',
   },
 } as const

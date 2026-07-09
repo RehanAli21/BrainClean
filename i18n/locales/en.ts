@@ -283,6 +283,26 @@ export default {
   tabs: {
     tasks: 'Tasks',
     apps: 'Apps',
+    wellness: 'Wellness',
     settings: 'Settings',
+  },
+
+  wellness: {
+    title: 'Wellness',
+    eyeCare: 'EYE CARE',
+    eyeBlinker: 'Eye Blinker',
+    eyeBlinkerHint: 'Reminds you to rest your eyes at regular intervals',
+    reminderInterval: 'Reminder Interval',
+    restDuration: 'Rest Duration',
+    eyeBlinkerDesc: 'Every {{interval}} min, a reminder will appear for {{duration}} seconds',
+    min: 'min',
+    sec: 'sec',
+    doomScrollBreaker: 'DOOM SCROLL BREAKER',
+    autoBlock: 'Auto App Blocking',
+    autoBlockHint: 'Blocks apps after continuous usage exceeds your limit',
+    usageLimit: 'Usage Limit',
+    breakDuration: 'Break Duration',
+    monitorsApps: 'Monitors apps selected in Apps tab',
+    autoBlockDesc: 'After {{limit}} min of continuous use, the app will be blocked for {{duration}} seconds',
   },
 } as const

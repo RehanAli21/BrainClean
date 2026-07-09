@@ -269,6 +269,26 @@ export default {
   tabs: {
     tasks: 'कार्य',
     apps: 'ऐप्स',
+    wellness: 'स्वास्थ्य',
     settings: 'सेटिंग्स',
+  },
+
+  wellness: {
+    title: 'स्वास्थ्य',
+    eyeCare: 'आँखों की देखभाल',
+    eyeBlinker: 'आई ब्लिंकर',
+    eyeBlinkerHint: 'नियमित अंतराल पर आँखों को आराम देने की याद दिलाता है',
+    reminderInterval: 'रिमाइंडर अंतराल',
+    restDuration: 'आराम की अवधि',
+    eyeBlinkerDesc: 'हर {{interval}} मिनट में, {{duration}} सेकंड के लिए रिमाइंडर दिखाई देगा',
+    min: 'मिनट',
+    sec: 'सेकंड',
+    doomScrollBreaker: 'डूम स्क्रॉल ब्रेकर',
+    autoBlock: 'ऑटो ऐप ब्लॉकिंग',
+    autoBlockHint: 'लगातार उपयोग सीमा से अधिक होने पर ऐप्स को ब्लॉक करता है',
+    usageLimit: 'उपयोग सीमा',
+    breakDuration: 'ब्रेक अवधि',
+    monitorsApps: 'ऐप्स टैब में चयनित ऐप्स की निगरानी करता है',
+    autoBlockDesc: '{{limit}} मिनट लगातार उपयोग के बाद, ऐप {{duration}} सेकंड के लिए ब्लॉक हो जाएगी',
   },
 } as const

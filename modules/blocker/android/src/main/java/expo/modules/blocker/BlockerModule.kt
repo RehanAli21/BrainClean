@@ -185,6 +185,55 @@ class BlockerModule : Module() {
             Build.MANUFACTURER?.lowercase() ?: ""
         }
 
+        Function("setEyeBlinkerConfig") { enabled: Boolean, intervalMinutes: Int, durationSeconds: Int ->
+            val context = appContext.reactContext ?: return@Function Unit
+            val state = WellnessState.getInstance(context)
+            state.setEyeBlinkerConfig(enabled, intervalMinutes, durationSeconds)
+            if (state.isAnyFeatureEnabled()) {
+                WellnessService.start(context)
+            } else {
+                WellnessService.stop(context)
+            }
+        }
+
+        Function("setAutoBlockConfig") { enabled: Boolean, usageLimitMinutes: Int, durationSeconds: Int, apps: List<String> ->
+            val context = appContext.reactContext ?: return@Function Unit
+            val state = WellnessState.getInstance(context)
+            state.setAutoBlockConfig(enabled, usageLimitMinutes, durationSeconds, apps)
+            if (state.isAnyFeatureEnabled()) {
+                WellnessService.start(context)
+            } else {
+                WellnessService.stop(context)
+            }
+        }
+
+        Function("getWellnessConfig") {
+            val context = appContext.reactContext ?: return@Function mapOf(
+                "eyeBlinkerEnabled" to false,
+                "eyeBlinkerIntervalMinutes" to 20,
+                "eyeBlinkerDurationSeconds" to 20,
+                "autoBlockEnabled" to false,
+                "autoBlockUsageLimitMinutes" to 15,
+                "autoBlockDurationSeconds" to 30,
+                "autoBlockApps" to emptyList<String>()
+            )
+            val state = WellnessState.getInstance(context)
+            mapOf(
+                "eyeBlinkerEnabled" to state.isEyeBlinkerEnabled(),
+                "eyeBlinkerIntervalMinutes" to state.getEyeBlinkerIntervalMinutes(),
+                "eyeBlinkerDurationSeconds" to state.getEyeBlinkerDurationSeconds(),
+                "autoBlockEnabled" to state.isAutoBlockEnabled(),
+                "autoBlockUsageLimitMinutes" to state.getAutoBlockUsageLimitMinutes(),
+                "autoBlockDurationSeconds" to state.getAutoBlockDurationSeconds(),
+                "autoBlockApps" to state.getAutoBlockApps().toList()
+            )
+        }
+
+        Function("isWellnessServiceRunning") {
+            val context = appContext.reactContext ?: return@Function false
+            WellnessState.getInstance(context).isAnyFeatureEnabled()
+        }
+
         Function("openAutoStartSettings") {
             val context = appContext.reactContext ?: return@Function false
             val manufacturer = Build.MANUFACTURER?.lowercase() ?: ""

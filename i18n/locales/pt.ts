@@ -269,6 +269,26 @@ export default {
   tabs: {
     tasks: 'Tarefas',
     apps: 'Apps',
+    wellness: 'Bem-estar',
     settings: 'Configurações',
+  },
+
+  wellness: {
+    title: 'Bem-estar',
+    eyeCare: 'CUIDADO COM OS OLHOS',
+    eyeBlinker: 'Descanso visual',
+    eyeBlinkerHint: 'Lembra você de descansar os olhos em intervalos regulares',
+    reminderInterval: 'Intervalo de lembrete',
+    restDuration: 'Duração do descanso',
+    eyeBlinkerDesc: 'A cada {{interval}} min, um lembrete aparecerá por {{duration}} segundos',
+    min: 'min',
+    sec: 'seg',
+    doomScrollBreaker: 'ANTI ROLAGEM COMPULSIVA',
+    autoBlock: 'Bloqueio automático de apps',
+    autoBlockHint: 'Bloqueia apps quando o uso contínuo excede seu limite',
+    usageLimit: 'Limite de uso',
+    breakDuration: 'Duração da pausa',
+    monitorsApps: 'Monitora os apps selecionados na aba Apps',
+    autoBlockDesc: 'Após {{limit}} min de uso contínuo, o app será bloqueado por {{duration}} segundos',
   },
 } as const

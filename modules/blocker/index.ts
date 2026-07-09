@@ -75,6 +75,41 @@ export function openAutoStartSettings(): boolean {
   return BlockerModule.openAutoStartSettings();
 }
 
+export interface WellnessConfig {
+  eyeBlinkerEnabled: boolean;
+  eyeBlinkerIntervalMinutes: number;
+  eyeBlinkerDurationSeconds: number;
+  autoBlockEnabled: boolean;
+  autoBlockUsageLimitMinutes: number;
+  autoBlockDurationSeconds: number;
+  autoBlockApps: string[];
+}
+
+export function setEyeBlinkerConfig(
+  enabled: boolean,
+  intervalMinutes: number,
+  durationSeconds: number,
+): void {
+  BlockerModule.setEyeBlinkerConfig(enabled, intervalMinutes, durationSeconds);
+}
+
+export function setAutoBlockConfig(
+  enabled: boolean,
+  usageLimitMinutes: number,
+  durationSeconds: number,
+  apps: string[],
+): void {
+  BlockerModule.setAutoBlockConfig(enabled, usageLimitMinutes, durationSeconds, apps);
+}
+
+export function getWellnessConfig(): WellnessConfig {
+  return BlockerModule.getWellnessConfig();
+}
+
+export function isWellnessServiceRunning(): boolean {
+  return BlockerModule.isWellnessServiceRunning();
+}
+
 export function addBlockedAppListener(
   callback: (event: { packageName: string }) => void,
 ): EventSubscription {

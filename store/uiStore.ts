@@ -25,6 +25,18 @@ interface UiState {
   setHasRated: (rated: boolean) => void;
   selectedLanguage: string | null;
   setSelectedLanguage: (language: string) => void;
+  eyeBlinkerEnabled: boolean;
+  setEyeBlinkerEnabled: (enabled: boolean) => void;
+  eyeBlinkerIntervalMinutes: number;
+  setEyeBlinkerIntervalMinutes: (minutes: number) => void;
+  eyeBlinkerDurationSeconds: number;
+  setEyeBlinkerDurationSeconds: (seconds: number) => void;
+  autoBlockEnabled: boolean;
+  setAutoBlockEnabled: (enabled: boolean) => void;
+  autoBlockUsageLimitMinutes: number;
+  setAutoBlockUsageLimitMinutes: (minutes: number) => void;
+  autoBlockDurationSeconds: number;
+  setAutoBlockDurationSeconds: (seconds: number) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -73,6 +85,32 @@ export const useUiStore = create<UiState>()(
 
       setSelectedLanguage: (language: string) => {
         set({ selectedLanguage: language });
+      },
+
+      eyeBlinkerEnabled: false,
+      setEyeBlinkerEnabled: (enabled: boolean) => {
+        set({ eyeBlinkerEnabled: enabled });
+      },
+      eyeBlinkerIntervalMinutes: 20,
+      setEyeBlinkerIntervalMinutes: (minutes: number) => {
+        set({ eyeBlinkerIntervalMinutes: minutes });
+      },
+      eyeBlinkerDurationSeconds: 20,
+      setEyeBlinkerDurationSeconds: (seconds: number) => {
+        set({ eyeBlinkerDurationSeconds: seconds });
+      },
+
+      autoBlockEnabled: false,
+      setAutoBlockEnabled: (enabled: boolean) => {
+        set({ autoBlockEnabled: enabled });
+      },
+      autoBlockUsageLimitMinutes: 15,
+      setAutoBlockUsageLimitMinutes: (minutes: number) => {
+        set({ autoBlockUsageLimitMinutes: minutes });
+      },
+      autoBlockDurationSeconds: 30,
+      setAutoBlockDurationSeconds: (seconds: number) => {
+        set({ autoBlockDurationSeconds: seconds });
       },
     }),
     {

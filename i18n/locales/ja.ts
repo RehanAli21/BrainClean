@@ -54,5 +54,6 @@ export default {
     breakDuration: '休憩時間',
     monitorsApps: 'アプリタブで選択されたアプリを監視します',
     autoBlockDesc: '{{limit}}分間の連続使用後、アプリが{{duration}}秒間ブロックされます',
+    appsLockedByAutoBlock: 'スクロールブレーカーが有効な間、アプリの選択はロックされています。アプリを変更するには無効にしてください。',
   },
 } as const

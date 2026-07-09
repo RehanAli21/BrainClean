@@ -37,5 +37,6 @@ export default {
     breakDuration: 'Tempoh rehat',
     monitorsApps: 'Memantau aplikasi yang dipilih di tab Aplikasi',
     autoBlockDesc: 'Selepas {{limit}} minit penggunaan berterusan, aplikasi akan disekat selama {{duration}} saat',
+    appsLockedByAutoBlock: 'Pilihan aplikasi dikunci semasa Pemutus Skrol aktif. Nyahaktifkan untuk menukar aplikasi.',
   },
 } as const

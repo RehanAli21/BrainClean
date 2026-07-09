@@ -37,5 +37,6 @@ export default {
     breakDuration: 'Mola süresi',
     monitorsApps: 'Uygulamalar sekmesinde seçilen uygulamaları izler',
     autoBlockDesc: '{{limit}} dk sürekli kullanımdan sonra uygulama {{duration}} saniye engellenecek',
+    appsLockedByAutoBlock: 'Kaydırma Kırıcı aktifken uygulama seçimi kilitlidir. Uygulamaları değiştirmek için devre dışı bırakın.',
   },
 } as const

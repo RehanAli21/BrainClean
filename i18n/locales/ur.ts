@@ -290,5 +290,6 @@ export default {
     breakDuration: 'وقفے کی مدت',
     monitorsApps: 'ایپس ٹیب میں منتخب ایپس کی نگرانی کرتا ہے',
     autoBlockDesc: '{{limit}} منٹ مسلسل استعمال کے بعد، ایپ {{duration}} سیکنڈ کے لیے بلاک ہو جائے گی',
+    appsLockedByAutoBlock: 'ڈوم اسکرول بریکر فعال ہونے کے دوران ایپ کا انتخاب مقفل ہے۔ ایپس تبدیل کرنے کے لیے اسے غیر فعال کریں۔',
   },
 } as const

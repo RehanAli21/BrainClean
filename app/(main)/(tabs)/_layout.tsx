@@ -32,73 +32,83 @@ export default function TabsLayout() {
 
 	return (
 		<>
-		<LanguagePicker visible={showLanguagePicker} onClose={handleLanguagePickerClose} dismissable={false} />
-		<TutorialOverlay visible={!showLanguagePicker && showTutorial} onClose={() => setShowTutorial(false)} />
-		<WalkthroughOverlay visible={showWalkthrough} onClose={() => setShowWalkthrough(false)} />
-		<Tabs
-			screenOptions={{
-				headerShown: false,
-				tabBarStyle: {
-					backgroundColor: theme.background,
-					borderTopColor: theme.border,
-					borderTopWidth: 1,
-				},
-				tabBarActiveTintColor: theme.tabIconSelected,
-				tabBarInactiveTintColor: theme.tabIconDefault,
-			}}>
-			<Tabs.Screen
-				name='tasks'
-				options={{
-					title: t('tabs.tasks'),
-					tabBarIcon: ({ color, size }) => (
-						<Ionicons
-							name='checkmark-circle-outline'
-							size={size}
-							color={color}
-						/>
-					),
-				}}
+			<LanguagePicker
+				visible={showLanguagePicker}
+				onClose={handleLanguagePickerClose}
+				dismissable={false}
 			/>
-			<Tabs.Screen
-				name='apps'
-				options={{
-					title: t('tabs.apps'),
-					tabBarIcon: ({ color, size }) => (
-						<Ionicons
-							name='grid-outline'
-							size={size}
-							color={color}
-						/>
-					),
-				}}
+			<TutorialOverlay
+				visible={!showLanguagePicker && showTutorial}
+				onClose={() => setShowTutorial(false)}
 			/>
-			<Tabs.Screen
-				name='wellness'
-				options={{
-					title: t('tabs.wellness'),
-					tabBarIcon: ({ color, size }) => (
-						<Ionicons
-							name='leaf-outline'
-							size={size}
-							color={color}
-						/>
-					),
-				}}
+			<WalkthroughOverlay
+				visible={showWalkthrough}
+				onClose={() => setShowWalkthrough(false)}
 			/>
-			<Tabs.Screen
-				name='settings'
-				options={{
-					title: t('tabs.settings'),
-					tabBarIcon: ({ color, size }) => (
-						<Ionicons
-							name='settings-outline'
-							size={size}
-							color={color}
-						/>
-					),
-				}}
-			/>
-		</Tabs>
+			<Tabs
+				screenOptions={{
+					headerShown: false,
+					tabBarStyle: {
+						backgroundColor: theme.background,
+						borderTopColor: theme.border,
+						borderTopWidth: 1,
+					},
+					tabBarActiveTintColor: theme.tabIconSelected,
+					tabBarInactiveTintColor: theme.tabIconDefault,
+				}}>
+				<Tabs.Screen
+					name='tasks'
+					options={{
+						title: t('tabs.tasks'),
+						tabBarIcon: ({ color, size }) => (
+							<Ionicons
+								name='checkmark-circle-outline'
+								size={size}
+								color={color}
+							/>
+						),
+					}}
+				/>
+				<Tabs.Screen
+					name='wellness'
+					options={{
+						title: t('tabs.wellness'),
+						tabBarIcon: ({ color, size }) => (
+							<Ionicons
+								name='leaf-outline'
+								size={size}
+								color={color}
+							/>
+						),
+					}}
+				/>
+				<Tabs.Screen
+					name='apps'
+					options={{
+						title: t('tabs.apps'),
+						tabBarIcon: ({ color, size }) => (
+							<Ionicons
+								name='grid-outline'
+								size={size}
+								color={color}
+							/>
+						),
+					}}
+				/>
+				<Tabs.Screen
+					name='settings'
+					options={{
+						title: t('tabs.settings'),
+						tabBarIcon: ({ color, size }) => (
+							<Ionicons
+								name='settings-outline'
+								size={size}
+								color={color}
+							/>
+						),
+					}}
+				/>
+			</Tabs>
 		</>
 	)
 }

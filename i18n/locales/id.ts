@@ -37,5 +37,6 @@ export default {
     breakDuration: 'Durasi istirahat',
     monitorsApps: 'Memantau aplikasi yang dipilih di tab Aplikasi',
     autoBlockDesc: 'Setelah {{limit}} menit penggunaan terus-menerus, aplikasi akan diblokir selama {{duration}} detik',
+    appsLockedByAutoBlock: 'Pilihan aplikasi terkunci saat Pemutus Scroll aktif. Nonaktifkan untuk mengubah aplikasi.',
   },
 } as const

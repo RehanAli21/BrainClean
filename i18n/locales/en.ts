@@ -304,5 +304,6 @@ export default {
     breakDuration: 'Break Duration',
     monitorsApps: 'Monitors apps selected in Apps tab',
     autoBlockDesc: 'After {{limit}} min of continuous use, the app will be blocked for {{duration}} seconds',
+    appsLockedByAutoBlock: 'App selection is locked while Doom Scroll Breaker is active. Disable it to change apps.',
   },
 } as const

@@ -290,5 +290,6 @@ export default {
     breakDuration: 'مدة الاستراحة',
     monitorsApps: 'يراقب التطبيقات المختارة في تبويب التطبيقات',
     autoBlockDesc: 'بعد {{limit}} دقيقة من الاستخدام المستمر، سيتم حظر التطبيق لمدة {{duration}} ثانية',
+    appsLockedByAutoBlock: 'اختيار التطبيقات مقفل أثناء تفعيل كاسر التمرير. قم بتعطيله لتغيير التطبيقات.',
   },
 } as const

@@ -290,5 +290,6 @@ export default {
     breakDuration: 'ब्रेक अवधि',
     monitorsApps: 'ऐप्स टैब में चयनित ऐप्स की निगरानी करता है',
     autoBlockDesc: '{{limit}} मिनट लगातार उपयोग के बाद, ऐप {{duration}} सेकंड के लिए ब्लॉक हो जाएगी',
+    appsLockedByAutoBlock: 'डूम स्क्रॉल ब्रेकर सक्रिय होने पर ऐप चयन लॉक है। ऐप्स बदलने के लिए इसे बंद करें।',
   },
 } as const

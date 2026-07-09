@@ -37,5 +37,6 @@ export default {
     breakDuration: '휴식 시간',
     monitorsApps: '앱 탭에서 선택한 앱을 모니터링합니다',
     autoBlockDesc: '{{limit}}분 연속 사용 후 앱이 {{duration}}초 동안 차단됩니다',
+    appsLockedByAutoBlock: '둠 스크롤 차단기가 활성화된 동안 앱 선택이 잠겨 있습니다. 앱을 변경하려면 비활성화하세요.',
   },
 } as const

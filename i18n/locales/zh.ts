@@ -290,5 +290,6 @@ export default {
     breakDuration: '休息时长',
     monitorsApps: '监控应用标签中选择的应用',
     autoBlockDesc: '连续使用 {{limit}} 分钟后，应用将被锁定 {{duration}} 秒',
+    appsLockedByAutoBlock: '刷屏终结者启用时，应用选择已锁定。请先关闭它再更改应用。',
   },
 } as const

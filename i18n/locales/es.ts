@@ -290,5 +290,6 @@ export default {
     breakDuration: 'Duración de la pausa',
     monitorsApps: 'Monitorea las apps seleccionadas en la pestaña Apps',
     autoBlockDesc: 'Tras {{limit}} min de uso continuo, la app se bloqueará durante {{duration}} segundos',
+    appsLockedByAutoBlock: 'La selección de apps está bloqueada mientras el Rompe Scroll está activo. Desactívalo para cambiar apps.',
   },
 } as const

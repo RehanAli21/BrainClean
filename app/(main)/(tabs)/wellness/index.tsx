@@ -1,17 +1,12 @@
 import { Colors } from '@/constants/theme'
 import { useBlocker } from '@/hooks/useBlocker'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useWellness } from '@/hooks/useWellness'
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useRouter } from 'expo-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-	ScrollView,
-	StyleSheet,
-	Switch,
-	Text,
-	TouchableOpacity,
-	View,
-} from 'react-native'
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
 
 function NumericStepper({
 	value,
@@ -43,7 +38,11 @@ function NumericStepper({
 				onPress={() => onValueChange(Math.max(min, value - step))}
 				disabled={disabled || value <= min}
 				activeOpacity={0.7}>
-				<Ionicons name='remove' size={20} color={theme.text} />
+				<Ionicons
+					name='remove'
+					size={20}
+					color={theme.text}
+				/>
 			</TouchableOpacity>
 			<Text style={[styles.stepperValue, { color: theme.text }]}>
 				{value} {unit}
@@ -57,7 +56,11 @@ function NumericStepper({
 				onPress={() => onValueChange(Math.min(max, value + step))}
 				disabled={disabled || value >= max}
 				activeOpacity={0.7}>
-				<Ionicons name='add' size={20} color={theme.text} />
+				<Ionicons
+					name='add'
+					size={20}
+					color={theme.text}
+				/>
 			</TouchableOpacity>
 		</View>
 	)
@@ -66,7 +69,9 @@ function NumericStepper({
 export default function WellnessScreen() {
 	const theme = Colors.dark
 	const { t } = useTranslation()
+	const router = useRouter()
 	const { isBlocking } = useBlocker()
+	const { allGranted } = usePermissions()
 	const {
 		eyeBlinkerEnabled,
 		eyeBlinkerIntervalMinutes,
@@ -79,6 +84,22 @@ export default function WellnessScreen() {
 		updateAutoBlock,
 	} = useWellness()
 
+	const handleEyeBlinkerToggle = (v: boolean) => {
+		if (v && !allGranted) {
+			router.push('/(setup)/permissions')
+			return
+		}
+		updateEyeBlinker(v, eyeBlinkerIntervalMinutes, eyeBlinkerDurationSeconds)
+	}
+
+	const handleAutoBlockToggle = (v: boolean) => {
+		if (v && !allGranted) {
+			router.push('/(setup)/permissions')
+			return
+		}
+		updateAutoBlock(v, autoBlockUsageLimitMinutes, autoBlockDurationSeconds)
+	}
+
 	return (
 		<ScrollView
 			style={[styles.container, { backgroundColor: theme.background }]}
@@ -87,10 +108,23 @@ export default function WellnessScreen() {
 
 			{isBlocking ? (
 				<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
-					<Ionicons name='lock-closed' size={18} color={theme.primary} />
-					<Text style={[styles.lockBannerText, { color: theme.text }]}>
-						{t('settings.locked')}
-					</Text>
+					<Ionicons
+						name='lock-closed'
+						size={18}
+						color={theme.primary}
+					/>
+					<Text style={[styles.lockBannerText, { color: theme.text }]}>{t('settings.locked')}</Text>
+				</View>
+			) : null}
+
+			{!allGranted ? (
+				<View style={[styles.permsBanner, { backgroundColor: theme.accent + '1A' }]}>
+					<Ionicons
+						name='warning-outline'
+						size={20}
+						color={theme.accent}
+					/>
+					<Text style={[styles.permsBannerText, { color: theme.accent }]}>{t('newTask.permsRequired')}</Text>
 				</View>
 			) : null}
 
@@ -99,7 +133,11 @@ export default function WellnessScreen() {
 			<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 				<View style={styles.toggleRow}>
 					<View style={styles.toggleInfo}>
-						<Ionicons name='eye-outline' size={20} color={theme.icon} />
+						<Ionicons
+							name='eye-outline'
+							size={20}
+							color={theme.icon}
+						/>
 						<View style={styles.rowText}>
 							<Text style={[styles.label, { color: theme.text }]}>{t('wellness.eyeBlinker')}</Text>
 							<Text style={[styles.hint, { color: theme.icon }]}>{t('wellness.eyeBlinkerHint')}</Text>
@@ -107,50 +145,46 @@ export default function WellnessScreen() {
 					</View>
 					<Switch
 						value={eyeBlinkerEnabled}
-						onValueChange={(v) =>
-							updateEyeBlinker(v, eyeBlinkerIntervalMinutes, eyeBlinkerDurationSeconds)
-						}
+						onValueChange={handleEyeBlinkerToggle}
 						trackColor={{ false: theme.border, true: theme.primary }}
 						thumbColor='#FFFFFF'
 						disabled={isBlocking}
 					/>
 				</View>
 
-				{eyeBlinkerEnabled ? (
-					<View style={styles.configSection}>
-						<View style={styles.configRow}>
-							<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.reminderInterval')}</Text>
-							<NumericStepper
-								value={eyeBlinkerIntervalMinutes}
-								min={5}
-								max={60}
-								step={5}
-								unit={t('wellness.min')}
-								onValueChange={(v) => updateEyeBlinker(eyeBlinkerEnabled, v, eyeBlinkerDurationSeconds)}
-								disabled={isBlocking}
-							/>
-						</View>
-						<View style={[styles.divider, { backgroundColor: theme.border }]} />
-						<View style={styles.configRow}>
-							<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.restDuration')}</Text>
-							<NumericStepper
-								value={eyeBlinkerDurationSeconds}
-								min={10}
-								max={60}
-								step={5}
-								unit={t('wellness.sec')}
-								onValueChange={(v) => updateEyeBlinker(eyeBlinkerEnabled, eyeBlinkerIntervalMinutes, v)}
-								disabled={isBlocking}
-							/>
-						</View>
-						<Text style={[styles.description, { color: theme.icon }]}>
-							{t('wellness.eyeBlinkerDesc', {
-								interval: eyeBlinkerIntervalMinutes,
-								duration: eyeBlinkerDurationSeconds,
-							})}
-						</Text>
+				<View style={styles.configSection}>
+					<View style={styles.configRow}>
+						<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.reminderInterval')}</Text>
+						<NumericStepper
+							value={eyeBlinkerIntervalMinutes}
+							min={1}
+							max={60}
+							step={1}
+							unit={t('wellness.min')}
+							onValueChange={v => updateEyeBlinker(eyeBlinkerEnabled, v, eyeBlinkerDurationSeconds)}
+							disabled={isBlocking}
+						/>
 					</View>
-				) : null}
+					<View style={[styles.divider, { backgroundColor: theme.border }]} />
+					<View style={styles.configRow}>
+						<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.restDuration')}</Text>
+						<NumericStepper
+							value={eyeBlinkerDurationSeconds}
+							min={1}
+							max={60}
+							step={1}
+							unit={t('wellness.sec')}
+							onValueChange={v => updateEyeBlinker(eyeBlinkerEnabled, eyeBlinkerIntervalMinutes, v)}
+							disabled={isBlocking}
+						/>
+					</View>
+					<Text style={[styles.description, { color: theme.icon }]}>
+						{t('wellness.eyeBlinkerDesc', {
+							interval: eyeBlinkerIntervalMinutes,
+							duration: eyeBlinkerDurationSeconds,
+						})}
+					</Text>
+				</View>
 			</View>
 
 			{/* Doom Scroll Breaker */}
@@ -158,7 +192,11 @@ export default function WellnessScreen() {
 			<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 				<View style={styles.toggleRow}>
 					<View style={styles.toggleInfo}>
-						<Ionicons name='hourglass-outline' size={20} color={theme.icon} />
+						<Ionicons
+							name='hourglass-outline'
+							size={20}
+							color={theme.icon}
+						/>
 						<View style={styles.rowText}>
 							<Text style={[styles.label, { color: theme.text }]}>{t('wellness.autoBlock')}</Text>
 							<Text style={[styles.hint, { color: theme.icon }]}>{t('wellness.autoBlockHint')}</Text>
@@ -166,61 +204,59 @@ export default function WellnessScreen() {
 					</View>
 					<Switch
 						value={autoBlockEnabled}
-						onValueChange={(v) =>
-							updateAutoBlock(v, autoBlockUsageLimitMinutes, autoBlockDurationSeconds)
-						}
+						onValueChange={handleAutoBlockToggle}
 						trackColor={{ false: theme.border, true: theme.primary }}
 						thumbColor='#FFFFFF'
 						disabled={isBlocking}
 					/>
 				</View>
 
-				{autoBlockEnabled ? (
-					<View style={styles.configSection}>
-						<View style={styles.configRow}>
-							<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.usageLimit')}</Text>
-							<NumericStepper
-								value={autoBlockUsageLimitMinutes}
-								min={5}
-								max={60}
-								step={5}
-								unit={t('wellness.min')}
-								onValueChange={(v) => updateAutoBlock(autoBlockEnabled, v, autoBlockDurationSeconds)}
-								disabled={isBlocking}
-							/>
-						</View>
-						<View style={[styles.divider, { backgroundColor: theme.border }]} />
-						<View style={styles.configRow}>
-							<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.breakDuration')}</Text>
-							<NumericStepper
-								value={autoBlockDurationSeconds}
-								min={10}
-								max={120}
-								step={10}
-								unit={t('wellness.sec')}
-								onValueChange={(v) => updateAutoBlock(autoBlockEnabled, autoBlockUsageLimitMinutes, v)}
-								disabled={isBlocking}
-							/>
-						</View>
-
-						<View style={[styles.appsNote, { backgroundColor: theme.background, borderColor: theme.border }]}>
-							<Ionicons name='apps-outline' size={16} color={theme.icon} />
-							<Text style={[styles.appsNoteText, { color: theme.icon }]}>
-								{t('wellness.monitorsApps')}
-							</Text>
-							<View style={[styles.badge, { backgroundColor: theme.primary }]}>
-								<Text style={styles.badgeText}>{selectedAppsCount}</Text>
-							</View>
-						</View>
-
-						<Text style={[styles.description, { color: theme.icon }]}>
-							{t('wellness.autoBlockDesc', {
-								limit: autoBlockUsageLimitMinutes,
-								duration: autoBlockDurationSeconds,
-							})}
-						</Text>
+				<View style={styles.configSection}>
+					<View style={styles.configRow}>
+						<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.usageLimit')}</Text>
+						<NumericStepper
+							value={autoBlockUsageLimitMinutes}
+							min={1}
+							max={60}
+							step={1}
+							unit={t('wellness.min')}
+							onValueChange={v => updateAutoBlock(autoBlockEnabled, v, autoBlockDurationSeconds)}
+							disabled={isBlocking}
+						/>
 					</View>
-				) : null}
+					<View style={[styles.divider, { backgroundColor: theme.border }]} />
+					<View style={styles.configRow}>
+						<Text style={[styles.configLabel, { color: theme.icon }]}>{t('wellness.breakDuration')}</Text>
+						<NumericStepper
+							value={autoBlockDurationSeconds}
+							min={1}
+							max={120}
+							step={1}
+							unit={t('wellness.sec')}
+							onValueChange={v => updateAutoBlock(autoBlockEnabled, autoBlockUsageLimitMinutes, v)}
+							disabled={isBlocking}
+						/>
+					</View>
+
+					<View style={[styles.appsNote, { backgroundColor: theme.background, borderColor: theme.border }]}>
+						<Ionicons
+							name='apps-outline'
+							size={16}
+							color={theme.icon}
+						/>
+						<Text style={[styles.appsNoteText, { color: theme.icon }]}>{t('wellness.monitorsApps')}</Text>
+						<View style={[styles.badge, { backgroundColor: theme.primary }]}>
+							<Text style={styles.badgeText}>{selectedAppsCount}</Text>
+						</View>
+					</View>
+
+					<Text style={[styles.description, { color: theme.icon }]}>
+						{t('wellness.autoBlockDesc', {
+							limit: autoBlockUsageLimitMinutes,
+							duration: autoBlockDurationSeconds,
+						})}
+					</Text>
+				</View>
 			</View>
 		</ScrollView>
 	)
@@ -252,6 +288,19 @@ const styles = StyleSheet.create({
 	lockBannerText: {
 		fontSize: 14,
 		fontWeight: '500',
+		flex: 1,
+	},
+	permsBanner: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 10,
+		padding: 12,
+		borderRadius: 12,
+		marginBottom: 24,
+	},
+	permsBannerText: {
+		fontSize: 13,
+		fontWeight: '600',
 		flex: 1,
 	},
 	sectionTitle: {

@@ -148,7 +148,7 @@ export default function WellnessScreen() {
 						onValueChange={handleEyeBlinkerToggle}
 						trackColor={{ false: theme.border, true: theme.primary }}
 						thumbColor='#FFFFFF'
-						disabled={isBlocking}
+						disabled={isBlocking || autoBlockEnabled}
 					/>
 				</View>
 
@@ -207,7 +207,7 @@ export default function WellnessScreen() {
 						onValueChange={handleAutoBlockToggle}
 						trackColor={{ false: theme.border, true: theme.primary }}
 						thumbColor='#FFFFFF'
-						disabled={isBlocking}
+						disabled={isBlocking || eyeBlinkerEnabled}
 					/>
 				</View>
 

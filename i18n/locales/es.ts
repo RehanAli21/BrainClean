@@ -269,6 +269,27 @@ export default {
   tabs: {
     tasks: 'Tareas',
     apps: 'Apps',
+    wellness: 'Bienestar',
     settings: 'Ajustes',
+  },
+
+  wellness: {
+    title: 'Bienestar',
+    eyeCare: 'CUIDADO OCULAR',
+    eyeBlinker: 'Descanso visual',
+    eyeBlinkerHint: 'Te recuerda descansar la vista a intervalos regulares',
+    reminderInterval: 'Intervalo de recordatorio',
+    restDuration: 'Duración del descanso',
+    eyeBlinkerDesc: 'Cada {{interval}} min, aparecerá un recordatorio durante {{duration}} segundos',
+    min: 'min',
+    sec: 'seg',
+    doomScrollBreaker: 'ANTI SCROLL INFINITO',
+    autoBlock: 'Bloqueo automático de apps',
+    autoBlockHint: 'Bloquea apps cuando el uso continuo supera tu límite',
+    usageLimit: 'Límite de uso',
+    breakDuration: 'Duración de la pausa',
+    monitorsApps: 'Monitorea las apps seleccionadas en la pestaña Apps',
+    autoBlockDesc: 'Tras {{limit}} min de uso continuo, la app se bloqueará durante {{duration}} segundos',
+    appsLockedByAutoBlock: 'La selección de apps está bloqueada mientras el Rompe Scroll está activo. Desactívalo para cambiar apps.',
   },
 } as const

@@ -269,6 +269,27 @@ export default {
   tabs: {
     tasks: 'Aufgaben',
     apps: 'Apps',
+    wellness: 'Wohlbefinden',
     settings: 'Einstellungen',
+  },
+
+  wellness: {
+    title: 'Wohlbefinden',
+    eyeCare: 'AUGENPFLEGE',
+    eyeBlinker: 'Augenpause',
+    eyeBlinkerHint: 'Erinnert dich, deine Augen regelmäßig auszuruhen',
+    reminderInterval: 'Erinnerungsintervall',
+    restDuration: 'Pausendauer',
+    eyeBlinkerDesc: 'Alle {{interval}} Min. erscheint eine Erinnerung für {{duration}} Sekunden',
+    min: 'Min.',
+    sec: 'Sek.',
+    doomScrollBreaker: 'DOOMSCROLLING-BREMSE',
+    autoBlock: 'Automatische App-Sperre',
+    autoBlockHint: 'Sperrt Apps, wenn die Dauernutzung dein Limit überschreitet',
+    usageLimit: 'Nutzungslimit',
+    breakDuration: 'Pausendauer',
+    monitorsApps: 'Überwacht die im Apps-Tab ausgewählten Apps',
+    autoBlockDesc: 'Nach {{limit}} Min. Dauernutzung wird die App für {{duration}} Sekunden gesperrt',
+    appsLockedByAutoBlock: 'Die App-Auswahl ist gesperrt, solange der Scroll-Brecher aktiv ist. Deaktiviere ihn, um Apps zu ändern.',
   },
 } as const

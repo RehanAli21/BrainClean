@@ -269,6 +269,27 @@ export default {
   tabs: {
     tasks: 'المهام',
     apps: 'التطبيقات',
+    wellness: 'العافية',
     settings: 'الإعدادات',
+  },
+
+  wellness: {
+    title: 'العافية',
+    eyeCare: 'العناية بالعين',
+    eyeBlinker: 'تنبيه العين',
+    eyeBlinkerHint: 'يذكرك بإراحة عينيك على فترات منتظمة',
+    reminderInterval: 'فترة التذكير',
+    restDuration: 'مدة الراحة',
+    eyeBlinkerDesc: 'كل {{interval}} دقيقة، سيظهر تذكير لمدة {{duration}} ثانية',
+    min: 'د',
+    sec: 'ث',
+    doomScrollBreaker: 'كاسر التمرير المفرط',
+    autoBlock: 'حظر التطبيقات تلقائياً',
+    autoBlockHint: 'يحظر التطبيقات بعد تجاوز الاستخدام المستمر للحد المسموح',
+    usageLimit: 'حد الاستخدام',
+    breakDuration: 'مدة الاستراحة',
+    monitorsApps: 'يراقب التطبيقات المختارة في تبويب التطبيقات',
+    autoBlockDesc: 'بعد {{limit}} دقيقة من الاستخدام المستمر، سيتم حظر التطبيق لمدة {{duration}} ثانية',
+    appsLockedByAutoBlock: 'اختيار التطبيقات مقفل أثناء تفعيل كاسر التمرير. قم بتعطيله لتغيير التطبيقات.',
   },
 } as const

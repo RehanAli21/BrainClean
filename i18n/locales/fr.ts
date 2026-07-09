@@ -269,6 +269,27 @@ export default {
   tabs: {
     tasks: 'Tâches',
     apps: 'Apps',
+    wellness: 'Bien-être',
     settings: 'Paramètres',
+  },
+
+  wellness: {
+    title: 'Bien-être',
+    eyeCare: 'SOIN DES YEUX',
+    eyeBlinker: 'Pause visuelle',
+    eyeBlinkerHint: 'Vous rappelle de reposer vos yeux à intervalles réguliers',
+    reminderInterval: 'Intervalle de rappel',
+    restDuration: 'Durée de repos',
+    eyeBlinkerDesc: 'Toutes les {{interval}} min, un rappel apparaîtra pendant {{duration}} secondes',
+    min: 'min',
+    sec: 'sec',
+    doomScrollBreaker: 'ANTI DÉFILEMENT COMPULSIF',
+    autoBlock: 'Blocage automatique des apps',
+    autoBlockHint: 'Bloque les apps lorsque l\'utilisation continue dépasse votre limite',
+    usageLimit: 'Limite d\'utilisation',
+    breakDuration: 'Durée de la pause',
+    monitorsApps: 'Surveille les apps sélectionnées dans l\'onglet Apps',
+    autoBlockDesc: 'Après {{limit}} min d\'utilisation continue, l\'app sera bloquée pendant {{duration}} secondes',
+    appsLockedByAutoBlock: 'La sélection des apps est verrouillée tant que le Briseur de Scroll est actif. Désactivez-le pour modifier les apps.',
   },
 } as const

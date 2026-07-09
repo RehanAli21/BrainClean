@@ -269,6 +269,27 @@ export default {
   tabs: {
     tasks: 'ٹاسکس',
     apps: 'ایپس',
+    wellness: 'صحت',
     settings: 'ترتیبات',
+  },
+
+  wellness: {
+    title: 'صحت',
+    eyeCare: 'آنکھوں کی دیکھ بھال',
+    eyeBlinker: 'آنکھ کا ٹمٹمانا',
+    eyeBlinkerHint: 'باقاعدہ وقفوں پر آنکھوں کو آرام دینے کی یاد دہانی',
+    reminderInterval: 'یاد دہانی کا وقفہ',
+    restDuration: 'آرام کی مدت',
+    eyeBlinkerDesc: 'ہر {{interval}} منٹ بعد، {{duration}} سیکنڈ کے لیے یاد دہانی ظاہر ہوگی',
+    min: 'منٹ',
+    sec: 'سیکنڈ',
+    doomScrollBreaker: 'بے مقصد سکرولنگ روکنے والا',
+    autoBlock: 'ایپس کی خودکار بلاکنگ',
+    autoBlockHint: 'مسلسل استعمال حد سے تجاوز کرنے پر ایپس کو بلاک کرتا ہے',
+    usageLimit: 'استعمال کی حد',
+    breakDuration: 'وقفے کی مدت',
+    monitorsApps: 'ایپس ٹیب میں منتخب ایپس کی نگرانی کرتا ہے',
+    autoBlockDesc: '{{limit}} منٹ مسلسل استعمال کے بعد، ایپ {{duration}} سیکنڈ کے لیے بلاک ہو جائے گی',
+    appsLockedByAutoBlock: 'ڈوم اسکرول بریکر فعال ہونے کے دوران ایپ کا انتخاب مقفل ہے۔ ایپس تبدیل کرنے کے لیے اسے غیر فعال کریں۔',
   },
 } as const

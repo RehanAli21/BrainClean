@@ -14,6 +14,12 @@ class BootReceiver : BroadcastReceiver() {
             Log.i(TAG, "Boot completed, restarting blocker service for session=${state.getSessionId()}")
             BlockerService.start(context)
         }
+
+        val wellnessState = WellnessState.getInstance(context)
+        if (wellnessState.isAnyFeatureEnabled()) {
+            Log.i(TAG, "Boot completed, restarting wellness service")
+            WellnessService.start(context)
+        }
     }
 
     companion object {

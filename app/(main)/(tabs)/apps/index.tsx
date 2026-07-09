@@ -3,6 +3,7 @@ import { Colors } from '@/constants/theme'
 import { useBlocker } from '@/hooks/useBlocker'
 import { getInstalledApps } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
+import { useWellness } from '@/hooks/useWellness'
 import type { AppInfo } from '@/types/blocker'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
@@ -62,6 +63,8 @@ export default function AppsScreen() {
 	const [search, setSearch] = useState('')
 	const selectedCount = useUiStore(s => s.selectedApps.length)
 	const { isBlocking } = useBlocker()
+	const { autoBlockEnabled } = useWellness()
+	const appsLocked = isBlocking || autoBlockEnabled
 	const searchRef = useRef<View>(null)
 
 	useEffect(() => {
@@ -101,7 +104,7 @@ export default function AppsScreen() {
 				</Text>
 			</View>
 
-			{isBlocking ? (
+			{appsLocked ? (
 				<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
 					<Ionicons
 						name='lock-closed'
@@ -109,7 +112,7 @@ export default function AppsScreen() {
 						color={theme.primary}
 					/>
 					<Text style={[styles.lockBannerText, { color: theme.text }]}>
-						{t('apps.locked')}
+						{isBlocking ? t('apps.locked') : t('wellness.appsLockedByAutoBlock')}
 					</Text>
 				</View>
 			) : null}
@@ -169,8 +172,8 @@ export default function AppsScreen() {
 				<FlatList
 					data={filteredApps}
 					keyExtractor={item => item.packageName}
-					renderItem={({ item }) => <AppRow app={item} disabled={isBlocking} />}
-					extraData={isBlocking}
+					renderItem={({ item }) => <AppRow app={item} disabled={appsLocked} />}
+					extraData={appsLocked}
 					contentContainerStyle={styles.list}
 					showsVerticalScrollIndicator={false}
 				/>

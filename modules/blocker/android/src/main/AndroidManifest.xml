@@ -33,6 +33,20 @@
         android:enabled="true" />
 
     <service
+        android:name="expo.modules.blocker.WellnessService"
+        android:exported="false"
+        android:foregroundServiceType="specialUse">
+      <property
+          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+          android:value="Eye care reminders and app usage monitoring for digital wellness" />
+    </service>
+
+    <receiver
+        android:name="expo.modules.blocker.WellnessWatchdogReceiver"
+        android:exported="false"
+        android:enabled="true" />
+
+    <service
         android:name="expo.modules.blocker.NotificationBlockerService"
         android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
         android:exported="true">

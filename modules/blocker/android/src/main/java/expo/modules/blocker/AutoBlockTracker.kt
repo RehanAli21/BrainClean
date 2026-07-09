@@ -27,6 +27,7 @@ class AutoBlockTracker {
     @Volatile private var isBlocking: Boolean = false
     @Volatile private var usageLimitMs: Long = 0L
     @Volatile private var blockDurationSeconds: Int = 0
+    @Volatile private var lastKnownForeground: String? = null
 
     fun start(
         context: Context,
@@ -55,9 +56,21 @@ class AutoBlockTracker {
                 return@launch
             }
 
+            var tickCount = 0L
+
             while (isActive) {
                 try {
-                    val foreground = getForegroundPackage(usm)
+                    val detected = getForegroundPackage(usm)
+
+                    // Update last known foreground only when we get a real detection.
+                    // ACTIVITY_RESUMED fires once per app open, so after ~10s the event
+                    // leaves the query window and getForegroundPackage returns null.
+                    // We keep using the last known value until a DIFFERENT app is detected.
+                    if (detected != null && detected != ownPackage) {
+                        lastKnownForeground = detected
+                    }
+
+                    val foreground = lastKnownForeground
 
                     if (foreground != null && foreground != ownPackage && !isBlocking) {
                         if (monitoredApps.contains(foreground)) {
@@ -79,15 +92,18 @@ class AutoBlockTracker {
                                             isBlocking = false
                                             currentTrackedApp = null
                                             usageStartTime = 0L
+                                            lastKnownForeground = null
                                         }
                                     }
                                 }
                             } else {
                                 currentTrackedApp = foreground
                                 usageStartTime = SystemClock.elapsedRealtime()
+                                Log.i(TAG, "Started tracking $foreground")
                             }
                         } else {
                             if (currentTrackedApp != null) {
+                                Log.i(TAG, "Left monitored app, resetting tracker")
                                 currentTrackedApp = null
                                 usageStartTime = 0L
                             }
@@ -95,6 +111,12 @@ class AutoBlockTracker {
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error polling foreground app", e)
+                }
+
+                tickCount++
+                if (tickCount % 30 == 0L && currentTrackedApp != null) {
+                    val elapsed = SystemClock.elapsedRealtime() - usageStartTime
+                    Log.i(TAG, "Tracking $currentTrackedApp for ${elapsed / 1000}s (limit=${usageLimitMs / 1000}s)")
                 }
 
                 delay(POLL_INTERVAL_MS)
@@ -110,6 +132,7 @@ class AutoBlockTracker {
         currentTrackedApp = null
         usageStartTime = 0L
         isBlocking = false
+        lastKnownForeground = null
         Log.i(TAG, "Auto block tracker stopped")
     }
 

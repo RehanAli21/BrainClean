@@ -1,5 +1,7 @@
 package expo.modules.blocker
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -10,6 +12,7 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -19,7 +22,8 @@ data class CountdownOverlayConfig(
     val title: String,
     val subtitle: String,
     val durationSeconds: Int,
-    val accentColor: Int
+    val accentColor: Int,
+    val animateIcon: Boolean = false
 )
 
 class CountdownOverlay {
@@ -27,6 +31,7 @@ class CountdownOverlay {
     private var windowManager: WindowManager? = null
     private var countDownTimer: CountDownTimer? = null
     private var countdownText: TextView? = null
+    private var iconAnimator: AnimatorSet? = null
 
     fun show(context: Context, config: CountdownOverlayConfig, onFinished: () -> Unit) {
         if (overlayView != null) return
@@ -114,6 +119,10 @@ class CountdownOverlay {
             return
         }
 
+        if (config.animateIcon) {
+            startBlinkAnimation(icon)
+        }
+
         countDownTimer = object : CountDownTimer(config.durationSeconds * 1000L, 1000L) {
             override fun onTick(millisUntilFinished: Long) {
                 val secondsLeft = (millisUntilFinished / 1000).toInt() + 1
@@ -130,7 +139,28 @@ class CountdownOverlay {
         Log.i(TAG, "Countdown overlay shown: ${config.title} for ${config.durationSeconds}s")
     }
 
+    private fun startBlinkAnimation(iconView: TextView) {
+        val blink = ObjectAnimator.ofFloat(iconView, "scaleY", 1f, 0f, 1f).apply {
+            duration = 600
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+
+        iconAnimator = AnimatorSet().apply {
+            play(blink)
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    if (overlayView != null) {
+                        iconView.postDelayed({ animation.start() }, 2500)
+                    }
+                }
+            })
+            start()
+        }
+    }
+
     fun hide() {
+        iconAnimator?.cancel()
+        iconAnimator = null
         countDownTimer?.cancel()
         countDownTimer = null
         countdownText = null

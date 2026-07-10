@@ -30,7 +30,8 @@ class EyeBlinkerTimer {
                     title = "Look Away",
                     subtitle = "Look at something 20 feet away",
                     durationSeconds = durationSeconds,
-                    accentColor = Color.parseColor("#06B6D4")
+                    accentColor = Color.parseColor("#06B6D4"),
+                    animateIcon = true
                 )
                 overlay.show(context, config) {
                     Log.i(TAG, "Eye blinker break finished, scheduling next in ${intervalMinutes}min")

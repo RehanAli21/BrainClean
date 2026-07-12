@@ -56,4 +56,32 @@ export default {
     autoBlockDesc: '{{limit}}分間の連続使用後、アプリが{{duration}}秒間ブロックされます',
     appsLockedByAutoBlock: 'スクロールブレーカーが有効な間、アプリの選択はロックされています。アプリを変更するには無効にしてください。',
   },
+
+  paywall: {
+    title: 'プレミアムを解除',
+    subtitle: 'タスクを作成し、気が散るアプリをブロックして大切なことに集中しましょう。',
+    trialBadge: '7日間無料トライアル',
+    whatsIncluded: '含まれる機能',
+    features: {
+      blockApps: '気が散るアプリをブロック',
+      blockAppsDesc: '選択したアプリはタスクを完了するまでブロックされます。',
+      autoComplete: 'タスクの自動完了',
+      autoCompleteDesc: 'タイマーを設定すると、時間切れでタスクが自動的に完了します。',
+      blockNotifs: '通知をブロック',
+      blockNotifsDesc: 'セッション中にブロックされたアプリの通知を消音します。',
+      reboot: '再起動後も継続',
+      rebootDesc: 'デバイスを再起動してもブロックは継続します。',
+    },
+    monthly: '月額',
+    perMonth: '月あたり',
+    startTrial: '無料トライアルを開始',
+    subscribe: '今すぐ購読',
+    restore: '購入を復元',
+  },
+
+  subscription: {
+    gracePeriod: 'お支払いに問題があります — Play ストアでお支払い方法を更新してください。',
+    canceled: 'サブスクリプションは {{date}} に終了します。アクセスを維持するには更新してください。',
+    pending: 'お支払い処理中…',
+  },
 } as const

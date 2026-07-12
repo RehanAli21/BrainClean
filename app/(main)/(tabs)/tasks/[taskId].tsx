@@ -2,11 +2,14 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { API_BASE_URL } from '@/constants/config'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
+import { subscriptionQueryKey } from '@/hooks/queries/useSubscription'
 import { useCompleteTaskMutation, useDeleteTaskMutation, useStartTaskMutation, useTaskQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
+import { subscriptionService } from '@/services/api/subscriptions'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { useQueryClient } from '@tanstack/react-query'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -46,6 +49,7 @@ export default function TaskDetailScreen() {
 	const deleteMutation = useDeleteTaskMutation()
 	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
 	const { token } = useAuth()
+	const queryClient = useQueryClient()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
@@ -133,7 +137,17 @@ export default function TaskDetailScreen() {
 					setApiError(t('taskDetail.blockingFailed'))
 				}
 			},
-			onError: (err: any) => {
+			onError: async (err: any) => {
+				if (err.response?.status === 402) {
+					await queryClient.invalidateQueries({ queryKey: subscriptionQueryKey });
+					try {
+						const fresh = await subscriptionService.getStatus();
+						if (!fresh.hasAccess) {
+							router.push('/(main)/paywall');
+						}
+					} catch {}
+					return;
+				}
 				const code = err.response?.data?.error
 				if (code === 'ACTIVE_TASK_EXISTS') {
 					const details = err.response?.data?.details

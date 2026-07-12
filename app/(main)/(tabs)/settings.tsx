@@ -43,6 +43,8 @@ export default function SettingsScreen() {
 	const { isBlocking } = useBlocker()
 	const blockNotifications = useUiStore(s => s.blockNotifications)
 	const setBlockNotifications = useUiStore(s => s.setBlockNotifications)
+	const subscriptionState = useUiStore(s => s.subscriptionState)
+	const subscriptionExpiresAt = useUiStore(s => s.subscriptionExpiresAt)
 	const [deleting, setDeleting] = useState(false)
 	const [showTutorial, setShowTutorial] = useState(false)
 	const [showLanguagePicker, setShowLanguagePicker] = useState(false)
@@ -141,6 +143,33 @@ export default function SettingsScreen() {
 						/>
 						<Text style={[styles.lockBannerText, { color: theme.text }]}>
 							{t('settings.locked')}
+						</Text>
+					</View>
+				) : null}
+
+				{subscriptionState === 'IN_GRACE_PERIOD' ? (
+					<View style={[styles.lockBanner, { backgroundColor: '#F59E0B1A', borderColor: '#F59E0B' }]}>
+						<Ionicons name='warning-outline' size={18} color='#F59E0B' />
+						<Text style={[styles.lockBannerText, { color: '#F59E0B' }]}>
+							{t('subscription.gracePeriod')}
+						</Text>
+					</View>
+				) : null}
+
+				{subscriptionState === 'CANCELED' && subscriptionExpiresAt && new Date(subscriptionExpiresAt) > new Date() ? (
+					<View style={[styles.lockBanner, { backgroundColor: '#F59E0B1A', borderColor: '#F59E0B' }]}>
+						<Ionicons name='time-outline' size={18} color='#F59E0B' />
+						<Text style={[styles.lockBannerText, { color: '#F59E0B' }]}>
+							{t('subscription.canceled', { date: new Date(subscriptionExpiresAt).toLocaleDateString() })}
+						</Text>
+					</View>
+				) : null}
+
+				{subscriptionState === 'PENDING' ? (
+					<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
+						<ActivityIndicator size='small' color={theme.primary} />
+						<Text style={[styles.lockBannerText, { color: theme.primary }]}>
+							{t('subscription.pending')}
 						</Text>
 					</View>
 				) : null}

@@ -39,4 +39,32 @@ export default {
     autoBlockDesc: 'Setelah {{limit}} menit penggunaan terus-menerus, aplikasi akan diblokir selama {{duration}} detik',
     appsLockedByAutoBlock: 'Pilihan aplikasi terkunci saat Pemutus Scroll aktif. Nonaktifkan untuk mengubah aplikasi.',
   },
+
+  paywall: {
+    title: 'Buka Premium',
+    subtitle: 'Buat tugas dan blokir aplikasi yang mengganggu untuk fokus pada yang penting.',
+    trialBadge: 'Uji coba gratis 7 hari',
+    whatsIncluded: 'Apa yang termasuk',
+    features: {
+      blockApps: 'Blokir Aplikasi yang Mengganggu',
+      blockAppsDesc: 'Aplikasi yang dipilih diblokir sampai Anda menyelesaikan tugas.',
+      autoComplete: 'Selesaikan Tugas Otomatis',
+      autoCompleteDesc: 'Atur timer dan tugas selesai otomatis saat waktu habis.',
+      blockNotifs: 'Blokir Notifikasi',
+      blockNotifsDesc: 'Bisukan notifikasi dari aplikasi yang diblokir selama sesi.',
+      reboot: 'Bertahan Setelah Restart',
+      rebootDesc: 'Pemblokiran berlanjut bahkan setelah perangkat dinyalakan ulang.',
+    },
+    monthly: 'BULANAN',
+    perMonth: 'per bulan',
+    startTrial: 'Mulai Uji Coba Gratis',
+    subscribe: 'Berlangganan Sekarang',
+    restore: 'Pulihkan Pembelian',
+  },
+
+  subscription: {
+    gracePeriod: 'Masalah pembayaran — perbarui metode pembayaran Anda di Play Store.',
+    canceled: 'Langganan Anda berakhir pada {{date}}. Perpanjang untuk mempertahankan akses.',
+    pending: 'Memproses pembayaran…',
+  },
 } as const

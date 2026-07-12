@@ -292,4 +292,32 @@ export default {
     autoBlockDesc: 'Tras {{limit}} min de uso continuo, la app se bloqueará durante {{duration}} segundos',
     appsLockedByAutoBlock: 'La selección de apps está bloqueada mientras el Rompe Scroll está activo. Desactívalo para cambiar apps.',
   },
+
+  paywall: {
+    title: 'Desbloquear Premium',
+    subtitle: 'Crea tareas y bloquea apps que distraen para concentrarte en lo importante.',
+    trialBadge: 'Prueba gratuita de 7 días',
+    whatsIncluded: 'Qué incluye',
+    features: {
+      blockApps: 'Bloquear Apps que Distraen',
+      blockAppsDesc: 'Las apps seleccionadas se bloquean hasta que completes tu tarea.',
+      autoComplete: 'Auto-Completar Tareas',
+      autoCompleteDesc: 'Establece un temporizador y las tareas se completan automáticamente.',
+      blockNotifs: 'Bloquear Notificaciones',
+      blockNotifsDesc: 'Silencia las notificaciones de apps bloqueadas durante las sesiones.',
+      reboot: 'Sobrevive al Reinicio',
+      rebootDesc: 'El bloqueo continúa incluso después de reiniciar tu dispositivo.',
+    },
+    monthly: 'MENSUAL',
+    perMonth: 'por mes',
+    startTrial: 'Iniciar Prueba Gratuita',
+    subscribe: 'Suscribirse Ahora',
+    restore: 'Restaurar Compras',
+  },
+
+  subscription: {
+    gracePeriod: 'Problema de pago — actualiza tu método de pago en Play Store.',
+    canceled: 'Tu suscripción termina el {{date}}. Renueva para mantener el acceso.',
+    pending: 'Procesando pago…',
+  },
 } as const

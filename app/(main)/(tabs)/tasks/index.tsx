@@ -103,6 +103,7 @@ export default function TaskListScreen() {
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const blockNotifications = useUiStore(s => s.blockNotifications)
+	const isPremium = useUiStore(s => s.isPremium)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 	const fabCooldown = useRef(false)
 	const fabRef = useRef<View>(null)
@@ -260,7 +261,7 @@ export default function TaskListScreen() {
 					onPress={() => {
 						if (fabCooldown.current) return
 						fabCooldown.current = true
-						router.push('/(main)/(tabs)/tasks/new')
+						router.push(isPremium ? '/(main)/(tabs)/tasks/new' : '/(main)/paywall')
 						setTimeout(() => {
 							fabCooldown.current = false
 						}, 1000)

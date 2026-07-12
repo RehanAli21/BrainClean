@@ -306,4 +306,32 @@ export default {
     autoBlockDesc: 'After {{limit}} min of continuous use, the app will be blocked for {{duration}} seconds',
     appsLockedByAutoBlock: 'App selection is locked while Doom Scroll Breaker is active. Disable it to change apps.',
   },
+
+  paywall: {
+    title: 'Unlock Premium',
+    subtitle: 'Create tasks and block distracting apps to stay focused on what matters.',
+    trialBadge: '7-day free trial',
+    whatsIncluded: "What's included",
+    features: {
+      blockApps: 'Block Distracting Apps',
+      blockAppsDesc: 'Selected apps are blocked until you complete your task.',
+      autoComplete: 'Auto-Complete Tasks',
+      autoCompleteDesc: 'Set a timer and tasks finish automatically when time is up.',
+      blockNotifs: 'Block Notifications',
+      blockNotifsDesc: 'Silence notifications from blocked apps during sessions.',
+      reboot: 'Survives Reboot',
+      rebootDesc: 'Blocking continues even after your device restarts.',
+    },
+    monthly: 'MONTHLY',
+    perMonth: 'per month',
+    startTrial: 'Start Free Trial',
+    subscribe: 'Subscribe Now',
+    restore: 'Restore Purchases',
+  },
+
+  subscription: {
+    gracePeriod: 'Payment issue — please update your payment method in Play Store.',
+    canceled: 'Your subscription ends on {{date}}. Renew to keep access.',
+    pending: 'Payment processing…',
+  },
 } as const

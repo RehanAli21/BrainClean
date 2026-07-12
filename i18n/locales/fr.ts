@@ -292,4 +292,32 @@ export default {
     autoBlockDesc: 'Après {{limit}} min d\'utilisation continue, l\'app sera bloquée pendant {{duration}} secondes',
     appsLockedByAutoBlock: 'La sélection des apps est verrouillée tant que le Briseur de Scroll est actif. Désactivez-le pour modifier les apps.',
   },
+
+  paywall: {
+    title: 'Débloquer Premium',
+    subtitle: 'Créez des tâches et bloquez les apps distrayantes pour rester concentré sur l\'essentiel.',
+    trialBadge: 'Essai gratuit de 7 jours',
+    whatsIncluded: 'Ce qui est inclus',
+    features: {
+      blockApps: 'Bloquer les Apps Distrayantes',
+      blockAppsDesc: 'Les apps sélectionnées sont bloquées jusqu\'à ce que vous terminiez votre tâche.',
+      autoComplete: 'Auto-Complétion des Tâches',
+      autoCompleteDesc: 'Définissez un minuteur et les tâches se terminent automatiquement.',
+      blockNotifs: 'Bloquer les Notifications',
+      blockNotifsDesc: 'Coupez les notifications des apps bloquées pendant les sessions.',
+      reboot: 'Résiste au Redémarrage',
+      rebootDesc: 'Le blocage continue même après le redémarrage de votre appareil.',
+    },
+    monthly: 'MENSUEL',
+    perMonth: 'par mois',
+    startTrial: 'Commencer l\'Essai Gratuit',
+    subscribe: 'S\'abonner Maintenant',
+    restore: 'Restaurer les Achats',
+  },
+
+  subscription: {
+    gracePeriod: 'Problème de paiement — veuillez mettre à jour votre moyen de paiement sur le Play Store.',
+    canceled: 'Votre abonnement se termine le {{date}}. Renouvelez pour garder l\'accès.',
+    pending: 'Paiement en cours…',
+  },
 } as const

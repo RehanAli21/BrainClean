@@ -3,6 +3,7 @@ import { TutorialOverlay } from '@/components/TutorialOverlay'
 import { WalkthroughOverlay } from '@/components/WalkthroughOverlay'
 import { onShowWalkthrough } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
+import { useSubscriptionStatusQuery } from '@/hooks/queries/useSubscription'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs } from 'expo-router'
@@ -17,6 +18,8 @@ export default function TabsLayout() {
 	const [showLanguagePicker, setShowLanguagePicker] = useState(selectedLanguage === null)
 	const [showTutorial, setShowTutorial] = useState(false)
 	const [showWalkthrough, setShowWalkthrough] = useState(false)
+
+	useSubscriptionStatusQuery()
 
 	useEffect(() => {
 		onShowWalkthrough(() => setShowWalkthrough(true))

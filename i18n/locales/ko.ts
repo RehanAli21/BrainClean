@@ -39,4 +39,32 @@ export default {
     autoBlockDesc: '{{limit}}분 연속 사용 후 앱이 {{duration}}초 동안 차단됩니다',
     appsLockedByAutoBlock: '둠 스크롤 차단기가 활성화된 동안 앱 선택이 잠겨 있습니다. 앱을 변경하려면 비활성화하세요.',
   },
+
+  paywall: {
+    title: '프리미엄 잠금 해제',
+    subtitle: '작업을 만들고 방해가 되는 앱을 차단하여 중요한 일에 집중하세요.',
+    trialBadge: '7일 무료 체험',
+    whatsIncluded: '포함된 기능',
+    features: {
+      blockApps: '방해 앱 차단',
+      blockAppsDesc: '선택한 앱은 작업을 완료할 때까지 차단됩니다.',
+      autoComplete: '작업 자동 완료',
+      autoCompleteDesc: '타이머를 설정하면 시간이 되면 작업이 자동으로 완료됩니다.',
+      blockNotifs: '알림 차단',
+      blockNotifsDesc: '세션 중 차단된 앱의 알림을 음소거합니다.',
+      reboot: '재부팅 후에도 유지',
+      rebootDesc: '기기를 재시작한 후에도 차단이 계속됩니다.',
+    },
+    monthly: '월간',
+    perMonth: '월',
+    startTrial: '무료 체험 시작',
+    subscribe: '지금 구독',
+    restore: '구매 복원',
+  },
+
+  subscription: {
+    gracePeriod: '결제 문제 — Play 스토어에서 결제 수단을 업데이트해 주세요.',
+    canceled: '구독이 {{date}}에 종료됩니다. 액세스를 유지하려면 갱신하세요.',
+    pending: '결제 처리 중…',
+  },
 } as const

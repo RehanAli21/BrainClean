@@ -292,4 +292,32 @@ export default {
     autoBlockDesc: 'Nach {{limit}} Min. Dauernutzung wird die App für {{duration}} Sekunden gesperrt',
     appsLockedByAutoBlock: 'Die App-Auswahl ist gesperrt, solange der Scroll-Brecher aktiv ist. Deaktiviere ihn, um Apps zu ändern.',
   },
+
+  paywall: {
+    title: 'Premium freischalten',
+    subtitle: 'Erstelle Aufgaben und blockiere ablenkende Apps, um dich auf das Wesentliche zu konzentrieren.',
+    trialBadge: '7 Tage kostenlos testen',
+    whatsIncluded: 'Was enthalten ist',
+    features: {
+      blockApps: 'Ablenkende Apps blockieren',
+      blockAppsDesc: 'Ausgewählte Apps werden blockiert, bis du deine Aufgabe abschließt.',
+      autoComplete: 'Aufgaben automatisch abschließen',
+      autoCompleteDesc: 'Stelle einen Timer ein und Aufgaben werden automatisch beendet.',
+      blockNotifs: 'Benachrichtigungen blockieren',
+      blockNotifsDesc: 'Benachrichtigungen blockierter Apps während der Sitzungen stummschalten.',
+      reboot: 'Überlebt Neustart',
+      rebootDesc: 'Die Blockierung wird auch nach einem Neustart des Geräts fortgesetzt.',
+    },
+    monthly: 'MONATLICH',
+    perMonth: 'pro Monat',
+    startTrial: 'Kostenlose Testversion starten',
+    subscribe: 'Jetzt abonnieren',
+    restore: 'Käufe wiederherstellen',
+  },
+
+  subscription: {
+    gracePeriod: 'Zahlungsproblem — bitte aktualisiere deine Zahlungsmethode im Play Store.',
+    canceled: 'Dein Abo endet am {{date}}. Verlängere, um den Zugang zu behalten.',
+    pending: 'Zahlung wird verarbeitet…',
+  },
 } as const

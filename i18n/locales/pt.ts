@@ -292,4 +292,32 @@ export default {
     autoBlockDesc: 'Após {{limit}} min de uso contínuo, o app será bloqueado por {{duration}} segundos',
     appsLockedByAutoBlock: 'A seleção de apps está bloqueada enquanto o Quebra Scroll estiver ativo. Desative-o para alterar os apps.',
   },
+
+  paywall: {
+    title: 'Desbloquear Premium',
+    subtitle: 'Crie tarefas e bloqueie apps que distraem para focar no que importa.',
+    trialBadge: '7 dias de teste grátis',
+    whatsIncluded: 'O que está incluído',
+    features: {
+      blockApps: 'Bloquear Apps que Distraem',
+      blockAppsDesc: 'Os apps selecionados são bloqueados até você concluir sua tarefa.',
+      autoComplete: 'Completar Tarefas Automaticamente',
+      autoCompleteDesc: 'Defina um timer e as tarefas terminam automaticamente.',
+      blockNotifs: 'Bloquear Notificações',
+      blockNotifsDesc: 'Silencie notificações de apps bloqueados durante as sessões.',
+      reboot: 'Sobrevive ao Reinício',
+      rebootDesc: 'O bloqueio continua mesmo após reiniciar o dispositivo.',
+    },
+    monthly: 'MENSAL',
+    perMonth: 'por mês',
+    startTrial: 'Iniciar Teste Grátis',
+    subscribe: 'Assinar Agora',
+    restore: 'Restaurar Compras',
+  },
+
+  subscription: {
+    gracePeriod: 'Problema de pagamento — atualize seu método de pagamento na Play Store.',
+    canceled: 'Sua assinatura termina em {{date}}. Renove para manter o acesso.',
+    pending: 'Processando pagamento…',
+  },
 } as const

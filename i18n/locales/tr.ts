@@ -39,4 +39,32 @@ export default {
     autoBlockDesc: '{{limit}} dk sürekli kullanımdan sonra uygulama {{duration}} saniye engellenecek',
     appsLockedByAutoBlock: 'Kaydırma Kırıcı aktifken uygulama seçimi kilitlidir. Uygulamaları değiştirmek için devre dışı bırakın.',
   },
+
+  paywall: {
+    title: 'Premium\'u Aç',
+    subtitle: 'Görevler oluşturun ve dikkat dağıtan uygulamaları engelleyerek önemli olana odaklanın.',
+    trialBadge: '7 günlük ücretsiz deneme',
+    whatsIncluded: 'Neler dahil',
+    features: {
+      blockApps: 'Dikkat Dağıtan Uygulamaları Engelle',
+      blockAppsDesc: 'Seçilen uygulamalar görevinizi tamamlayana kadar engellenir.',
+      autoComplete: 'Görevleri Otomatik Tamamla',
+      autoCompleteDesc: 'Bir zamanlayıcı ayarlayın, süre dolduğunda görevler otomatik tamamlanır.',
+      blockNotifs: 'Bildirimleri Engelle',
+      blockNotifsDesc: 'Oturumlar sırasında engellenen uygulamaların bildirimlerini susturun.',
+      reboot: 'Yeniden Başlatmaya Dayanır',
+      rebootDesc: 'Cihazınız yeniden başlatıldıktan sonra bile engelleme devam eder.',
+    },
+    monthly: 'AYLIK',
+    perMonth: 'aylık',
+    startTrial: 'Ücretsiz Denemeyi Başlat',
+    subscribe: 'Şimdi Abone Ol',
+    restore: 'Satın Almaları Geri Yükle',
+  },
+
+  subscription: {
+    gracePeriod: 'Ödeme sorunu — lütfen Play Store\'da ödeme yönteminizi güncelleyin.',
+    canceled: 'Aboneliğiniz {{date}} tarihinde sona erecek. Erişimi korumak için yenileyin.',
+    pending: 'Ödeme işleniyor…',
+  },
 } as const

@@ -1,3 +1,5 @@
+> **Snapshot from 2026-07-11.** Source of truth: `brainclean_backend/docs/API.md`. This copy may drift — verify against the backend repo before relying on it.
+
 # BrainClean API Documentation
 
 Base URL: `http://localhost:8080`
@@ -282,6 +284,157 @@ This operation is irreversible.
 
 ---
 
+## Subscriptions
+
+BrainClean's paid features (task creation) require an active Google Play
+subscription. All subscription state lives on Google's side; this backend just
+verifies and caches.
+
+### POST /api/subscriptions/verify
+
+Verify a Google Play purchase and record its state on the backend. Called by
+the mobile app right after a successful in-app purchase (or restore).
+
+**Auth:** Authenticated
+
+**Request Body:**
+
+| Field         | Type   | Validation                                        |
+| ------------- | ------ | ------------------------------------------------- |
+| productId     | string | Required. The Play subscription product ID        |
+| purchaseToken | string | Required. Token from `expo-iap`'s purchase result |
+
+**Example Request:**
+
+```json
+{
+	"productId": "brainclean_monthly",
+	"purchaseToken": "iabc123...long-play-token"
+}
+```
+
+**Success Response:** `200 OK`
+
+Returns the current subscription status (same shape as `GET /status`).
+
+```json
+{
+	"state": "ACTIVE",
+	"hasAccess": true,
+	"inTrial": true,
+	"autoRenewing": true,
+	"productId": "brainclean_monthly",
+	"startsAt": "2026-06-27T10:00:00Z",
+	"expiresAt": "2026-07-04T10:00:00Z"
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code       | When                                                          |
+| ------ | ---------------- | ------------------------------------------------------------- |
+| 400    | INVALID_PURCHASE | Google Play rejected the token (fake, wrong package, revoked) |
+| 400    | VALIDATION_ERROR | Missing/blank `productId` or `purchaseToken`                  |
+| 401    | —                | Missing or invalid JWT                                        |
+
+---
+
+### GET /api/subscriptions/status
+
+Returns the caller's current subscription state. Cheap read from the local DB —
+no call to Google. RTDN webhooks (see below) keep the state fresh in the background.
+
+**Auth:** Authenticated
+
+**Example Response:** `200 OK`
+
+If the user has never subscribed:
+
+```json
+{
+	"state": "NONE",
+	"hasAccess": false,
+	"inTrial": false,
+	"autoRenewing": false,
+	"productId": null,
+	"startsAt": null,
+	"expiresAt": null
+}
+```
+
+If subscribed:
+
+```json
+{
+	"state": "ACTIVE",
+	"hasAccess": true,
+	"inTrial": false,
+	"autoRenewing": true,
+	"productId": "brainclean_monthly",
+	"startsAt": "2026-06-27T10:00:00Z",
+	"expiresAt": "2026-07-27T10:00:00Z"
+}
+```
+
+Possible `state` values:
+
+| State             | Meaning                                            | `hasAccess` |
+| ----------------- | -------------------------------------------------- | ----------- |
+| `NONE`            | User has never subscribed                          | false       |
+| `PENDING`         | Purchase in progress (e.g. slow payment method)    | false       |
+| `ACTIVE`          | Paying user, subscription valid                    | true        |
+| `IN_GRACE_PERIOD` | Renewal failed, still access while Google retries  | true        |
+| `CANCELED`        | User canceled, still has access until `expiresAt`  | true        |
+| `ON_HOLD`         | Renewal failed past grace period, access suspended | false       |
+| `PAUSED`          | User paused subscription                           | false       |
+| `EXPIRED`         | Subscription ended, no access                      | false       |
+
+Use `hasAccess` as the single source of truth for gating in the client.
+
+**Error Responses:**
+
+| Status | Error Code | When                   |
+| ------ | ---------- | ---------------------- |
+| 401    | —          | Missing or invalid JWT |
+
+---
+
+### POST /api/subscriptions/webhook
+
+Public endpoint for Google Cloud Pub/Sub push notifications (RTDN). Not called
+by any client — only by Google's infrastructure.
+
+**Every request goes through four security gates. All must pass.**
+
+1. **Shared-secret token** — Pub/Sub is configured to push to
+   `https://api.brainclean.app/api/subscriptions/webhook?token=<PLAY_PUBSUB_VERIFICATION_TOKEN>`.
+   Missing/wrong `token` → `401`.
+2. **Google-signed JWT** — the `Authorization: Bearer …` header must be a valid
+   token issued by the configured Pub/Sub service account, with `aud` matching
+   `PLAY_PUBSUB_AUDIENCE` and `email` matching `PLAY_PUBSUB_SA_EMAIL`. Invalid → `401`.
+3. **Freshness** — messages with `publishTime` older than `pubsub-max-age-minutes`
+   (default 60) are silently acked to prevent replay attacks.
+4. **Idempotency** — the envelope's `messageId` is recorded in `pubsub_message_dedup`;
+   re-delivery of the same messageId is silently acked without re-applying state.
+
+**Request Body:** Pub/Sub push envelope (`{ message: { data: <base64-JSON>, messageId, publishTime } }`)
+per [Google's spec](https://developer.android.com/google/play/billing/rtdn-reference).
+
+**Success Response:** `200 OK` (empty body). Also returned for unactionable but
+well-formed messages (test notifications, stale messages, duplicates) so Pub/Sub
+doesn't retry unnecessarily.
+
+**Error Responses:**
+
+| Status | When                                                                        |
+| ------ | --------------------------------------------------------------------------- |
+| 401    | Missing/wrong `?token=` OR failed Google JWT verification                   |
+| 400    | Body malformed or missing `purchaseToken` inside `subscriptionNotification` |
+| 500    | Transient error while processing — Pub/Sub will retry per its retry policy  |
+| 503    | Backend not configured (`PLAY_PUBSUB_VERIFICATION_TOKEN` unset)             |
+
+---
+
 ## Tasks
 
 ### POST /api/tasks
@@ -331,12 +484,16 @@ Create a new task.
 
 **Error Responses:**
 
-| Status | Error Code         | When                                                                        |
-| ------ | ------------------ | --------------------------------------------------------------------------- |
-| 400    | VALIDATION_ERROR   | Invalid or missing fields                                                   |
-| 400    | INVALID_DURATION   | `maximumDurationSeconds <= minimumDurationSeconds`                          |
-| 409    | ACTIVE_TASK_EXISTS | User already has a started, non-completed task (and it has not yet expired) |
-| 401    | —                  | Missing or invalid JWT                                                      |
+| Status | Error Code            | When                                                                        |
+| ------ | --------------------- | --------------------------------------------------------------------------- |
+| 400    | VALIDATION_ERROR      | Invalid or missing fields                                                   |
+| 400    | INVALID_DURATION      | `maximumDurationSeconds <= minimumDurationSeconds`                          |
+| 402    | SUBSCRIPTION_REQUIRED | User has no active subscription/trial/grace/admin bypass                    |
+| 409    | ACTIVE_TASK_EXISTS    | User already has a started, non-completed task (and it has not yet expired) |
+| 401    | —                     | Missing or invalid JWT                                                      |
+
+Both task **creation** and task **start** require an active subscription. The same
+access rules described on `PATCH /api/tasks/{id}/start` apply here.
 
 When `ACTIVE_TASK_EXISTS` is returned, the body includes a `details` object with the
 active task's `id`, `name`, and `startedAt` so the client can show when the existing
@@ -594,13 +751,23 @@ Called from mobile to begin app blocking.
 
 **Error Responses:**
 
-| Status | Error Code             | When                                       |
-| ------ | ---------------------- | ------------------------------------------ |
-| 404    | TASK_NOT_FOUND         | Task does not exist or not owned by user   |
-| 409    | ACTIVE_TASK_EXISTS     | Another task is already started and active |
-| 409    | TASK_ALREADY_STARTED   | Task has already been started              |
-| 409    | TASK_ALREADY_COMPLETED | Task has already been completed            |
-| 401    | —                      | Missing or invalid JWT                     |
+| Status | Error Code             | When                                                     |
+| ------ | ---------------------- | -------------------------------------------------------- |
+| 402    | SUBSCRIPTION_REQUIRED  | User has no active subscription/trial/grace/admin bypass |
+| 404    | TASK_NOT_FOUND         | Task does not exist or not owned by user                 |
+| 409    | ACTIVE_TASK_EXISTS     | Another task is already started and active               |
+| 409    | TASK_ALREADY_STARTED   | Task has already been started                            |
+| 409    | TASK_ALREADY_COMPLETED | Task has already been completed                          |
+| 401    | —                      | Missing or invalid JWT                                   |
+
+**Access rules** (checked in this order, first match wins):
+
+1. Admin users (`is_admin = true`) always pass
+2. Users still within their `subscription_grace_until` window pass (existing users
+   were granted a 1-month grace period when subscriptions launched)
+3. Users with an ACTIVE, IN_GRACE_PERIOD, or CANCELED-but-still-before-expiry
+   subscription pass
+4. Otherwise → `402 SUBSCRIPTION_REQUIRED`
 
 ---
 

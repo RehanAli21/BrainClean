@@ -49,8 +49,12 @@ apiClient.interceptors.response.use(
         // Only auto-logout for 401s on protected endpoints.
         const isAuthEndpoint = url.startsWith('/auth/');
 
-        // B. Handle 401 Unauthorized or 403 Forbidden
         const status = error.response?.status;
+
+        if (status === 402) {
+            return Promise.reject(error);
+        }
+
         if ((status === 401 || status === 403) && !originalRequest._retry && !isAuthEndpoint) {
             console.warn(`[Interceptor] ${status} Detected. Logging out...`);
 

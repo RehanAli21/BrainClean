@@ -1,3 +1,4 @@
+import type { SubscriptionState } from '@/types/subscription';
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
@@ -37,6 +38,12 @@ interface UiState {
   setAutoBlockUsageLimitMinutes: (minutes: number) => void;
   autoBlockDurationSeconds: number;
   setAutoBlockDurationSeconds: (seconds: number) => void;
+  isPremium: boolean;
+  setIsPremium: (premium: boolean) => void;
+  subscriptionState: SubscriptionState;
+  setSubscriptionState: (state: SubscriptionState) => void;
+  subscriptionExpiresAt: string | null;
+  setSubscriptionExpiresAt: (expiresAt: string | null) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -111,6 +118,19 @@ export const useUiStore = create<UiState>()(
       autoBlockDurationSeconds: 30,
       setAutoBlockDurationSeconds: (seconds: number) => {
         set({ autoBlockDurationSeconds: seconds });
+      },
+
+      isPremium: false,
+      setIsPremium: (premium: boolean) => {
+        set({ isPremium: premium });
+      },
+      subscriptionState: 'NONE' as SubscriptionState,
+      setSubscriptionState: (state: SubscriptionState) => {
+        set({ subscriptionState: state });
+      },
+      subscriptionExpiresAt: null,
+      setSubscriptionExpiresAt: (expiresAt: string | null) => {
+        set({ subscriptionExpiresAt: expiresAt });
       },
     }),
     {

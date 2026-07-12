@@ -292,4 +292,32 @@ export default {
     autoBlockDesc: '连续使用 {{limit}} 分钟后，应用将被锁定 {{duration}} 秒',
     appsLockedByAutoBlock: '刷屏终结者启用时，应用选择已锁定。请先关闭它再更改应用。',
   },
+
+  paywall: {
+    title: '解锁高级版',
+    subtitle: '创建任务并屏蔽分散注意力的应用，专注于重要的事情。',
+    trialBadge: '7天免费试用',
+    whatsIncluded: '包含功能',
+    features: {
+      blockApps: '屏蔽干扰应用',
+      blockAppsDesc: '选定的应用将被屏蔽，直到您完成任务。',
+      autoComplete: '自动完成任务',
+      autoCompleteDesc: '设置计时器，任务将在时间到时自动完成。',
+      blockNotifs: '屏蔽通知',
+      blockNotifsDesc: '在会话期间静音被屏蔽应用的通知。',
+      reboot: '重启后仍然有效',
+      rebootDesc: '即使设备重启，屏蔽仍然继续。',
+    },
+    monthly: '月度',
+    perMonth: '每月',
+    startTrial: '开始免费试用',
+    subscribe: '立即订阅',
+    restore: '恢复购买',
+  },
+
+  subscription: {
+    gracePeriod: '付款问题 — 请在 Play 商店更新您的付款方式。',
+    canceled: '您的订阅将于 {{date}} 到期。续订以保持访问权限。',
+    pending: '正在处理付款…',
+  },
 } as const

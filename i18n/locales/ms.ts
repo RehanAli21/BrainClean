@@ -39,4 +39,32 @@ export default {
     autoBlockDesc: 'Selepas {{limit}} minit penggunaan berterusan, aplikasi akan disekat selama {{duration}} saat',
     appsLockedByAutoBlock: 'Pilihan aplikasi dikunci semasa Pemutus Skrol aktif. Nyahaktifkan untuk menukar aplikasi.',
   },
+
+  paywall: {
+    title: 'Buka Premium',
+    subtitle: 'Cipta tugas dan sekat aplikasi yang mengganggu untuk fokus pada perkara penting.',
+    trialBadge: 'Percubaan percuma 7 hari',
+    whatsIncluded: 'Apa yang termasuk',
+    features: {
+      blockApps: 'Sekat Aplikasi Mengganggu',
+      blockAppsDesc: 'Aplikasi yang dipilih disekat sehingga anda menyelesaikan tugas.',
+      autoComplete: 'Siap Automatik Tugas',
+      autoCompleteDesc: 'Tetapkan pemasa dan tugas siap secara automatik apabila masa tamat.',
+      blockNotifs: 'Sekat Pemberitahuan',
+      blockNotifsDesc: 'Senyapkan pemberitahuan daripada aplikasi yang disekat semasa sesi.',
+      reboot: 'Kekal Selepas But Semula',
+      rebootDesc: 'Penyekatan berterusan walaupun selepas peranti dibut semula.',
+    },
+    monthly: 'BULANAN',
+    perMonth: 'sebulan',
+    startTrial: 'Mulakan Percubaan Percuma',
+    subscribe: 'Langgan Sekarang',
+    restore: 'Pulihkan Pembelian',
+  },
+
+  subscription: {
+    gracePeriod: 'Masalah pembayaran — sila kemas kini kaedah pembayaran anda di Play Store.',
+    canceled: 'Langganan anda tamat pada {{date}}. Perbaharui untuk mengekalkan akses.',
+    pending: 'Memproses pembayaran…',
+  },
 } as const

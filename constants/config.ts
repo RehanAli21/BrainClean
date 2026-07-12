@@ -5,3 +5,6 @@ export const API_BASE_URL =
 
 /** How often to poll for task completion while blocking is active (ms) */
 export const TASK_POLL_INTERVAL_MS = 20_000;
+
+/** Google Play subscription product ID */
+export const SUBSCRIPTION_SKU = 'brainclean_premium_monthly';

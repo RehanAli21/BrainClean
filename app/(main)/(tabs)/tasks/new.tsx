@@ -1,8 +1,10 @@
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { isWalkthroughActive, registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { Colors } from '@/constants/theme'
+import { subscriptionQueryKey } from '@/hooks/queries/useSubscription'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
+import { subscriptionService } from '@/services/api/subscriptions'
 import { taskService } from '@/services/api/tasks'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useQueryClient } from '@tanstack/react-query'
@@ -195,6 +197,16 @@ export default function NewTaskScreen() {
 				},
 				onError: async (err: any) => {
 					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
+					if (err.response?.status === 402) {
+						await queryClient.invalidateQueries({ queryKey: subscriptionQueryKey });
+						try {
+							const fresh = await subscriptionService.getStatus();
+							if (!fresh.hasAccess) {
+								router.push('/(main)/paywall');
+							}
+						} catch {}
+						return;
+					}
 					const code = err.response?.data?.error
 					if (code === 'VALIDATION_ERROR') {
 						setApiError(err.response?.data?.message || t('common.invalidInput'))

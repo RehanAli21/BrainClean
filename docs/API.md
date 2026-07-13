@@ -1,5 +1,3 @@
-> **Snapshot from 2026-07-11.** Source of truth: `brainclean_backend/docs/API.md`. This copy may drift — verify against the backend repo before relying on it.
-
 # BrainClean API Documentation
 
 Base URL: `http://localhost:8080`
@@ -390,6 +388,21 @@ Possible `state` values:
 | `EXPIRED`         | Subscription ended, no access                      | false       |
 
 Use `hasAccess` as the single source of truth for gating in the client.
+
+#### Synthetic response for admin & grace-period users
+
+`hasAccess` also folds in the same bypasses that the write endpoints (task
+create/start) honor:
+
+- **Admin users** (`is_admin = true`) with no purchase row → `state: "ACTIVE",
+hasAccess: true, expiresAt: null`
+- **Users still within their `subscription_grace_until` window** with no purchase
+  row → `state: "ACTIVE", hasAccess: true, inTrial: true, expiresAt: <grace date>`
+- **Admin or grace-period users who ALSO have a subscription row** → the real
+  subscription state is returned, but `hasAccess` is forced `true` regardless
+
+This means the client never has to reproduce the admin/grace logic — trust
+`hasAccess`.
 
 **Error Responses:**
 

@@ -4,9 +4,10 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { useWellness } from '@/hooks/useWellness'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
+import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 
 function NumericStepper({
 	value,
@@ -84,6 +85,15 @@ export default function WellnessScreen() {
 		updateAutoBlock,
 	} = useWellness()
 
+	const eyeBlinkerRef = useRef<View>(null)
+	const doomScrollRef = useRef<View>(null)
+
+	useEffect(() => {
+		registerRef('wellness-eyeblinker', eyeBlinkerRef)
+		registerRef('wellness-doomscroll', doomScrollRef)
+		return () => { unregisterRef('wellness-eyeblinker'); unregisterRef('wellness-doomscroll') }
+	}, [])
+
 	const handleEyeBlinkerToggle = (v: boolean) => {
 		if (v && !allGranted) {
 			router.push('/(setup)/permissions')
@@ -130,7 +140,7 @@ export default function WellnessScreen() {
 
 			{/* Eye Blinker */}
 			<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('wellness.eyeCare')}</Text>
-			<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+			<View ref={eyeBlinkerRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 				<View style={styles.toggleRow}>
 					<View style={styles.toggleInfo}>
 						<Ionicons
@@ -189,7 +199,7 @@ export default function WellnessScreen() {
 
 			{/* Doom Scroll Breaker */}
 			<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('wellness.doomScrollBreaker')}</Text>
-			<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+			<View ref={doomScrollRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
 				<View style={styles.toggleRow}>
 					<View style={styles.toggleInfo}>
 						<Ionicons

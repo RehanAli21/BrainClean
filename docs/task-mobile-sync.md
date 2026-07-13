@@ -35,6 +35,15 @@ these characteristics that the mobile app hasn't caught up to yet:
 the `hasAccess` boolean. It already collapses all three rules into a single
 answer. Do not try to reproduce the logic client-side.
 
+**How the backend represents admin / grace bypass in the response:**
+
+- Admin user with no purchase → `{ state: "ACTIVE", hasAccess: true, expiresAt: null }`
+- Grace-period user with no purchase → `{ state: "ACTIVE", hasAccess: true, inTrial: true, expiresAt: <grace date> }`
+- Admin or grace user WHO ALSO bought a subscription → the real subscription state, but `hasAccess` forced to `true`
+
+So a grace-period user looks like they're on a trial ending on the grace date.
+The client can happily reuse whatever "trial ends on X" UI it has.
+
 ---
 
 ## The authoritative types
@@ -43,28 +52,20 @@ Replace `types/subscription.ts` with exactly this shape. Delete the old
 `isActive` and `isTrial` fields.
 
 ```ts
-export type SubscriptionState =
-  | 'NONE'
-  | 'PENDING'
-  | 'ACTIVE'
-  | 'PAUSED'
-  | 'IN_GRACE_PERIOD'
-  | 'ON_HOLD'
-  | 'CANCELED'
-  | 'EXPIRED';
+export type SubscriptionState = 'NONE' | 'PENDING' | 'ACTIVE' | 'PAUSED' | 'IN_GRACE_PERIOD' | 'ON_HOLD' | 'CANCELED' | 'EXPIRED'
 
 export interface SubscriptionStatus {
-  state: SubscriptionState;
-  hasAccess: boolean;      // ← single source of truth for gating
-  inTrial: boolean;
-  autoRenewing: boolean;
-  productId: string | null;
-  startsAt: string | null; // ISO 8601
-  expiresAt: string | null;
+	state: SubscriptionState
+	hasAccess: boolean // ← single source of truth for gating
+	inTrial: boolean
+	autoRenewing: boolean
+	productId: string | null
+	startsAt: string | null // ISO 8601
+	expiresAt: string | null
 }
 
 // POST /api/subscriptions/verify returns the same shape.
-export type VerifyReceiptResponse = SubscriptionStatus;
+export type VerifyReceiptResponse = SubscriptionStatus
 ```
 
 Any other file that imports subscription types must be updated to match.
@@ -74,6 +75,7 @@ Any other file that imports subscription types must be updated to match.
 ## The fixes, in priority order
 
 ### 1. Replace local Play check with backend truth
+
 **File:** `hooks/useSubscription.ts` (around lines 47–57)
 
 **Wrong today:** derives `isPremium` from `hasActiveSubscriptions([SKU])` via
@@ -82,6 +84,7 @@ canceled-but-still-valid users all incorrectly see the paywall.
 
 **Fix:** derive `isPremium` from `subscriptionService.getStatus()`'s
 `hasAccess` field. Call it on:
+
 - app foreground (Android + iOS if both platforms)
 - after successful `/subscriptions/verify`
 - on manual "restore purchases" tap
@@ -90,9 +93,11 @@ canceled-but-still-valid users all incorrectly see the paywall.
 Keep `expo-iap` for **buying** the subscription, not for reading state.
 
 ### 2. Wire up (or delete) `useSubscriptionStatusQuery`
+
 **File:** `hooks/queries/useSubscription.ts`
 
 The hook is defined but never consumed anywhere. Two options — pick one:
+
 - **Wire it up:** call it from `AuthContext` (or wherever `isPremium` lives),
   pipe `data.hasAccess` into `useUiStore.setIsPremium(...)`. Refetch on
   foreground.
@@ -101,6 +106,7 @@ The hook is defined but never consumed anywhere. Two options — pick one:
 Don't leave dead code.
 
 ### 3. Do NOT set `isPremium=true` on verify failure
+
 **File:** `hooks/useSubscription.ts` (around lines 24–38)
 
 **Wrong today:** even when `/subscriptions/verify` throws, the code sets
@@ -111,6 +117,7 @@ referenced unknown purchase token` and drops it. The user pays but the backend
 never marks them premium.
 
 **Fix on verify failure:**
+
 - Surface an actionable error to the user (Alert or toast: "Purchase couldn't be
   verified. Please contact support.")
 - Do NOT set `isPremium=true`
@@ -121,11 +128,14 @@ never marks them premium.
 - If `hasAccess` returns true from the refresh, then set `isPremium=true`
 
 **Fix on verify success:**
+
 - Trust `response.hasAccess` from the verify response, not "the purchase
   succeeded so we're good"
 
 ### 4. Handle `402` on task start and task create
+
 **Files:**
+
 - `services/api/tasks.ts` (`create` and `start` methods)
 - `hooks/queries/useTasks.ts` (task start mutation, and task create mutation
   around lines 50–59)
@@ -138,23 +148,24 @@ now return `402 SUBSCRIPTION_REQUIRED` when the user has no access.
 **Fix (same pattern for both mutations):**
 
 ```ts
-onError: async (error) => {
-  if (error.response?.status === 402) {
-    // Backend says no access — refresh status in case local is stale, then paywall
-    await queryClient.invalidateQueries({ queryKey: ['subscription', 'status'] });
-    const { data: fresh } = await subscriptionService.getStatus();
-    if (!fresh.hasAccess) {
-      router.push('/paywall');
-    }
-    return;
-  }
-  // ... existing error handling
+onError: async error => {
+	if (error.response?.status === 402) {
+		// Backend says no access — refresh status in case local is stale, then paywall
+		await queryClient.invalidateQueries({ queryKey: ['subscription', 'status'] })
+		const { data: fresh } = await subscriptionService.getStatus()
+		if (!fresh.hasAccess) {
+			router.push('/paywall')
+		}
+		return
+	}
+	// ... existing error handling
 }
 ```
 
 **Do NOT logout on 402.** See fix #5.
 
 ### 5. Explicitly exempt 402 from auto-logout
+
 **File:** `services/api/client.ts` (response interceptor, around lines 52–62)
 
 **Today:** interceptor logs out on 401/403. That's correct — but a future
@@ -162,18 +173,19 @@ contributor might broaden it. Add explicit code paths for 401, 402, and 403:
 
 ```ts
 if (status === 401 || status === 403) {
-  // Auth failure or account deactivated — clear tokens and go to sign-in
-  await clearTokens();
-  router.replace('/auth/login');
-  return Promise.reject(error);
+	// Auth failure or account deactivated — clear tokens and go to sign-in
+	await clearTokens()
+	router.replace('/auth/login')
+	return Promise.reject(error)
 }
 if (status === 402) {
-  // Subscription required — DO NOT logout. Let the caller handle it (fix #4).
-  return Promise.reject(error);
+	// Subscription required — DO NOT logout. Let the caller handle it (fix #4).
+	return Promise.reject(error)
 }
 ```
 
 ### 6. Add proactive FAB gate based on `hasAccess`
+
 **File:** `app/(main)/(tabs)/tasks/index.tsx` (around line 264)
 
 FAB paywall gate is fine as a UX pattern — it stops the user before they fill
@@ -185,37 +197,43 @@ Note: this is proactive UX only. The defensive backend enforcement is fix #4,
 and both fixes are required.
 
 ### 7. Handle non-`ACTIVE` states in UX
+
 Add these states to the paywall/settings UI so users know what's going on:
 
-| `state` | UI treatment |
-|---|---|
-| `NONE` | show paywall on gated actions |
-| `ACTIVE` | no banner |
-| `IN_GRACE_PERIOD` | banner "Payment issue — please update your card in Play Store" |
+| `state`                              | UI treatment                                                    |
+| ------------------------------------ | --------------------------------------------------------------- |
+| `NONE`                               | show paywall on gated actions                                   |
+| `ACTIVE`                             | no banner                                                       |
+| `IN_GRACE_PERIOD`                    | banner "Payment issue — please update your card in Play Store"  |
 | `CANCELED` (with future `expiresAt`) | banner "Your subscription ends on {date}. Renew to keep access" |
-| `ON_HOLD` / `PAUSED` / `EXPIRED` | show paywall on gated actions |
-| `PENDING` | subtle spinner "Payment processing…" |
+| `ON_HOLD` / `PAUSED` / `EXPIRED`     | show paywall on gated actions                                   |
+| `PENDING`                            | subtle spinner "Payment processing…"                            |
 
 `hasAccess` handles gating; `state` drives which message to show.
 
 ### 8. Decide fate of `TOKEN_EXPIRY_BUFFER_MS`
+
 **File:** `context/AuthContext.tsx` (line 9)
 
 Constant is defined but never consumed. Either:
+
 - Wire it up (proactive logout ~24h before JWT expiry) and add a test for it, or
 - Delete it as dead code
 
 Don't leave orphaned constants.
 
 ### 9. Prevent doc drift
+
 **File:** `docs/API.md` in the mobile repo (if it exists)
 
 Your local copy is out of date and will drift again. Two options:
+
 - Delete it and reference the backend repo's `docs/API.md` in the README
 - Add a header at the top: `> This is a snapshot from YYYY-MM-DD. Source of
-  truth: brainclean_backend/docs/API.md`
+truth: brainclean_backend/docs/API.md`
 
 ### 10. Small nits
+
 - Verify the base URL (`EXPO_PUBLIC_API_BASE_URL`) is set for prod builds too,
   not just dev
 - If subscription poll only runs on Android foreground and iOS is a target,

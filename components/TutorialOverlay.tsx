@@ -21,6 +21,8 @@ const STEPS: TutorialStep[] = [
 	{ icon: 'add-circle-outline', iconColor: '#2563EB', titleKey: 'tutorial.createTask', descriptionKey: 'tutorial.createTaskDesc' },
 	{ icon: 'play-circle-outline', iconColor: '#10B981', titleKey: 'tutorial.startTask', descriptionKey: 'tutorial.startTaskDesc' },
 	{ icon: 'checkmark-circle', iconColor: '#10B981', titleKey: 'tutorial.completeTask', descriptionKey: 'tutorial.completeTaskDesc' },
+	{ icon: 'eye-outline', iconColor: '#06B6D4', titleKey: 'tutorial.eyeBlinker', descriptionKey: 'tutorial.eyeBlinkerDesc' },
+	{ icon: 'hourglass-outline', iconColor: '#F43F5E', titleKey: 'tutorial.doomScroll', descriptionKey: 'tutorial.doomScrollDesc' },
 	{ icon: 'rocket-outline', iconColor: '#06B6D4', titleKey: 'tutorial.ready', descriptionKey: 'tutorial.readyDesc' },
 ]
 
@@ -127,7 +129,11 @@ export function TutorialOverlay({ visible, onClose }: Props) {
 									setTimeout(triggerWalkthrough, 400)
 								}}
 								activeOpacity={0.8}>
-								<Ionicons name='finger-print-outline' size={18} color='#FFFFFF' />
+								<Ionicons
+									name='finger-print-outline'
+									size={18}
+									color='#FFFFFF'
+								/>
 								<Text style={styles.nextButtonText}>{t('tutorial.interactive')}</Text>
 							</TouchableOpacity>
 							<TouchableOpacity

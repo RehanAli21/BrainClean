@@ -20,14 +20,76 @@ interface WalkthroughStep {
 }
 
 const STEPS: WalkthroughStep[] = [
-	{ key: 'tasks-fab', route: '/(main)/(tabs)/tasks', titleKey: 'walkthrough.createTask', descriptionKey: 'walkthrough.createTaskDesc', tooltipPosition: 'top' },
-	{ key: 'tasks-date', route: '/(main)/(tabs)/tasks', titleKey: 'walkthrough.filterDate', descriptionKey: 'walkthrough.filterDateDesc', tooltipPosition: 'bottom' },
-	{ key: 'newtask-name', route: '/(main)/(tabs)/tasks/new', titleKey: 'walkthrough.taskName', descriptionKey: 'walkthrough.taskNameDesc', tooltipPosition: 'bottom' },
-	{ key: 'newtask-duration', route: '/(main)/(tabs)/tasks/new', titleKey: 'walkthrough.duration', descriptionKey: 'walkthrough.durationDesc', tooltipPosition: 'bottom' },
-	{ key: 'newtask-create', route: '/(main)/(tabs)/tasks/new', titleKey: 'walkthrough.createButton', descriptionKey: 'walkthrough.createButtonDesc', tooltipPosition: 'top' },
-	{ key: 'apps-search', route: '/(main)/(tabs)/apps', titleKey: 'walkthrough.findApps', descriptionKey: 'walkthrough.findAppsDesc', tooltipPosition: 'bottom' },
-	{ key: 'settings-notifications', route: '/(main)/(tabs)/settings', titleKey: 'walkthrough.blockNotifs', descriptionKey: 'walkthrough.blockNotifsDesc', tooltipPosition: 'bottom' },
-	{ key: 'settings-permissions', route: '/(main)/(tabs)/settings', titleKey: 'walkthrough.grantPerms', descriptionKey: 'walkthrough.grantPermsDesc', tooltipPosition: 'top' },
+	{
+		key: 'tasks-fab',
+		route: '/(main)/(tabs)/tasks',
+		titleKey: 'walkthrough.createTask',
+		descriptionKey: 'walkthrough.createTaskDesc',
+		tooltipPosition: 'top',
+	},
+	{
+		key: 'tasks-date',
+		route: '/(main)/(tabs)/tasks',
+		titleKey: 'walkthrough.filterDate',
+		descriptionKey: 'walkthrough.filterDateDesc',
+		tooltipPosition: 'bottom',
+	},
+	{
+		key: 'newtask-name',
+		route: '/(main)/(tabs)/tasks/new',
+		titleKey: 'walkthrough.taskName',
+		descriptionKey: 'walkthrough.taskNameDesc',
+		tooltipPosition: 'bottom',
+	},
+	{
+		key: 'newtask-duration',
+		route: '/(main)/(tabs)/tasks/new',
+		titleKey: 'walkthrough.duration',
+		descriptionKey: 'walkthrough.durationDesc',
+		tooltipPosition: 'bottom',
+	},
+	{
+		key: 'newtask-create',
+		route: '/(main)/(tabs)/tasks/new',
+		titleKey: 'walkthrough.createButton',
+		descriptionKey: 'walkthrough.createButtonDesc',
+		tooltipPosition: 'top',
+	},
+	{
+		key: 'apps-search',
+		route: '/(main)/(tabs)/apps',
+		titleKey: 'walkthrough.findApps',
+		descriptionKey: 'walkthrough.findAppsDesc',
+		tooltipPosition: 'bottom',
+	},
+	{
+		key: 'wellness-eyeblinker',
+		route: '/(main)/(tabs)/wellness',
+		titleKey: 'walkthrough.eyeBlinker',
+		descriptionKey: 'walkthrough.eyeBlinkerDesc',
+		tooltipPosition: 'bottom',
+	},
+	{
+		key: 'wellness-doomscroll',
+		route: '/(main)/(tabs)/wellness',
+		titleKey: 'walkthrough.doomScroll',
+		descriptionKey: 'walkthrough.doomScrollDesc',
+		tooltipPosition: 'top',
+	},
+	{
+		key: 'settings-notifications',
+		route: '/(main)/(tabs)/settings',
+		titleKey: 'walkthrough.blockNotifs',
+		descriptionKey: 'walkthrough.blockNotifsDesc',
+		tooltipPosition: 'bottom',
+	},
+	{
+		key: 'settings-permissions',
+		route: '/(main)/(tabs)/settings',
+		titleKey: 'walkthrough.grantPerms',
+		descriptionKey: 'walkthrough.grantPermsDesc',
+		tooltipPosition: 'top',
+	},
 ]
 
 interface TargetRect {
@@ -66,7 +128,7 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 					x: x - HIGHLIGHT_PADDING,
 					y: y - HIGHLIGHT_PADDING + 20,
 					width: w + HIGHLIGHT_PADDING * 2,
-					height: h + HIGHLIGHT_PADDING * 2,
+					height: h + HIGHLIGHT_PADDING * 3.5,
 				})
 			} else {
 				setTargetRect(null)

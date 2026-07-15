@@ -4,6 +4,7 @@ const {
 	withGradleProperties,
 	withAppBuildGradle,
 	withDangerousMod,
+	withAndroidStyles,
 } = require('expo/config-plugins');
 
 const KEEP_RULES_MARKER = '# BEGIN BrainClean ProGuard rules';
@@ -22,6 +23,8 @@ ${KEEP_RULES_MARKER}
 -keep class expo.modules.blocker.BootReceiver { *; }
 -keep class expo.modules.blocker.BlockerWatchdogReceiver { *; }
 -keep class expo.modules.blocker.NotificationBlockerService { *; }
+-keep class expo.modules.blocker.WellnessService { *; }
+-keep class expo.modules.blocker.WellnessWatchdogReceiver { *; }
 
 # OkHttp (used by TaskStatusChecker for backend polling)
 -dontwarn okhttp3.**
@@ -79,6 +82,11 @@ const withGradlePropertyFlags = (config) =>
 			'GOOGLE_WEB_CLIENT_ID',
 			'492066566680-n051drfsfnnkm5ls4mdogfpfj4ori87c.apps.googleusercontent.com',
 		);
+		setGradleProperty(cfg.modResults, 'android.enableR8.fullMode', 'true');
+		const deprecated = cfg.modResults.findIndex(
+			(item) => item.type === 'property' && item.key === 'expo.edgeToEdgeEnabled',
+		);
+		if (deprecated !== -1) cfg.modResults.splice(deprecated, 1);
 		return cfg;
 	});
 
@@ -133,10 +141,40 @@ const withProguardKeepRules = (config) =>
 		},
 	]);
 
+const withEdgeToEdgeStyles = (config) =>
+	withDangerousMod(config, [
+		'android',
+		async (cfg) => {
+			const stylesPath = path.join(
+				cfg.modRequest.platformProjectRoot,
+				'app',
+				'src',
+				'main',
+				'res',
+				'values',
+				'styles.xml',
+			);
+			if (!fs.existsSync(stylesPath)) return cfg;
+
+			let contents = fs.readFileSync(stylesPath, 'utf8');
+			contents = contents.replace(
+				/\s*<item name="android:statusBarColor">.*?<\/item>/g,
+				'',
+			);
+			contents = contents.replace(
+				/\s*<item name="android:enforceNavigationBarContrast"[^>]*>.*?<\/item>/g,
+				'',
+			);
+			fs.writeFileSync(stylesPath, contents);
+			return cfg;
+		},
+	]);
+
 module.exports = function withProductionAndroidConfig(config) {
 	config = withGradlePropertyFlags(config);
 	config = withHermesCommandFix(config);
 	config = withReleaseSigningConfig(config);
 	config = withProguardKeepRules(config);
+	config = withEdgeToEdgeStyles(config);
 	return config;
 };

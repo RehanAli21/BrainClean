@@ -210,6 +210,8 @@ export default function NewTaskScreen() {
 					const code = err.response?.data?.error
 					if (code === 'VALIDATION_ERROR') {
 						setApiError(err.response?.data?.message || t('common.invalidInput'))
+					} else if (code === 'INVALID_DURATION') {
+						setApiError(t('newTask.invalidDuration'))
 					} else if (code === 'ACTIVE_TASK_EXISTS') {
 						const details = err.response?.data?.details
 						if (details?.id) {
@@ -235,9 +237,9 @@ export default function NewTaskScreen() {
 								return
 							}
 						} catch {}
-						setApiError(t('common.somethingWentWrong'))
+						setApiError(t('common.networkError'))
 					} else {
-						setApiError(t('common.somethingWentWrong'))
+						setApiError(err.response?.data?.message || t('common.somethingWentWrong'))
 					}
 				},
 			},

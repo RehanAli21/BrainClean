@@ -303,18 +303,32 @@ class BlockerModule : Module() {
     }
 
     private fun drawableToBase64(drawable: Drawable): String {
-        val bitmap = Bitmap.createBitmap(
+        val size = 96
+        val fullBitmap = Bitmap.createBitmap(
             drawable.intrinsicWidth.coerceAtLeast(1),
             drawable.intrinsicHeight.coerceAtLeast(1),
             Bitmap.Config.ARGB_8888
         )
-        val canvas = Canvas(bitmap)
+        val canvas = Canvas(fullBitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
 
+        val scaled = if (fullBitmap.width > size || fullBitmap.height > size) {
+            val result = Bitmap.createScaledBitmap(fullBitmap, size, size, true)
+            fullBitmap.recycle()
+            result
+        } else {
+            fullBitmap
+        }
+
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream)
-        bitmap.recycle()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            scaled.compress(Bitmap.CompressFormat.WEBP_LOSSY, 75, stream)
+        } else {
+            @Suppress("DEPRECATION")
+            scaled.compress(Bitmap.CompressFormat.WEBP, 75, stream)
+        }
+        scaled.recycle()
 
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
     }

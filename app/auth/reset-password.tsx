@@ -67,8 +67,12 @@ export default function ResetPasswordScreen() {
 				setApiError(t('auth.resetPassword.passwordMismatch'))
 			} else if (code === 'VALIDATION_ERROR') {
 				setApiError(err.response?.data?.message || t('common.invalidInput'))
+			} else if (code === 'RATE_LIMIT_EXCEEDED') {
+				setApiError(t('common.rateLimited'))
+			} else if (!err.response) {
+				setApiError(t('common.networkError'))
 			} else {
-				setApiError(t('common.somethingWentWrong'))
+				setApiError(err.response?.data?.message || t('common.somethingWentWrong'))
 			}
 		} finally {
 			setIsLoading(false)

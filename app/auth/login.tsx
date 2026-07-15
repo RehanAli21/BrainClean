@@ -53,8 +53,14 @@ export default function LoginScreen() {
 				setApiError(t('auth.login.invalidCredentials'))
 			} else if (code === 'ACCOUNT_DEACTIVATED') {
 				setApiError(t('auth.login.accountDeactivated'))
+			} else if (code === 'RATE_LIMIT_EXCEEDED') {
+				setApiError(t('common.rateLimited'))
+			} else if (code === 'VALIDATION_ERROR') {
+				setApiError(err.response?.data?.message || t('common.invalidInput'))
+			} else if (!err.response) {
+				setApiError(t('common.networkError'))
 			} else {
-				setApiError(t('common.somethingWentWrong'))
+				setApiError(err.response?.data?.message || t('common.somethingWentWrong'))
 			}
 		} finally {
 			setIsLoading(false)
@@ -82,9 +88,11 @@ export default function LoginScreen() {
 				} else if (code === 'ACCOUNT_DEACTIVATED') {
 					setApiError(t('auth.login.deactivatedContact'))
 				} else if (code === 'RATE_LIMIT_EXCEEDED') {
-					setApiError(t('auth.login.rateLimited'))
+					setApiError(t('common.rateLimited'))
+				} else if (!err.response) {
+					setApiError(t('common.networkError'))
 				} else {
-					setApiError(t('common.somethingWentWrong'))
+					setApiError(err.response?.data?.message || t('common.somethingWentWrong'))
 				}
 			}
 		} finally {

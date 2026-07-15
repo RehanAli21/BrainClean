@@ -115,9 +115,10 @@ export default function SettingsScreen() {
 						try {
 							await userService.deleteAccount()
 							await logout()
-						} catch {
+						} catch (err: any) {
 							setDeleting(false)
-							Alert.alert(t('common.error'), t('settings.deleteFailed'))
+							const msg = err.response?.data?.message
+							Alert.alert(t('common.error'), msg || (!err.response ? t('common.networkError') : t('settings.deleteFailed')))
 						}
 					},
 				},

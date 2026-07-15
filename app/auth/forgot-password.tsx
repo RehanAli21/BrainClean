@@ -47,8 +47,12 @@ export default function ForgotPasswordScreen() {
 				setApiError(t('auth.forgotPassword.invalidEmail'))
 			} else if (code === 'EMAIL_DELIVERY_FAILED') {
 				setApiError(t('auth.forgotPassword.emailFailed'))
+			} else if (code === 'RATE_LIMIT_EXCEEDED') {
+				setApiError(t('common.rateLimited'))
+			} else if (!err.response) {
+				setApiError(t('common.networkError'))
 			} else {
-				setApiError(t('common.somethingWentWrong'))
+				setApiError(err.response?.data?.message || t('common.somethingWentWrong'))
 			}
 		} finally {
 			setIsLoading(false)

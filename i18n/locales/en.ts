@@ -12,6 +12,9 @@ export default {
     granted: 'Granted',
     error: 'Error',
     somethingWentWrong: 'Something went wrong. Please try again.',
+    networkError: 'No internet connection. Please check your network.',
+    rateLimited: 'Too many attempts. Please wait a minute and try again.',
+    serverError: 'Server error. Please try again later.',
     invalidInput: 'Invalid input.',
     minutes: '{{count}} min',
     hours: '{{count}}h',
@@ -50,6 +53,7 @@ export default {
       accountExistsOr: 'or if you want to change password go to',
       accountExistsForgot: 'Forgot Password',
       usernameTaken: 'This username is already taken.',
+      validationError: 'Please check your details and try again.',
       agreeToTerms: 'I agree to the',
       privacyPolicy: 'Privacy Policy',
       and: 'and',
@@ -211,6 +215,7 @@ export default {
     autoCompleteError: 'Auto-complete time must be greater than duration',
     createTask: 'Create Task',
     activeExists: 'You already have an active task. Complete it first.',
+    invalidDuration: 'Auto-complete time must be greater than the task duration.',
   },
 
   apps: {

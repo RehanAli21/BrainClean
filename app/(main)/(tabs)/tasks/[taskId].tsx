@@ -102,8 +102,10 @@ export default function TaskDetailScreen() {
 					setApiError(t('taskDetail.notEligible'))
 				} else if (code === 'TASK_ALREADY_COMPLETED') {
 					setApiError(t('taskDetail.alreadyCompleted'))
+				} else if (!err.response) {
+					setApiError(t('common.networkError'))
 				} else {
-					setApiError(t('taskDetail.completeFailed'))
+					setApiError(err.response?.data?.message || t('taskDetail.completeFailed'))
 				}
 			},
 		})
@@ -160,8 +162,10 @@ export default function TaskDetailScreen() {
 					setApiError(t('taskDetail.alreadyStarted'))
 				} else if (code === 'TASK_ALREADY_COMPLETED') {
 					setApiError(t('taskDetail.alreadyCompleted'))
+				} else if (!err.response) {
+					setApiError(t('common.networkError'))
 				} else {
-					setApiError(t('taskDetail.startFailed'))
+					setApiError(err.response?.data?.message || t('taskDetail.startFailed'))
 				}
 			},
 		})
@@ -187,8 +191,10 @@ export default function TaskDetailScreen() {
 								} else {
 									setApiError(t('taskDetail.cannotDelete'))
 								}
+							} else if (!err.response) {
+								setApiError(t('common.networkError'))
 							} else {
-								setApiError(t('taskDetail.deleteFailed'))
+								setApiError(err.response?.data?.message || t('taskDetail.deleteFailed'))
 							}
 						},
 					})

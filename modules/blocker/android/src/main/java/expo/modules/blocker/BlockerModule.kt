@@ -300,6 +300,70 @@ class BlockerModule : Module() {
                 return@Function false
             }
         }
+
+        Function("addSchedule") { hour: Int, minute: Int, durationHours: Int, durationMinutes: Int, repeatDays: List<Int>, label: String ->
+            val context = appContext.reactContext ?: return@Function ""
+            val state = ScheduleState.getInstance(context)
+            val id = java.util.UUID.randomUUID().toString()
+            val schedule = ScheduleData(
+                id = id,
+                hour = hour,
+                minute = minute,
+                durationHours = durationHours,
+                durationMinutes = durationMinutes,
+                repeatDays = repeatDays.toSet(),
+                label = label,
+                enabled = true
+            )
+            state.addSchedule(schedule)
+            ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
+            Log.i("BlockerModule", "Schedule added: id=$id, time=$hour:$minute")
+            id
+        }
+
+        Function("removeSchedule") { id: String ->
+            val context = appContext.reactContext ?: return@Function
+            val state = ScheduleState.getInstance(context)
+            ScheduleAlarmReceiver.cancelAlarm(context, id)
+            state.removeSchedule(id)
+            Log.i("BlockerModule", "Schedule removed: id=$id")
+        }
+
+        Function("toggleSchedule") { id: String, enabled: Boolean ->
+            val context = appContext.reactContext ?: return@Function
+            val state = ScheduleState.getInstance(context)
+            state.updateScheduleEnabled(id, enabled)
+            if (enabled) {
+                val schedule = state.getSchedule(id)
+                if (schedule != null) ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
+            } else {
+                ScheduleAlarmReceiver.cancelAlarm(context, id)
+            }
+            Log.i("BlockerModule", "Schedule toggled: id=$id, enabled=$enabled")
+        }
+
+        Function("getSchedules") {
+            val context = appContext.reactContext ?: return@Function emptyList<Map<String, Any?>>()
+            val state = ScheduleState.getInstance(context)
+            state.getAllSchedules().map { schedule ->
+                mapOf(
+                    "id" to schedule.id,
+                    "hour" to schedule.hour,
+                    "minute" to schedule.minute,
+                    "durationHours" to schedule.durationHours,
+                    "durationMinutes" to schedule.durationMinutes,
+                    "repeatDays" to schedule.repeatDays.toList(),
+                    "label" to schedule.label,
+                    "enabled" to schedule.enabled
+                )
+            }
+        }
+
+        Function("syncScheduleConfig") { authToken: String, baseUrl: String, selectedApps: List<String>, blockNotifications: Boolean ->
+            val context = appContext.reactContext ?: return@Function
+            val state = ScheduleState.getInstance(context)
+            state.setAuthConfig(authToken, baseUrl, selectedApps.toSet(), blockNotifications)
+        }
     }
 
     private fun drawableToBase64(drawable: Drawable): String {

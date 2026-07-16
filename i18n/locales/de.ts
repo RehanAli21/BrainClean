@@ -282,8 +282,36 @@ export default {
   tabs: {
     tasks: 'Aufgaben',
     apps: 'Apps',
+    schedules: 'Zeitpläne',
     wellness: 'Wohlbefinden',
     settings: 'Einstellungen',
+  },
+
+  schedules: {
+    title: 'Zeitpläne',
+    noSchedules: 'Noch keine Zeitpläne.\nTippe auf + um einen zu erstellen.',
+    createSchedule: 'Zeitplan erstellen',
+    time: 'Startzeit',
+    duration: 'Blockierdauer',
+    repeat: 'Wiederholen',
+    label: 'Bezeichnung (optional)',
+    labelPlaceholder: 'z.B. Arbeitsfokus',
+    labelHint: 'Wird als Aufgabenname verwendet. Wenn leer, werden Zeit und Datum verwendet.',
+    oneTime: 'Einmalig',
+    oneTimeHint: 'Keine Tage ausgewählt — dieser Zeitplan wird einmal ausgeführt und dann deaktiviert.',
+    durationRequired: 'Dauer muss mindestens 1 Minute betragen.',
+    noAppsSelected: 'Wähle zuerst Apps zum Blockieren im Apps-Tab.',
+    deleteTitle: 'Zeitplan löschen',
+    deleteConfirm: 'Bist du sicher, dass du diesen Zeitplan löschen möchtest?',
+    days: {
+      sun: 'S',
+      mon: 'M',
+      tue: 'D',
+      wed: 'M',
+      thu: 'D',
+      fri: 'F',
+      sat: 'S',
+    },
   },
 
   wellness: {

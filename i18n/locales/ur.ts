@@ -282,8 +282,36 @@ export default {
   tabs: {
     tasks: 'ٹاسکس',
     apps: 'ایپس',
+    schedules: 'شیڈولز',
     wellness: 'صحت',
     settings: 'ترتیبات',
+  },
+
+  schedules: {
+    title: 'شیڈولز',
+    noSchedules: 'ابھی کوئی شیڈول نہیں ہے۔\nایک بنانے کے لیے + دبائیں۔',
+    createSchedule: 'شیڈول بنائیں',
+    time: 'شروع کا وقت',
+    duration: 'بلاک کی مدت',
+    repeat: 'دہرائیں',
+    label: 'عنوان (اختیاری)',
+    labelPlaceholder: 'مثلاً: کام پر توجہ',
+    labelHint: 'ٹاسک کے نام کے طور پر استعمال ہوتا ہے۔ خالی چھوڑنے پر وقت اور تاریخ استعمال ہوگی۔',
+    oneTime: 'ایک بار',
+    oneTimeHint: 'کوئی دن منتخب نہیں — یہ شیڈول ایک بار چلے گا پھر غیر فعال ہو جائے گا۔',
+    durationRequired: 'مدت کم از کم 1 منٹ ہونی چاہیے۔',
+    noAppsSelected: 'پہلے ایپس ٹیب میں بلاک کرنے کے لیے ایپس منتخب کریں۔',
+    deleteTitle: 'شیڈول حذف کریں',
+    deleteConfirm: 'کیا آپ واقعی اس شیڈول کو حذف کرنا چاہتے ہیں؟',
+    days: {
+      sun: 'ا',
+      mon: 'پ',
+      tue: 'م',
+      wed: 'ب',
+      thu: 'ج',
+      fri: 'ج',
+      sat: 'ہ',
+    },
   },
 
   wellness: {

@@ -282,8 +282,36 @@ export default {
   tabs: {
     tasks: 'Tarefas',
     apps: 'Apps',
+    schedules: 'Agendamentos',
     wellness: 'Bem-estar',
     settings: 'Configurações',
+  },
+
+  schedules: {
+    title: 'Agendamentos',
+    noSchedules: 'Nenhum agendamento ainda.\nToque em + para criar um.',
+    createSchedule: 'Criar agendamento',
+    time: 'Horário de início',
+    duration: 'Duração do bloqueio',
+    repeat: 'Repetir',
+    label: 'Rótulo (opcional)',
+    labelPlaceholder: 'ex. Foco no trabalho',
+    labelHint: 'Usado como nome da tarefa. Se vazio, o horário e a data serão usados.',
+    oneTime: 'Uma vez',
+    oneTimeHint: 'Nenhum dia selecionado — este agendamento será executado uma vez e depois desativado.',
+    durationRequired: 'A duração deve ser de pelo menos 1 minuto.',
+    noAppsSelected: 'Selecione apps para bloquear na aba Apps primeiro.',
+    deleteTitle: 'Excluir agendamento',
+    deleteConfirm: 'Tem certeza de que deseja excluir este agendamento?',
+    days: {
+      sun: 'D',
+      mon: 'S',
+      tue: 'T',
+      wed: 'Q',
+      thu: 'Q',
+      fri: 'S',
+      sat: 'S',
+    },
   },
 
   wellness: {

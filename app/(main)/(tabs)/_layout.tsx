@@ -73,6 +73,19 @@ export default function TabsLayout() {
 					}}
 				/>
 				<Tabs.Screen
+					name='schedules'
+					options={{
+						title: t('tabs.schedules'),
+						tabBarIcon: ({ color, size }) => (
+							<Ionicons
+								name='alarm-outline'
+								size={size}
+								color={color}
+							/>
+						),
+					}}
+				/>
+				<Tabs.Screen
 					name='wellness'
 					options={{
 						title: t('tabs.wellness'),

@@ -295,6 +295,7 @@ export default {
 
   tabs: {
     tasks: 'Tasks',
+    schedules: 'Schedules',
     apps: 'Apps',
     wellness: 'Wellness',
     settings: 'Settings',
@@ -318,6 +319,33 @@ export default {
     monitorsApps: 'Monitors apps selected in Apps tab',
     autoBlockDesc: 'After {{limit}} min of continuous use, the app will be blocked for {{duration}} seconds',
     appsLockedByAutoBlock: 'App selection is locked while Doom Scroll Breaker is active. Disable it to change apps.',
+  },
+
+  schedules: {
+    title: 'Schedules',
+    noSchedules: 'No schedules yet.\nTap + to create one.',
+    createSchedule: 'Create Schedule',
+    time: 'Start Time',
+    duration: 'Block Duration',
+    repeat: 'Repeat',
+    label: 'Label (optional)',
+    labelPlaceholder: 'e.g. Work focus',
+    labelHint: 'Used as the task name. If empty, the time and date will be used.',
+    oneTime: 'One-time',
+    oneTimeHint: 'No days selected — this schedule will run once then disable.',
+    durationRequired: 'Duration must be at least 1 minute.',
+    noAppsSelected: 'Select apps to block in the Apps tab first.',
+    deleteTitle: 'Delete Schedule',
+    deleteConfirm: 'Are you sure you want to delete this schedule?',
+    days: {
+      sun: 'S',
+      mon: 'M',
+      tue: 'T',
+      wed: 'W',
+      thu: 'T',
+      fri: 'F',
+      sat: 'S',
+    },
   },
 
   paywall: {

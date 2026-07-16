@@ -194,14 +194,15 @@
 	<body>
 		<main>
 			<h1>Privacy Policy</h1>
-			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 7 July 2026</p>
+			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 15 July 2026</p>
 
 			<div class="summary">
 				<p>
 					<strong>Short version.</strong> BrainClean is an Android app that helps you block distracting apps until you complete a focus
-					task. We collect the minimum data needed to operate the service: your email and password to sign you in, and your tasks. The list
-					of apps you choose to block is stored on your device only. We do not use analytics, advertising, or tracking SDKs. You can delete
-					your account at any time from inside the app.
+					task, and offers optional eye-care and screen-time features. We collect the minimum data needed to operate the service: your
+					email and password (or a Google Sign-In, if you choose that) to sign you in, and your tasks. The apps you choose to block and
+					everything the app observes about your app usage stay on your device. We do not use analytics, advertising, or tracking SDKs. You
+					can delete your account at any time from inside the app.
 				</p>
 			</div>
 
@@ -239,7 +240,7 @@
 			<p>We collect only what is needed to provide the App.</p>
 
 			<h3>2.1 Account information</h3>
-			<p>When you create an account, you provide:</p>
+			<p>When you create an account with an email address and password, you provide:</p>
 			<ul>
 				<li>
 					<strong>Email address</strong> &mdash; used to sign you in, identify your account, and (if you forget your password) reset it.
@@ -251,12 +252,31 @@
 				</li>
 			</ul>
 
-			<h3>2.2 Task information</h3>
+			<h3>2.2 Signing in with Google</h3>
+			<p>
+				You may instead choose to sign in with your Google account. If you do, Android&rsquo;s Credential Manager shows you a Google account
+				chooser and, once you pick an account, returns a signed Google ID token to the App. The App sends that token to our server, which
+				verifies it with Google and uses it to create or sign you in to your BrainClean account.
+			</p>
+			<p>From that token we receive and store your <strong>email address</strong>, your <strong>name as set on your Google account</strong>, and your <strong>Google account identifier</strong>. We use these only to identify your account and sign you in.</p>
+			<p>
+				We do <strong>not</strong> receive your Google password, and we are not granted access to your Gmail, Drive, Contacts, Calendar, or
+				any other Google service. If you sign in with Google, no BrainClean password exists for your account.
+				<strong>Choosing this option means Google knows you use BrainClean</strong> &mdash; Google&rsquo;s handling of that is covered by the
+				<a
+					href="https://policies.google.com/privacy"
+					target="_blank"
+					rel="noopener noreferrer"
+					>Google Privacy Policy</a
+				>. If you prefer not to share this with Google, use email and password sign-in instead.
+			</p>
+
+			<h3>2.3 Task information</h3>
 			<p>When you create or use a focus task, we store:</p>
 			<ul>
 				<li>The task name you choose</li>
-				<li>The minimum duration you set</li>
-				<li>The task status (pending, active, or completed)</li>
+				<li>The minimum duration you set, and the maximum duration if you set one</li>
+				<li>The task status (pending, active, or completed), and whether it was completed by you or automatically when its timer elapsed</li>
 				<li>Timestamps for when the task was created, started, and completed</li>
 			</ul>
 			<p>
@@ -264,25 +284,32 @@
 				completion.
 			</p>
 
-			<h3>2.3 Selected apps to block</h3>
+			<h3>2.4 Selected apps to block</h3>
 			<p>
 				You choose which apps the service should block during a focus task. The list of selected app package names is stored
 				<strong>only on your device</strong> &mdash; it is never sent to or stored on our servers. The App also generates a session identifier
 				when you start a blocking session; this identifier is stored on your device.
 			</p>
 
-			<h3>2.4 Authentication token</h3>
+			<h3>2.5 Authentication token</h3>
 			<p>
 				After you sign in, our server issues a JSON Web Token (JWT). The App stores this token on your device using
 				<code>expo-secure-store</code>, which uses platform-provided encrypted storage (Android Keystore-backed). The token is sent in the
 				<code>Authorization</code> header of requests to our backend so the server knows which account is making the request.
 			</p>
 
-			<h3>2.5 What we do <em>not</em> collect</h3>
+			<h3>2.6 What we do <em>not</em> collect</h3>
 			<ul>
-				<li>We do <strong>not</strong> collect your real name, phone number, address, or any government identifiers.</li>
+				<li>
+					We do <strong>not</strong> collect your phone number, address, or any government identifiers. We do not ask you for your real name
+					&mdash; if you sign in with Google, we receive the name set on your Google account, as described in section&nbsp;2.2.
+				</li>
 				<li>We do <strong>not</strong> collect your location.</li>
 				<li>We do <strong>not</strong> collect your contacts, photos, or files.</li>
+				<li>
+					We do <strong>not</strong> collect which apps you use, how long you use them, or which apps are installed on your device. The App
+					observes these on your device to make blocking work, but never sends them to us. See section&nbsp;3.
+				</li>
 				<li>
 					We do <strong>not</strong> directly collect or store any payment or credit-card information. All payments are processed by Google
 					Play. See section&nbsp;7 for details.
@@ -299,16 +326,18 @@
 			<p>
 				The App uses Android&rsquo;s <code>PackageManager</code> to read the list of launchable apps installed on your device. We do this only
 				so the in-app picker can show you which apps you can choose to block, along with each app&rsquo;s name and icon. The App declares a
-				narrow <code>&lt;queries&gt;</code> intent filter (limited to launcher apps, plus a small fixed list of device-manufacturer settings
-				apps used only to open the correct auto-start settings screen on certain devices) rather than the broad
-				<code>QUERY_ALL_PACKAGES</code> permission.
+				narrow <code>&lt;queries&gt;</code> intent filter rather than the broad <code>QUERY_ALL_PACKAGES</code> permission. That filter is
+				limited to: launcher apps (so we can list them for you), a small fixed list of device-manufacturer settings apps (used only to open
+				the correct auto-start settings screen on certain devices), and apps that can open <code>https</code> links (used only to open pages
+				such as this one in your browser).
 				<strong>The list of installed apps is read on-device only and is never transmitted off your device.</strong>
 			</p>
 
 			<h3>3.2 Foreground app detection</h3>
 			<p>
-				When a focus task is active, the App uses Android&rsquo;s <code>UsageStatsManager</code> to detect which app is currently in the
-				foreground. This is checked locally against the list of apps you chose to block.
+				The App uses Android&rsquo;s <code>UsageStatsManager</code> to detect which app is currently in the foreground, and checks it
+				locally against the apps you selected. This runs while a focus task is active, and also while either of the optional wellness
+				features described in section&nbsp;3.4 is switched on. It does not run otherwise.
 				<strong>Foreground app information is never logged or transmitted off your device.</strong>
 			</p>
 
@@ -317,6 +346,32 @@
 				If you turn on the &ldquo;Block Notifications&rdquo; option in Settings, the App will use Android&rsquo;s notification listener to
 				silence notifications coming from the apps you have chosen to block while a focus task is active. The notification content is
 				processed locally only, is not stored, and is not transmitted to our servers. You can turn this option off at any time.
+			</p>
+
+			<h3>3.4 Wellness features (optional)</h3>
+			<p>
+				The App includes two optional wellness features. Both are <strong>switched off by default</strong>, both run only while you have
+				them switched on, and both work entirely on your device. When either is on, the App runs a second foreground service (with its own
+				ongoing notification &mdash; see section&nbsp;6) so Android does not stop it.
+			</p>
+			<ul>
+				<li>
+					<strong>Eye Blinker</strong> &mdash; on an interval you choose (20 minutes by default), the App briefly shows a full-screen
+					reminder to rest your eyes. This is a timer. It does not read anything about you or your device.
+				</li>
+				<li>
+					<strong>Doom Scroll Breaker</strong> &mdash; if you use one of the apps you selected continuously for longer than a limit you
+					choose (15 minutes by default), the App covers it with a countdown for a few seconds to interrupt the habit. To do this, the App
+					times how long the app you are currently using stays in the foreground.
+				</li>
+			</ul>
+			<p>
+				<strong
+					>The usage timings behind these features exist only in memory on your device while the feature is running. They are not written
+					to a history, not built into a profile, and never transmitted to our servers.</strong
+				>
+				What is saved is only your settings for the features: whether each is on, your chosen interval, limit, and duration, and which apps
+				Doom Scroll Breaker watches. Turning a feature off in Settings stops the monitoring immediately.
 			</p>
 
 			<h2 id="permissions">4. Permissions we request and why</h2>
@@ -344,19 +399,24 @@
 					<tr>
 						<td><code>PACKAGE_USAGE_STATS</code> (Usage Access)</td>
 						<td>
-							To detect which app is in the foreground, so blocking can be triggered when a blocked app opens. Granted by you in Android
-							Settings.
+							To detect which app is in the foreground, so blocking can be triggered when a blocked app opens, and so the optional
+							wellness features can time continuous use of an app. Granted by you in Android Settings.
 						</td>
 					</tr>
 					<tr>
 						<td><code>SYSTEM_ALERT_WINDOW</code> (Display over other apps)</td>
-						<td>To show the blocking overlay on top of a blocked app. Granted by you in Android Settings.</td>
+						<td>
+							To show the blocking overlay on top of a blocked app, and to show the eye-care reminder and Doom Scroll Breaker countdown
+							if you enable those. Granted by you in Android Settings.
+						</td>
 					</tr>
 					<tr>
 						<td><code>FOREGROUND_SERVICE</code> + <code>FOREGROUND_SERVICE_SPECIAL_USE</code></td>
 						<td>
-							To run the blocking engine as a foreground service so Android does not kill it while a focus task is active. The declared
-							subtype is &ldquo;App blocking enforcement for digital wellness&rdquo;.
+							To keep the App&rsquo;s engines running so Android does not kill them mid-session. Two services declare this: the blocking
+							engine, subtype &ldquo;App blocking enforcement for digital wellness&rdquo;, which runs while a focus task is active; and
+							the wellness engine, subtype &ldquo;Eye care reminders and app usage monitoring for digital wellness&rdquo;, which runs
+							only while you have an optional wellness feature switched on.
 						</td>
 					</tr>
 					<tr>
@@ -388,6 +448,13 @@
 						</td>
 					</tr>
 					<tr>
+						<td><code>com.android.vending.BILLING</code></td>
+						<td>
+							To offer the subscription through Google Play Billing. Payment is handled by Google Play; this permission does not give
+							the App access to your payment details. See section&nbsp;7.2.
+						</td>
+					</tr>
+					<tr>
 						<td><code>VIBRATE</code></td>
 						<td>To provide brief haptic feedback in the user interface.</td>
 					</tr>
@@ -400,12 +467,20 @@
 			<ul>
 				<li>
 					<strong>Encrypted storage</strong> &mdash; your authentication token and email are stored using <code>expo-secure-store</code>,
-					which uses Android&rsquo;s platform-provided encrypted storage.
+					which uses Android&rsquo;s platform-provided encrypted storage. Your app preferences are kept here too: which apps you selected,
+					your chosen language, your wellness-feature settings, your &ldquo;Block Notifications&rdquo; choice, and a cached copy of your
+					subscription status so the App knows what to show before it can reach our server.
 				</li>
 				<li>
 					<strong>App-private storage</strong> &mdash; blocking session state (such as the package names you chose to block, session
-					identifier, start time, and your maximum block-time setting) is stored in Android <code>SharedPreferences</code> in the
-					App&rsquo;s private storage area, accessible only to the App.
+					identifier, start time, and your maximum block-time setting) and your wellness-feature settings are stored in Android
+					<code>SharedPreferences</code> in the App&rsquo;s private storage area, accessible only to the App. The blocking engine keeps its
+					own copy here so that blocking keeps working even if you force-close the App or restart your device.
+				</li>
+				<li>
+					<strong>While a focus task is active</strong>, the blocking engine also keeps a copy of your authentication token in that
+					app-private area, because it needs to ask our server whether your task is complete even when the rest of the App is not running.
+					It is removed when the session ends.
 				</li>
 			</ul>
 
@@ -424,30 +499,46 @@
 
 			<h2 id="notifications">6. Notifications</h2>
 			<p>
-				While a focus task is active, Android requires the App to display an ongoing notification because the blocking engine runs as a
-				foreground service. The notification reads:
+				Android requires the App to display an ongoing notification whenever one of its engines is running as a foreground service. You may
+				see either of these:
 			</p>
-			<p><code>BrainClean &mdash; BrainClean is protecting your focus.</code></p>
+			<ul>
+				<li>
+					<code>BrainClean &mdash; BrainClean is protecting your focus.</code> &mdash; shown while a focus task is active. It disappears
+					when the task ends or you stop blocking.
+				</li>
+				<li>
+					<code>BrainClean &mdash; Eye care active</code> / <code>Usage monitoring active</code> /
+					<code>Eye care &amp; usage monitoring active</code> &mdash; shown while an optional wellness feature is switched on, naming
+					whichever is running. It disappears when you switch the feature off.
+				</li>
+			</ul>
 			<p>
-				This notification is shown by your device only and is not used to send marketing or promotional messages. The notification disappears
-				when the task ends or you stop blocking.
+				These notifications are generated by your device only. We do not send push notifications, and we do not use notifications for
+				marketing or promotional messages.
 			</p>
 
 			<h2 id="third-parties">7. Third parties</h2>
 			<p>
-				BrainClean does <strong>not</strong> currently use any third-party analytics, advertising, attribution, or crash-reporting SDKs. We do
+				BrainClean does <strong>not</strong> use any third-party analytics, advertising, attribution, or crash-reporting SDKs. We do
 				<strong>not</strong> sell, rent, or share your personal data with third parties for advertising or marketing.
 			</p>
-
-			<h3>7.1 Google Play</h3>
 			<p>
-				The App is distributed through Google Play, which may collect its own diagnostic data per the
+				The only third party involved in running the App is <strong>Google</strong>, and only through the Google services listed below. Each
+				is described under the
 				<a
 					href="https://policies.google.com/privacy"
 					target="_blank"
 					rel="noopener noreferrer"
 					>Google Privacy Policy</a
 				>.
+			</p>
+
+			<h3>7.1 Google Play</h3>
+			<p>
+				The App is distributed through Google Play, which may collect its own diagnostic data. The App also uses Google Play&rsquo;s in-app
+				update mechanism to offer you a newer version when one is available; this exchanges version information with Google Play and does not
+				involve your account or task data.
 			</p>
 
 			<h3>7.2 Google Play Billing</h3>
@@ -465,6 +556,13 @@
 				>
 				for how Google handles your payment data.
 			</p>
+
+			<h3>7.3 Google Sign-In</h3>
+			<p>
+				If you choose to sign in with Google, the App uses Android&rsquo;s Credential Manager together with Google Identity Services to show
+				the account chooser and obtain a Google ID token. This happens only when you tap &ldquo;Continue with Google&rdquo;. What we receive
+				from that token, and what we do not, is described in section&nbsp;2.2.
+			</p>
 			<p>
 				If we add a service in a future version (for example, an opt-in crash-reporting tool), we will update this policy and the effective
 				date before the new version is published.
@@ -477,14 +575,21 @@
 				it is also deleted.
 			</p>
 			<p>
-				Locally stored data (your authentication token, email, and selected blocked apps) is removed from your device when you sign out,
-				delete your account, or uninstall the App.
+				Locally stored data (your authentication token, email, selected apps, wellness settings, and other preferences described in
+				section&nbsp;5.1) is removed from your device when you sign out, delete your account, or uninstall the App.
 			</p>
 
 			<h2 id="rights">9. Your rights and account deletion</h2>
 			<p>You can:</p>
 			<ul>
-				<li><strong>Access and correct</strong> your account information from inside the App.</li>
+				<li>
+					<strong>Access</strong> your account information &mdash; your email address is shown in the App under Settings. If you signed up
+					with an email and password, you can change your password using the &ldquo;Forgot password&rdquo; flow on the sign-in screen.
+				</li>
+				<li>
+					<strong>Correct</strong> your account information &mdash; if any of it is wrong and you cannot change it in the App, email us at
+					support@brainclean.app from the address on your account and we will correct it for you.
+				</li>
 				<li>
 					<strong>Delete your account</strong> at any time. Open the App, go to Settings, and tap &ldquo;Delete Account&rdquo;. After
 					confirmation, we permanently delete your account, all your tasks, and all associated data. This action cannot be undone.
@@ -493,6 +598,10 @@
 				<li>
 					<strong>Revoke permissions</strong> at any time in Android Settings. Revoking certain permissions (Usage Access, Display over
 					other apps) will disable or weaken the blocking feature.
+				</li>
+				<li>
+					<strong>Turn off the wellness features</strong> at any time in Settings, which stops the on-device usage monitoring described in
+					section&nbsp;3.4 immediately.
 				</li>
 			</ul>
 			<p>

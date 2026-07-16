@@ -25,6 +25,7 @@ ${KEEP_RULES_MARKER}
 -keep class expo.modules.blocker.NotificationBlockerService { *; }
 -keep class expo.modules.blocker.WellnessService { *; }
 -keep class expo.modules.blocker.WellnessWatchdogReceiver { *; }
+-keep class expo.modules.blocker.ScheduleAlarmReceiver { *; }
 
 # OkHttp (used by TaskStatusChecker for backend polling)
 -dontwarn okhttp3.**
@@ -170,11 +171,39 @@ const withEdgeToEdgeStyles = (config) =>
 		},
 	]);
 
+const SCHEDULE_RECEIVER_TAG = 'expo.modules.blocker.ScheduleAlarmReceiver';
+
+const withScheduleReceiver = (config) =>
+	withDangerousMod(config, [
+		'android',
+		async (cfg) => {
+			const manifestPath = path.join(
+				cfg.modRequest.platformProjectRoot,
+				'app',
+				'src',
+				'main',
+				'AndroidManifest.xml',
+			);
+			if (!fs.existsSync(manifestPath)) return cfg;
+
+			let contents = fs.readFileSync(manifestPath, 'utf8');
+			if (!contents.includes(SCHEDULE_RECEIVER_TAG)) {
+				contents = contents.replace(
+					'</application>',
+					`    <receiver android:name="${SCHEDULE_RECEIVER_TAG}" android:exported="false"/>\n  </application>`,
+				);
+				fs.writeFileSync(manifestPath, contents);
+			}
+			return cfg;
+		},
+	]);
+
 module.exports = function withProductionAndroidConfig(config) {
 	config = withGradlePropertyFlags(config);
 	config = withHermesCommandFix(config);
 	config = withReleaseSigningConfig(config);
 	config = withProguardKeepRules(config);
 	config = withEdgeToEdgeStyles(config);
+	config = withScheduleReceiver(config);
 	return config;
 };

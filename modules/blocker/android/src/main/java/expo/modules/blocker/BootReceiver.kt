@@ -20,6 +20,12 @@ class BootReceiver : BroadcastReceiver() {
             Log.i(TAG, "Boot completed, restarting wellness service")
             WellnessService.start(context)
         }
+
+        val scheduleState = ScheduleState.getInstance(context)
+        if (scheduleState.hasAnyEnabledSchedule()) {
+            Log.i(TAG, "Boot completed, re-registering schedule alarms")
+            ScheduleAlarmReceiver.rescheduleAll(context)
+        }
     }
 
     companion object {

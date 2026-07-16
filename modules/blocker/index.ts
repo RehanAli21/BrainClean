@@ -110,6 +110,49 @@ export function isWellnessServiceRunning(): boolean {
   return BlockerModule.isWellnessServiceRunning();
 }
 
+export interface ScheduleInfo {
+  id: string;
+  hour: number;
+  minute: number;
+  durationHours: number;
+  durationMinutes: number;
+  repeatDays: number[];
+  label: string;
+  enabled: boolean;
+}
+
+export function addSchedule(
+  hour: number,
+  minute: number,
+  durationHours: number,
+  durationMinutes: number,
+  repeatDays: number[],
+  label: string,
+): string {
+  return BlockerModule.addSchedule(hour, minute, durationHours, durationMinutes, repeatDays, label);
+}
+
+export function removeSchedule(id: string): void {
+  BlockerModule.removeSchedule(id);
+}
+
+export function toggleSchedule(id: string, enabled: boolean): void {
+  BlockerModule.toggleSchedule(id, enabled);
+}
+
+export function getSchedules(): ScheduleInfo[] {
+  return BlockerModule.getSchedules();
+}
+
+export function syncScheduleConfig(
+  authToken: string,
+  baseUrl: string,
+  selectedApps: string[],
+  blockNotifications: boolean,
+): void {
+  BlockerModule.syncScheduleConfig(authToken, baseUrl, selectedApps, blockNotifications);
+}
+
 export function addBlockedAppListener(
   callback: (event: { packageName: string }) => void,
 ): EventSubscription {

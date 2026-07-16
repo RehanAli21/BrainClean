@@ -282,8 +282,36 @@ export default {
   tabs: {
     tasks: 'المهام',
     apps: 'التطبيقات',
+    schedules: 'الجداول',
     wellness: 'العافية',
     settings: 'الإعدادات',
+  },
+
+  schedules: {
+    title: 'الجداول',
+    noSchedules: 'لا توجد جداول بعد.\nاضغط + لإنشاء واحد.',
+    createSchedule: 'إنشاء جدول',
+    time: 'وقت البدء',
+    duration: 'مدة الحظر',
+    repeat: 'تكرار',
+    label: 'عنوان (اختياري)',
+    labelPlaceholder: 'مثال: تركيز العمل',
+    labelHint: 'يستخدم كاسم المهمة. إذا ترك فارغاً، سيتم استخدام الوقت والتاريخ.',
+    oneTime: 'مرة واحدة',
+    oneTimeHint: 'لم يتم اختيار أيام — سيتم تشغيل هذا الجدول مرة واحدة ثم يتم تعطيله.',
+    durationRequired: 'يجب أن تكون المدة دقيقة واحدة على الأقل.',
+    noAppsSelected: 'اختر التطبيقات للحظر في تبويب التطبيقات أولاً.',
+    deleteTitle: 'حذف الجدول',
+    deleteConfirm: 'هل أنت متأكد من حذف هذا الجدول؟',
+    days: {
+      sun: 'أ',
+      mon: 'إ',
+      tue: 'ث',
+      wed: 'أ',
+      thu: 'خ',
+      fri: 'ج',
+      sat: 'س',
+    },
   },
 
   wellness: {

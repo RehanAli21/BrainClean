@@ -282,8 +282,36 @@ export default {
   tabs: {
     tasks: '任务',
     apps: '应用',
+    schedules: '定时计划',
     wellness: '健康',
     settings: '设置',
+  },
+
+  schedules: {
+    title: '定时计划',
+    noSchedules: '暂无计划。\n点击 + 创建一个。',
+    createSchedule: '创建计划',
+    time: '开始时间',
+    duration: '锁定时长',
+    repeat: '重复',
+    label: '标签（可选）',
+    labelPlaceholder: '例如：工作专注',
+    labelHint: '用作任务名称。如果留空，将使用时间和日期。',
+    oneTime: '一次性',
+    oneTimeHint: '未选择任何天 — 此计划将运行一次后禁用。',
+    durationRequired: '时长至少为1分钟。',
+    noAppsSelected: '请先在应用标签中选择要锁定的应用。',
+    deleteTitle: '删除计划',
+    deleteConfirm: '确定要删除此计划吗？',
+    days: {
+      sun: '日',
+      mon: '一',
+      tue: '二',
+      wed: '三',
+      thu: '四',
+      fri: '五',
+      sat: '六',
+    },
   },
 
   wellness: {

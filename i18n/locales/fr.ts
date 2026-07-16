@@ -282,8 +282,36 @@ export default {
   tabs: {
     tasks: 'Tâches',
     apps: 'Apps',
+    schedules: 'Horaires',
     wellness: 'Bien-être',
     settings: 'Paramètres',
+  },
+
+  schedules: {
+    title: 'Horaires',
+    noSchedules: 'Aucun horaire pour le moment.\nAppuyez sur + pour en créer un.',
+    createSchedule: 'Créer un horaire',
+    time: 'Heure de début',
+    duration: 'Durée du blocage',
+    repeat: 'Répéter',
+    label: 'Libellé (optionnel)',
+    labelPlaceholder: 'ex. Concentration travail',
+    labelHint: 'Utilisé comme nom de la tâche. Si vide, l\'heure et la date seront utilisées.',
+    oneTime: 'Une fois',
+    oneTimeHint: 'Aucun jour sélectionné — cet horaire s\'exécutera une fois puis sera désactivé.',
+    durationRequired: 'La durée doit être d\'au moins 1 minute.',
+    noAppsSelected: 'Sélectionnez d\'abord des apps à bloquer dans l\'onglet Apps.',
+    deleteTitle: 'Supprimer l\'horaire',
+    deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cet horaire ?',
+    days: {
+      sun: 'D',
+      mon: 'L',
+      tue: 'M',
+      wed: 'M',
+      thu: 'J',
+      fri: 'V',
+      sat: 'S',
+    },
   },
 
   wellness: {

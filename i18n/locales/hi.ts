@@ -282,8 +282,36 @@ export default {
   tabs: {
     tasks: 'कार्य',
     apps: 'ऐप्स',
+    schedules: 'शेड्यूल',
     wellness: 'स्वास्थ्य',
     settings: 'सेटिंग्स',
+  },
+
+  schedules: {
+    title: 'शेड्यूल',
+    noSchedules: 'अभी कोई शेड्यूल नहीं है।\nएक बनाने के लिए + दबाएं।',
+    createSchedule: 'शेड्यूल बनाएं',
+    time: 'शुरू का समय',
+    duration: 'ब्लॉक अवधि',
+    repeat: 'दोहराएं',
+    label: 'लेबल (वैकल्पिक)',
+    labelPlaceholder: 'जैसे: कार्य फोकस',
+    labelHint: 'टास्क नाम के रूप में उपयोग किया जाता है। खाली छोड़ने पर समय और तारीख उपयोग होगी।',
+    oneTime: 'एक बार',
+    oneTimeHint: 'कोई दिन चयनित नहीं — यह शेड्यूल एक बार चलेगा फिर निष्क्रिय हो जाएगा।',
+    durationRequired: 'अवधि कम से कम 1 मिनट होनी चाहिए।',
+    noAppsSelected: 'पहले ऐप्स टैब में ब्लॉक करने के लिए ऐप्स चुनें।',
+    deleteTitle: 'शेड्यूल हटाएं',
+    deleteConfirm: 'क्या आप वाकई इस शेड्यूल को हटाना चाहते हैं?',
+    days: {
+      sun: 'र',
+      mon: 'सो',
+      tue: 'मं',
+      wed: 'बु',
+      thu: 'गु',
+      fri: 'शु',
+      sat: 'श',
+    },
   },
 
   wellness: {

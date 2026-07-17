@@ -64,10 +64,10 @@ class BlockerModule : Module() {
                 .sortedBy { (it["appName"] as? String)?.lowercase() }
         }
 
-        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, blockNotifications: Boolean, minimumDurationMs: Long ->
+        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long ->
             val context = appContext.reactContext ?: return@Function Unit
             val state = BlockerState.getInstance(context)
-            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications, minimumDurationMs)
+            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs)
             BlockerService.start(context)
         }
 
@@ -359,10 +359,10 @@ class BlockerModule : Module() {
             }
         }
 
-        Function("syncScheduleConfig") { authToken: String, baseUrl: String, selectedApps: List<String>, blockNotifications: Boolean ->
+        Function("syncScheduleConfig") { authToken: String, baseUrl: String, selectedApps: List<String>, notificationBlockMode: Int ->
             val context = appContext.reactContext ?: return@Function
             val state = ScheduleState.getInstance(context)
-            state.setAuthConfig(authToken, baseUrl, selectedApps.toSet(), blockNotifications)
+            state.setAuthConfig(authToken, baseUrl, selectedApps.toSet(), notificationBlockMode)
         }
     }
 

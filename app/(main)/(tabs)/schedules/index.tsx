@@ -98,7 +98,7 @@ export default function ScheduleListScreen() {
 	const router = useRouter()
 	const { token } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const blockNotifications = useUiStore(s => s.blockNotifications)
+	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 	const isPremium = useUiStore(s => s.isPremium)
 	const [schedules, setSchedules] = useState<ScheduleInfo[]>([])
 	const fabCooldown = useRef(false)
@@ -106,11 +106,11 @@ export default function ScheduleListScreen() {
 	const loadSchedules = useCallback(() => {
 		try {
 			if (token) {
-				syncScheduleConfig(token, API_BASE_URL, selectedApps, blockNotifications)
+				syncScheduleConfig(token, API_BASE_URL, selectedApps, notificationBlockMode)
 			}
 			setSchedules(getSchedules())
 		} catch {}
-	}, [token, selectedApps, blockNotifications])
+	}, [token, selectedApps, notificationBlockMode])
 
 	useFocusEffect(
 		useCallback(() => {

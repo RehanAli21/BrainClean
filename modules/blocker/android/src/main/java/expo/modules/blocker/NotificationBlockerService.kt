@@ -11,11 +11,20 @@ class NotificationBlockerService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val state = BlockerState.getInstance(applicationContext)
-        if (!state.isActive() || !state.shouldBlockNotifications()) return
+        if (!state.isActive()) return
 
-        val blockedPackages = state.getBlockedPackages()
-        if (sbn.packageName in blockedPackages) {
-            cancelNotification(sbn.key)
+        val mode = state.getNotificationBlockMode()
+        when (mode) {
+            1 -> {
+                if (sbn.packageName in state.getBlockedPackages()) {
+                    cancelNotification(sbn.key)
+                }
+            }
+            2 -> {
+                if (sbn.packageName != applicationContext.packageName) {
+                    cancelNotification(sbn.key)
+                }
+            }
         }
     }
 

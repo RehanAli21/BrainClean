@@ -14,10 +14,10 @@ export function startBlocking(
   authToken: string,
   baseUrl: string,
   maxBlockTimeMs: number,
-  blockNotifications: boolean,
+  notificationBlockMode: number,
   minimumDurationMs: number,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, blockNotifications, minimumDurationMs);
+  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs);
 }
 
 export function stopBlocking(): void {
@@ -148,9 +148,9 @@ export function syncScheduleConfig(
   authToken: string,
   baseUrl: string,
   selectedApps: string[],
-  blockNotifications: boolean,
+  notificationBlockMode: number,
 ): void {
-  BlockerModule.syncScheduleConfig(authToken, baseUrl, selectedApps, blockNotifications);
+  BlockerModule.syncScheduleConfig(authToken, baseUrl, selectedApps, notificationBlockMode);
 }
 
 export function addBlockedAppListener(

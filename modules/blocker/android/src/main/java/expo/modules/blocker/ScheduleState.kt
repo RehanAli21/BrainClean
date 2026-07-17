@@ -51,19 +51,19 @@ class ScheduleState private constructor(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun setAuthConfig(authToken: String, baseUrl: String, selectedApps: Set<String>, blockNotifications: Boolean) {
+    fun setAuthConfig(authToken: String, baseUrl: String, selectedApps: Set<String>, notificationBlockMode: Int) {
         prefs.edit()
             .putString(KEY_AUTH_TOKEN, authToken)
             .putString(KEY_BASE_URL, baseUrl)
             .putStringSet(KEY_SELECTED_APPS, selectedApps)
-            .putBoolean(KEY_BLOCK_NOTIFICATIONS, blockNotifications)
+            .putInt(KEY_NOTIFICATION_BLOCK_MODE, notificationBlockMode)
             .apply()
     }
 
     fun getAuthToken(): String = prefs.getString(KEY_AUTH_TOKEN, "") ?: ""
     fun getBaseUrl(): String = prefs.getString(KEY_BASE_URL, "") ?: ""
     fun getSelectedApps(): Set<String> = prefs.getStringSet(KEY_SELECTED_APPS, emptySet()) ?: emptySet()
-    fun shouldBlockNotifications(): Boolean = prefs.getBoolean(KEY_BLOCK_NOTIFICATIONS, false)
+    fun getNotificationBlockMode(): Int = prefs.getInt(KEY_NOTIFICATION_BLOCK_MODE, 0)
 
     fun getAllSchedules(): List<ScheduleData> {
         val json = prefs.getString(KEY_SCHEDULES, "[]") ?: "[]"
@@ -108,7 +108,7 @@ class ScheduleState private constructor(context: Context) {
         private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_BASE_URL = "base_url"
         private const val KEY_SELECTED_APPS = "selected_apps"
-        private const val KEY_BLOCK_NOTIFICATIONS = "block_notifications"
+        private const val KEY_NOTIFICATION_BLOCK_MODE = "notification_block_mode"
         private const val KEY_SCHEDULES = "schedules_json"
 
         @Volatile

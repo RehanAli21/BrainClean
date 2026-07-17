@@ -46,7 +46,7 @@ class BlockerService : Service() {
         acquireWakeLock(state.getMaxBlockTimeMs())
         BlockerWatchdogReceiver.schedule(this)
 
-        if (state.shouldBlockNotifications()) {
+        if (state.getNotificationBlockMode() > 0) {
             NotificationBlockerService.ensureBound(this)
         }
 

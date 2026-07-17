@@ -102,7 +102,7 @@ export default function TaskListScreen() {
 	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const blockNotifications = useUiStore(s => s.blockNotifications)
+	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 	const isPremium = useUiStore(s => s.isPremium)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 	const fabCooldown = useRef(false)
@@ -146,11 +146,11 @@ export default function TaskListScreen() {
 				token,
 				API_BASE_URL,
 				(activeTask.maximumDurationSeconds ?? 36000) * 1000,
-				blockNotifications,
+				notificationBlockMode,
 				activeTask.minimumDurationSeconds * 1000,
 			)
 		} catch {}
-	}, [activeTask, isBlocking, token, selectedApps, blockNotifications, startBlocking])
+	}, [activeTask, isBlocking, token, selectedApps, notificationBlockMode, startBlocking])
 	const activeStartedAt = activeTask?.startedAt
 	const activeMinDuration = activeTask?.minimumDurationSeconds
 

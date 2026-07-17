@@ -13,8 +13,8 @@ interface UiState {
   selectedApps: string[];
   toggleApp: (packageName: string) => void;
   isAppSelected: (packageName: string) => boolean;
-  blockNotifications: boolean;
-  setBlockNotifications: (enabled: boolean) => void;
+  notificationBlockMode: number;
+  setNotificationBlockMode: (mode: number) => void;
   // Timestamp (ms) the user confirmed they padlocked BrainClean in the recents
   // view on an aggressive-OEM device (XOS/MIUI/etc). Null = not confirmed yet.
   // Used to hide the padlock-tutorial card once the user has done it.
@@ -64,10 +64,10 @@ export const useUiStore = create<UiState>()(
         return get().selectedApps.includes(packageName);
       },
 
-      blockNotifications: false,
+      notificationBlockMode: 0,
 
-      setBlockNotifications: (enabled: boolean) => {
-        set({ blockNotifications: enabled });
+      setNotificationBlockMode: (mode: number) => {
+        set({ notificationBlockMode: mode });
       },
 
       padlockConfirmedAt: null,

@@ -170,7 +170,7 @@ export default function NewScheduleScreen() {
 	const router = useRouter()
 	const { token } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const blockNotifications = useUiStore(s => s.blockNotifications)
+	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 
 	const [hour12, setHour12] = useState(9)
 	const [minute, setMinute] = useState(0)
@@ -218,7 +218,7 @@ export default function NewScheduleScreen() {
 
 		setBusy(true)
 		try {
-			syncScheduleConfig(token, API_BASE_URL, selectedApps, blockNotifications)
+			syncScheduleConfig(token, API_BASE_URL, selectedApps, notificationBlockMode)
 			addSchedule(
 				hour24,
 				minute,

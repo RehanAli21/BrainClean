@@ -41,14 +41,15 @@ export default function SettingsScreen() {
 	const { permissions, recheck } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 	const { isBlocking } = useBlocker()
-	const blockNotifications = useUiStore(s => s.blockNotifications)
-	const setBlockNotifications = useUiStore(s => s.setBlockNotifications)
+	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
+	const setNotificationBlockMode = useUiStore(s => s.setNotificationBlockMode)
 	const subscriptionState = useUiStore(s => s.subscriptionState)
 	const subscriptionExpiresAt = useUiStore(s => s.subscriptionExpiresAt)
 	const [deleting, setDeleting] = useState(false)
 	const [showTutorial, setShowTutorial] = useState(false)
 	const [showLanguagePicker, setShowLanguagePicker] = useState(false)
 	const pendingNotificationToggle = useRef(false)
+	const pendingNotifMode = useRef(0)
 	const notifRef = useRef<View | null>(null)
 	const permsRef = useRef<View | null>(null)
 
@@ -62,18 +63,20 @@ export default function SettingsScreen() {
 		const sub = AppState.addEventListener('change', state => {
 			if (state === 'active' && pendingNotificationToggle.current) {
 				pendingNotificationToggle.current = false
-				if (isNotificationListenerEnabled()) {
-					setBlockNotifications(true)
+				if (isNotificationListenerEnabled() && pendingNotifMode.current > 0) {
+					setNotificationBlockMode(pendingNotifMode.current)
+					pendingNotifMode.current = 0
 				}
 			}
 		})
 		return () => sub.remove()
-	}, [setBlockNotifications])
+	}, [setNotificationBlockMode])
 
-	const handleToggleNotifications = (value: boolean) => {
-		if (value) {
+	const handleSetNotifMode = (mode: number) => {
+		if (mode > 0) {
 			const enabled = isNotificationListenerEnabled()
 			if (!enabled) {
+				pendingNotifMode.current = mode
 				Alert.alert(
 					t('settings.notifPermTitle'),
 					t('settings.notifPermMessage'),
@@ -91,7 +94,7 @@ export default function SettingsScreen() {
 				return
 			}
 		}
-		setBlockNotifications(value)
+		setNotificationBlockMode(mode)
 	}
 
 	const handleLogout = () => {
@@ -213,25 +216,44 @@ export default function SettingsScreen() {
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.blocking')}</Text>
 
 				<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-					<View style={styles.toggleRow}>
-						<View style={styles.toggleInfo}>
-							<Ionicons
-								name='notifications-off-outline'
-								size={20}
-								color={theme.icon}
-							/>
-							<View style={styles.rowText}>
-								<Text style={[styles.label, { color: theme.icon }]}>{t('settings.blockNotifications')}</Text>
-								<Text style={[styles.hint, { color: theme.icon }]}>{t('settings.blockNotificationsHint')}</Text>
-							</View>
+					<View style={styles.notifHeader}>
+						<Ionicons name='notifications-off-outline' size={20} color={theme.icon} />
+						<View style={styles.rowText}>
+							<Text style={[styles.label, { color: theme.icon }]}>{t('settings.blockNotifications')}</Text>
+							<Text style={[styles.hint, { color: theme.icon }]}>{t('settings.blockNotificationsHint')}</Text>
 						</View>
-						<Switch
-							value={blockNotifications}
-							onValueChange={handleToggleNotifications}
-							trackColor={{ false: theme.border, true: theme.primary }}
-							thumbColor={theme.text}
-							disabled={isBlocking}
-						/>
+					</View>
+					<View style={styles.notifModes}>
+						{([0, 1, 2] as const).map(mode => {
+							const labels = [
+								t('settings.notifModeOff'),
+								t('settings.notifModeSelected'),
+								t('settings.notifModeAll'),
+							]
+							const active = notificationBlockMode === mode
+							return (
+								<TouchableOpacity
+									key={mode}
+									style={[
+										styles.notifModeBtn,
+										{
+											backgroundColor: active ? theme.primary : 'transparent',
+											borderColor: active ? theme.primary : theme.border,
+										},
+									]}
+									onPress={() => handleSetNotifMode(mode)}
+									activeOpacity={0.7}
+									disabled={isBlocking}>
+									<Text
+										style={[
+											styles.notifModeBtnText,
+											{ color: active ? '#FFFFFF' : theme.icon },
+										]}>
+										{labels[mode]}
+									</Text>
+								</TouchableOpacity>
+							)
+						})}
 					</View>
 				</View>
 
@@ -405,6 +427,16 @@ const styles = StyleSheet.create({
 	hint: { fontSize: 12, marginTop: 2 },
 	toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 	toggleInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flex: 1 },
+	notifHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 },
+	notifModes: { flexDirection: 'row', gap: 8 },
+	notifModeBtn: {
+		flex: 1,
+		borderWidth: 1,
+		borderRadius: 8,
+		paddingVertical: 10,
+		alignItems: 'center',
+	},
+	notifModeBtnText: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
 	tutorialButton: {
 		borderRadius: 12,
 		height: 52,

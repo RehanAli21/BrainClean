@@ -52,7 +52,7 @@ export default function TaskDetailScreen() {
 	const queryClient = useQueryClient()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const blockNotifications = useUiStore(s => s.blockNotifications)
+	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 	const hasRated = useUiStore(s => s.hasRated)
 	const setHasRated = useUiStore(s => s.setHasRated)
 	const [apiError, setApiError] = useState('')
@@ -78,11 +78,11 @@ export default function TaskDetailScreen() {
 				token,
 				API_BASE_URL,
 				(task.maximumDurationSeconds ?? 36000) * 1000,
-				blockNotifications,
+				notificationBlockMode,
 				task.minimumDurationSeconds * 1000,
 			)
 		} catch {}
-	}, [isActive, isBlocking, task, token, selectedApps, blockNotifications, startBlocking])
+	}, [isActive, isBlocking, task, token, selectedApps, notificationBlockMode, startBlocking])
 
 	useEffect(() => {
 		if (!isActive || canComplete) return
@@ -132,7 +132,7 @@ export default function TaskDetailScreen() {
 						token!,
 						API_BASE_URL,
 						(task!.maximumDurationSeconds ?? 36000) * 1000,
-						blockNotifications,
+						notificationBlockMode,
 						task!.minimumDurationSeconds * 1000,
 					)
 				} catch {

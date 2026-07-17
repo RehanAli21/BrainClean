@@ -90,7 +90,7 @@ class ScheduleAlarmReceiver : BroadcastReceiver() {
             authToken,
             baseUrl,
             maxDurationSeconds * 1000L,
-            state.shouldBlockNotifications(),
+            state.getNotificationBlockMode(),
             minDurationSeconds * 1000L
         )
         BlockerService.start(context)

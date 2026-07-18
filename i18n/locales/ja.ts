@@ -109,6 +109,24 @@ export default {
     restore: '購入を復元',
   },
 
+  feedback: {
+    title: 'フィードバックを送信',
+    subtitle: 'BrainCleanの改善にご協力ください。ご意見をお待ちしております！',
+    categoryLabel: 'カテゴリー',
+    selectCategory: 'カテゴリーを選択',
+    categoryRequired: 'カテゴリーを選択してください',
+    messageLabel: 'フィードバック',
+    messagePlaceholder: 'ご意見をお聞かせください...',
+    messageRequired: 'フィードバックを入力してください',
+    messageTooLong: 'フィードバックは2000文字以内にしてください',
+    emailLabel: 'メール（任意）',
+    emailPlaceholder: 'your@email.com',
+    submit: 'フィードバックを送信',
+    thankYou: 'ありがとうございます！',
+    submitted: 'フィードバックが送信されました。改善にご協力いただきありがとうございます。',
+    categories: { 'hard-to-use': '使いにくい', 'missing-features': '機能不足', 'too-many-permissions': '権限が多すぎる', 'not-what-expected': '期待と違う', 'found-alternative': '代替を見つけた', 'bugs-crashes': 'バグとクラッシュ', 'privacy-concerns': 'プライバシーの懸念', 'other': 'その他' },
+  },
+
   subscription: {
     gracePeriod: 'お支払いに問題があります — Play ストアでお支払い方法を更新してください。',
     canceled: 'サブスクリプションは {{date}} に終了します。アクセスを維持するには更新してください。',

@@ -89,6 +89,24 @@ export default {
     restore: 'Satın Almaları Geri Yükle',
   },
 
+  feedback: {
+    title: 'Geri Bildirim Gönder',
+    subtitle: 'BrainClean\'i geliştirmemize yardımcı olun. Geri bildiriminiz önemli!',
+    categoryLabel: 'Kategori',
+    selectCategory: 'Kategori seçin',
+    categoryRequired: 'Lütfen bir kategori seçin',
+    messageLabel: 'Geri Bildiriminiz',
+    messagePlaceholder: 'Düşüncelerinizi paylaşın...',
+    messageRequired: 'Lütfen geri bildiriminizi girin',
+    messageTooLong: 'Geri bildirim 2000 karakterden az olmalıdır',
+    emailLabel: 'E-posta (isteğe bağlı)',
+    emailPlaceholder: 'sizin@email.com',
+    submit: 'Geri Bildirim Gönder',
+    thankYou: 'Teşekkürler!',
+    submitted: 'Geri bildiriminiz gönderildi. İyileştirmemize yardımcı olduğunuz için teşekkürler.',
+    categories: { 'hard-to-use': 'Kullanımı zor', 'missing-features': 'Eksik özellikler', 'too-many-permissions': 'Çok fazla izin', 'not-what-expected': 'Beklediğim gibi değil', 'found-alternative': 'Alternatif buldum', 'bugs-crashes': 'Hatalar ve çökmeler', 'privacy-concerns': 'Gizlilik endişeleri', 'other': 'Diğer' },
+  },
+
   subscription: {
     gracePeriod: 'Ödeme sorunu — lütfen Play Store\'da ödeme yönteminizi güncelleyin.',
     canceled: 'Aboneliğiniz {{date}} tarihinde sona erecek. Erişimi korumak için yenileyin.',

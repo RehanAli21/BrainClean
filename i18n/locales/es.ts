@@ -359,6 +359,33 @@ export default {
     restore: 'Restaurar Compras',
   },
 
+  feedback: {
+    title: 'Enviar Comentarios',
+    subtitle: 'Ayúdanos a mejorar BrainClean. ¡Tu opinión importa!',
+    categoryLabel: 'Categoría',
+    selectCategory: 'Selecciona una categoría',
+    categoryRequired: 'Por favor selecciona una categoría',
+    messageLabel: 'Tu Comentario',
+    messagePlaceholder: 'Cuéntanos qué piensas...',
+    messageRequired: 'Por favor escribe tu comentario',
+    messageTooLong: 'El comentario debe tener menos de 2000 caracteres',
+    emailLabel: 'Correo (opcional)',
+    emailPlaceholder: 'tu@email.com',
+    submit: 'Enviar Comentario',
+    thankYou: '¡Gracias!',
+    submitted: 'Tu comentario ha sido enviado. Agradecemos tu ayuda para mejorar.',
+    categories: {
+      'hard-to-use': 'Difícil de usar',
+      'missing-features': 'Faltan funciones',
+      'too-many-permissions': 'Demasiados permisos',
+      'not-what-expected': 'No es lo que esperaba',
+      'found-alternative': 'Encontré una alternativa',
+      'bugs-crashes': 'Errores y fallos',
+      'privacy-concerns': 'Preocupaciones de privacidad',
+      'other': 'Otro',
+    },
+  },
+
   subscription: {
     gracePeriod: 'Problema de pago — actualiza tu método de pago en Play Store.',
     canceled: 'Tu suscripción termina el {{date}}. Renueva para mantener el acceso.',

@@ -89,6 +89,24 @@ export default {
     restore: 'Восстановить покупки',
   },
 
+  feedback: {
+    title: 'Отправить отзыв',
+    subtitle: 'Помогите нам улучшить BrainClean. Ваш отзыв важен!',
+    categoryLabel: 'Категория',
+    selectCategory: 'Выберите категорию',
+    categoryRequired: 'Пожалуйста, выберите категорию',
+    messageLabel: 'Ваш отзыв',
+    messagePlaceholder: 'Расскажите, что вы думаете...',
+    messageRequired: 'Пожалуйста, введите ваш отзыв',
+    messageTooLong: 'Отзыв должен быть менее 2000 символов',
+    emailLabel: 'Email (необязательно)',
+    emailPlaceholder: 'ваш@email.com',
+    submit: 'Отправить отзыв',
+    thankYou: 'Спасибо!',
+    submitted: 'Ваш отзыв отправлен. Спасибо, что помогаете нам улучшаться.',
+    categories: { 'hard-to-use': 'Сложно использовать', 'missing-features': 'Не хватает функций', 'too-many-permissions': 'Слишком много разрешений', 'not-what-expected': 'Не то, что ожидал', 'found-alternative': 'Нашёл альтернативу', 'bugs-crashes': 'Баги и сбои', 'privacy-concerns': 'Проблемы конфиденциальности', 'other': 'Другое' },
+  },
+
   subscription: {
     gracePeriod: 'Проблема с оплатой — обновите способ оплаты в Play Store.',
     canceled: 'Ваша подписка заканчивается {{date}}. Продлите, чтобы сохранить доступ.',

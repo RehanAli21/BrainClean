@@ -359,6 +359,33 @@ export default {
     restore: 'استعادة المشتريات',
   },
 
+  feedback: {
+    title: 'إرسال ملاحظات',
+    subtitle: 'ساعدنا في تحسين BrainClean. ملاحظاتك مهمة!',
+    categoryLabel: 'الفئة',
+    selectCategory: 'اختر فئة',
+    categoryRequired: 'يرجى اختيار فئة',
+    messageLabel: 'ملاحظاتك',
+    messagePlaceholder: 'أخبرنا برأيك...',
+    messageRequired: 'يرجى إدخال ملاحظاتك',
+    messageTooLong: 'يجب أن تكون الملاحظات أقل من 2000 حرف',
+    emailLabel: 'البريد الإلكتروني (اختياري)',
+    emailPlaceholder: 'your@email.com',
+    submit: 'إرسال الملاحظات',
+    thankYou: 'شكراً لك!',
+    submitted: 'تم إرسال ملاحظاتك. نقدر مساعدتك في التحسين.',
+    categories: {
+      'hard-to-use': 'صعب الاستخدام',
+      'missing-features': 'ميزات مفقودة',
+      'too-many-permissions': 'أذونات كثيرة جداً',
+      'not-what-expected': 'ليس كما توقعت',
+      'found-alternative': 'وجدت بديلاً',
+      'bugs-crashes': 'أخطاء وأعطال',
+      'privacy-concerns': 'مخاوف الخصوصية',
+      'other': 'أخرى',
+    },
+  },
+
   subscription: {
     gracePeriod: 'مشكلة في الدفع — يرجى تحديث طريقة الدفع في متجر Play.',
     canceled: 'ينتهي اشتراكك في {{date}}. جدّد للحفاظ على الوصول.',

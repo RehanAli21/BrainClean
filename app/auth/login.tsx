@@ -1,10 +1,12 @@
 import { AuthInput } from '@/components/AuthInput'
+import { FeedbackModal } from '@/components/FeedbackModal'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { SocialButton } from '@/components/SocialButton'
 import { Colors } from '@/constants/theme'
 import { useAuth } from '@/context/AuthContext'
 import { signInWithGoogle } from '@/modules/google-auth'
 import { authService } from '@/services/api/auth'
+import Ionicons from '@expo/vector-icons/Ionicons'
 import { Link } from 'expo-router'
 import React, { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -22,6 +24,8 @@ export default function LoginScreen() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [googleLoading, setGoogleLoading] = useState(false)
 	const googleCooldown = useRef(false)
+	const feedbackCooldown = useRef(false)
+	const [feedbackVisible, setFeedbackVisible] = useState(false)
 
 	const loginSchema = useMemo(() => z.object({
 		email: z.string().email(t('validation.emailInvalid')),
@@ -176,6 +180,21 @@ export default function LoginScreen() {
 					</TouchableOpacity>
 				</Link>
 			</View>
+
+			<TouchableOpacity
+				style={[styles.feedbackBtn, { borderColor: theme.border }]}
+				onPress={() => {
+					if (feedbackCooldown.current) return
+					feedbackCooldown.current = true
+					setFeedbackVisible(true)
+					setTimeout(() => { feedbackCooldown.current = false }, 1000)
+				}}
+				activeOpacity={0.7}>
+				<Ionicons name='chatbubble-ellipses-outline' size={16} color={theme.primary} />
+				<Text style={[styles.feedbackBtnText, { color: theme.primary }]}>{t('feedback.title')}</Text>
+			</TouchableOpacity>
+
+			<FeedbackModal visible={feedbackVisible} onClose={() => setFeedbackVisible(false)} />
 		</View>
 	)
 }
@@ -195,4 +214,14 @@ const styles = StyleSheet.create({
 	dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
 	dividerLine: { flex: 1, height: 1 },
 	dividerText: { marginHorizontal: 12, fontSize: 13, fontWeight: '500' },
+	feedbackBtn: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 6,
+		marginTop: 12,
+		paddingVertical: 8,
+		borderTopWidth: 1,
+	},
+	feedbackBtnText: { fontSize: 13, fontWeight: '600' },
 })

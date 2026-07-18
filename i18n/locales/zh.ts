@@ -359,6 +359,33 @@ export default {
     restore: '恢复购买',
   },
 
+  feedback: {
+    title: '发送反馈',
+    subtitle: '帮助我们改进 BrainClean。您的反馈很重要！',
+    categoryLabel: '类别',
+    selectCategory: '选择类别',
+    categoryRequired: '请选择一个类别',
+    messageLabel: '您的反馈',
+    messagePlaceholder: '告诉我们您的想法...',
+    messageRequired: '请输入您的反馈',
+    messageTooLong: '反馈不得超过2000个字符',
+    emailLabel: '邮箱（可选）',
+    emailPlaceholder: 'your@email.com',
+    submit: '提交反馈',
+    thankYou: '谢谢！',
+    submitted: '您的反馈已提交。感谢您帮助我们改进。',
+    categories: {
+      'hard-to-use': '难以使用',
+      'missing-features': '缺少功能',
+      'too-many-permissions': '权限太多',
+      'not-what-expected': '不符合预期',
+      'found-alternative': '找到了替代品',
+      'bugs-crashes': '错误和崩溃',
+      'privacy-concerns': '隐私顾虑',
+      'other': '其他',
+    },
+  },
+
   subscription: {
     gracePeriod: '付款问题 — 请在 Play 商店更新您的付款方式。',
     canceled: '您的订阅将于 {{date}} 到期。续订以保持访问权限。',

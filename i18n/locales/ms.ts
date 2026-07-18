@@ -89,6 +89,24 @@ export default {
     restore: 'Pulihkan Pembelian',
   },
 
+  feedback: {
+    title: 'Hantar Maklum Balas',
+    subtitle: 'Bantu kami memperbaiki BrainClean. Maklum balas anda penting!',
+    categoryLabel: 'Kategori',
+    selectCategory: 'Pilih kategori',
+    categoryRequired: 'Sila pilih kategori',
+    messageLabel: 'Maklum Balas Anda',
+    messagePlaceholder: 'Beritahu kami pendapat anda...',
+    messageRequired: 'Sila masukkan maklum balas anda',
+    messageTooLong: 'Maklum balas mesti kurang dari 2000 aksara',
+    emailLabel: 'E-mel (pilihan)',
+    emailPlaceholder: 'anda@email.com',
+    submit: 'Hantar Maklum Balas',
+    thankYou: 'Terima Kasih!',
+    submitted: 'Maklum balas anda telah dihantar. Terima kasih kerana membantu kami memperbaiki.',
+    categories: { 'hard-to-use': 'Sukar digunakan', 'missing-features': 'Ciri kurang', 'too-many-permissions': 'Terlalu banyak kebenaran', 'not-what-expected': 'Bukan seperti yang dijangka', 'found-alternative': 'Jumpa alternatif', 'bugs-crashes': 'Bug & ranap', 'privacy-concerns': 'Kebimbangan privasi', 'other': 'Lain-lain' },
+  },
+
   subscription: {
     gracePeriod: 'Masalah pembayaran — sila kemas kini kaedah pembayaran anda di Play Store.',
     canceled: 'Langganan anda tamat pada {{date}}. Perbaharui untuk mengekalkan akses.',

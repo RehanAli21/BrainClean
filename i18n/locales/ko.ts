@@ -89,6 +89,24 @@ export default {
     restore: '구매 복원',
   },
 
+  feedback: {
+    title: '피드백 보내기',
+    subtitle: 'BrainClean 개선에 도움을 주세요. 여러분의 의견이 중요합니다!',
+    categoryLabel: '카테고리',
+    selectCategory: '카테고리 선택',
+    categoryRequired: '카테고리를 선택해 주세요',
+    messageLabel: '피드백',
+    messagePlaceholder: '의견을 알려주세요...',
+    messageRequired: '피드백을 입력해 주세요',
+    messageTooLong: '피드백은 2000자 미만이어야 합니다',
+    emailLabel: '이메일 (선택사항)',
+    emailPlaceholder: 'your@email.com',
+    submit: '피드백 제출',
+    thankYou: '감사합니다!',
+    submitted: '피드백이 제출되었습니다. 개선에 도움을 주셔서 감사합니다.',
+    categories: { 'hard-to-use': '사용하기 어려움', 'missing-features': '기능 부족', 'too-many-permissions': '권한이 너무 많음', 'not-what-expected': '기대와 다름', 'found-alternative': '대안을 찾음', 'bugs-crashes': '버그 및 충돌', 'privacy-concerns': '개인정보 우려', 'other': '기타' },
+  },
+
   subscription: {
     gracePeriod: '결제 문제 — Play 스토어에서 결제 수단을 업데이트해 주세요.',
     canceled: '구독이 {{date}}에 종료됩니다. 액세스를 유지하려면 갱신하세요.',

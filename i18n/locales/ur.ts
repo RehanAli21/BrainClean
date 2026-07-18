@@ -359,6 +359,33 @@ export default {
     restore: 'خریداری بحال کریں',
   },
 
+  feedback: {
+    title: 'رائے بھیجیں',
+    subtitle: 'BrainClean کو بہتر بنانے میں ہماری مدد کریں۔ آپ کی رائے اہم ہے!',
+    categoryLabel: 'زمرہ',
+    selectCategory: 'زمرہ منتخب کریں',
+    categoryRequired: 'براہ کرم زمرہ منتخب کریں',
+    messageLabel: 'آپ کی رائے',
+    messagePlaceholder: 'ہمیں بتائیں آپ کیا سوچتے ہیں...',
+    messageRequired: 'براہ کرم اپنی رائے درج کریں',
+    messageTooLong: 'رائے 2000 حروف سے کم ہونی چاہیے',
+    emailLabel: 'ای میل (اختیاری)',
+    emailPlaceholder: 'your@email.com',
+    submit: 'رائے جمع کریں',
+    thankYou: 'شکریہ!',
+    submitted: 'آپ کی رائے جمع ہو گئی ہے۔ بہتری میں مدد کرنے کا شکریہ۔',
+    categories: {
+      'hard-to-use': 'استعمال مشکل ہے',
+      'missing-features': 'خصوصیات غائب ہیں',
+      'too-many-permissions': 'بہت زیادہ اجازتیں',
+      'not-what-expected': 'جیسی توقع تھی ویسا نہیں',
+      'found-alternative': 'متبادل مل گیا',
+      'bugs-crashes': 'خرابیاں اور کریش',
+      'privacy-concerns': 'رازداری کے خدشات',
+      'other': 'دیگر',
+    },
+  },
+
   subscription: {
     gracePeriod: 'ادائیگی میں مسئلہ — براہ کرم Play Store میں اپنا ادائیگی کا طریقہ اپ ڈیٹ کریں۔',
     canceled: 'آپ کی سبسکرپشن {{date}} کو ختم ہو جائے گی۔ رسائی برقرار رکھنے کے لیے تجدید کریں۔',

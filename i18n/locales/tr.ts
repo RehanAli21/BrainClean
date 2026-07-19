@@ -21,6 +21,8 @@ export default {
   tabs: { tasks: 'Görevler', schedules: 'Zamanlamalar', apps: 'Uygulamalar', wellness: 'Sağlık', settings: 'Ayarlar' },
 
   schedules: {
+
+    exactAlarmRequired: "Zamanlamalar için 'Alarmlar ve hatırlatıcılar' izni gerekir. Lütfen sistem ayarlarından BrainClean için izin verin.",
     title: 'Zamanlamalar',
     noSchedules: 'Henüz zamanlama yok.\nOluşturmak için + butonuna dokunun.',
     createSchedule: 'Zamanlama oluştur',
@@ -111,5 +113,23 @@ export default {
     gracePeriod: 'Ödeme sorunu — lütfen Play Store\'da ödeme yönteminizi güncelleyin.',
     canceled: 'Aboneliğiniz {{date}} tarihinde sona erecek. Erişimi korumak için yenileyin.',
     pending: 'Ödeme işleniyor…',
+  },
+  native: {
+    blockerNotifText: "BrainClean odağınızı koruyor.",
+    overlayTitle: "Bu uygulama engellendi",
+    overlaySubtitle: "Oturumunuzu kontrol etmek için BrainClean'e dönün.",
+    wellnessNotifEye: "Göz bakımı etkin",
+    wellnessNotifAutoBlock: "Kullanım izleme etkin",
+    wellnessNotifBoth: "Göz bakımı ve kullanım izleme etkin",
+    eyeTitle: "Uzağa Bakın",
+    eyeSubtitle: "Yaklaşık 6 metre uzaktaki bir şeye bakın",
+    breakTitle: "Mola Verin",
+    breakSubtitle: "{minutes} dakikadır kaydırıyorsunuz",
+    scheduleStartedTitle: "Zamanlanmış görev başladı",
+    scheduleStartedText: "{name} — {duration} boyunca engelleme",
+    scheduleFailedTitle: "Zamanlanmış engelleme başarısız",
+    scheduleFailedAuth: "Zamanlanmış engelleme başlatılamadı. BrainClean'i açın ve tekrar giriş yapın.",
+    scheduleFailedSubscription: "Zamanlanmış engelleme başlatılamadı. Etkin bir abonelik gerekiyor.",
+    scheduleFailedGeneric: "Zamanlanmış engelleme başlatılamadı. BrainClean'i açıp tekrar deneyin.",
   },
 } as const

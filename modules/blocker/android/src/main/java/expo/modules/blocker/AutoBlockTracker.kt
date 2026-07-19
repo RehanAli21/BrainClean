@@ -82,8 +82,11 @@ class AutoBlockTracker {
                                     mainHandler.post {
                                         val config = CountdownOverlayConfig(
                                             icon = "⏳",
-                                            title = "Take a Break",
-                                            subtitle = "You've been scrolling for ${usageLimitMs / 60000} minutes",
+                                            title = LocalizedStrings.get(context, "wellness.breakTitle"),
+                                            subtitle = LocalizedStrings.get(
+                                                context, "wellness.breakSubtitle",
+                                                "minutes" to (usageLimitMs / 60000).toString()
+                                            ),
                                             durationSeconds = blockDurationSeconds,
                                             accentColor = Color.parseColor("#F43F5E")
                                         )

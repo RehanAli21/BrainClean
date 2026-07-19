@@ -4,7 +4,9 @@ const {
 	withGradleProperties,
 	withAppBuildGradle,
 	withDangerousMod,
+	withAndroidManifest,
 	withAndroidStyles,
+	AndroidConfig,
 } = require('expo/config-plugins');
 
 const KEEP_RULES_MARKER = '# BEGIN BrainClean ProGuard rules';
@@ -26,12 +28,6 @@ ${KEEP_RULES_MARKER}
 -keep class expo.modules.blocker.WellnessService { *; }
 -keep class expo.modules.blocker.WellnessWatchdogReceiver { *; }
 -keep class expo.modules.blocker.ScheduleAlarmReceiver { *; }
-
-# OkHttp (used by TaskStatusChecker for backend polling)
--dontwarn okhttp3.**
--dontwarn okio.**
--keep class okhttp3.** { *; }
--keep class okio.** { *; }
 
 # Kotlin coroutines (used by BlockerService)
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
@@ -56,6 +52,14 @@ const RELEASE_SIGNING_CONFIG = `
                 keyAlias BRAINCLEAN_UPLOAD_KEY_ALIAS
                 keyPassword BRAINCLEAN_UPLOAD_KEY_PASSWORD
             } else {
+                // Never silently ship a debug-signed "release" build. This
+                // closure runs at configuration time for EVERY build, so only
+                // fail when a release task was actually requested. EAS Build
+                // injects remote credentials itself and is exempt.
+                def wantsRelease = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+                if (wantsRelease && System.getenv('EAS_BUILD') == null) {
+                    throw new GradleException('Release signing not configured: set BRAINCLEAN_UPLOAD_STORE_FILE and related properties in gradle.properties')
+                }
                 storeFile file('debug.keystore')
                 storePassword 'android'
                 keyAlias 'androiddebugkey'
@@ -171,6 +175,67 @@ const withEdgeToEdgeStyles = (config) =>
 		},
 	]);
 
+// The blocker/schedule SharedPreferences hold a plaintext auth token; they must
+// never be uploaded via Android Auto Backup or device-to-device transfer.
+// expo-secure-store's default rules only exclude its own prefs, so we replace
+// them with rules that also exclude ours (SecureStore.xml stays excluded).
+const BACKUP_EXCLUDES = [
+	'SecureStore.xml',
+	'brainclean_blocker_state.xml',
+	'brainclean_schedule_state.xml',
+];
+
+const BACKUP_RULES_XML = `<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+${BACKUP_EXCLUDES.map((p) => `  <exclude domain="sharedpref" path="${p}"/>`).join('\n')}
+</full-backup-content>
+`;
+
+const DATA_EXTRACTION_RULES_XML = `<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+  <cloud-backup>
+${BACKUP_EXCLUDES.map((p) => `    <exclude domain="sharedpref" path="${p}"/>`).join('\n')}
+  </cloud-backup>
+  <device-transfer>
+${BACKUP_EXCLUDES.map((p) => `    <exclude domain="sharedpref" path="${p}"/>`).join('\n')}
+  </device-transfer>
+</data-extraction-rules>
+`;
+
+const withBackupRules = (config) => {
+	config = withDangerousMod(config, [
+		'android',
+		async (cfg) => {
+			const xmlDir = path.join(
+				cfg.modRequest.platformProjectRoot,
+				'app',
+				'src',
+				'main',
+				'res',
+				'xml',
+			);
+			fs.mkdirSync(xmlDir, { recursive: true });
+			fs.writeFileSync(path.join(xmlDir, 'brainclean_backup_rules.xml'), BACKUP_RULES_XML);
+			fs.writeFileSync(
+				path.join(xmlDir, 'brainclean_data_extraction_rules.xml'),
+				DATA_EXTRACTION_RULES_XML,
+			);
+			return cfg;
+		},
+	]);
+
+	// Runs after expo-secure-store's manifest mod (plugin order in app.json),
+	// overriding its rules with ours.
+	config = withAndroidManifest(config, (cfg) => {
+		const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(cfg.modResults);
+		mainApplication.$['android:fullBackupContent'] = '@xml/brainclean_backup_rules';
+		mainApplication.$['android:dataExtractionRules'] = '@xml/brainclean_data_extraction_rules';
+		return cfg;
+	});
+
+	return config;
+};
+
 const SCHEDULE_RECEIVER_TAG = 'expo.modules.blocker.ScheduleAlarmReceiver';
 
 const withScheduleReceiver = (config) =>
@@ -205,5 +270,6 @@ module.exports = function withProductionAndroidConfig(config) {
 	config = withProguardKeepRules(config);
 	config = withEdgeToEdgeStyles(config);
 	config = withScheduleReceiver(config);
+	config = withBackupRules(config);
 	return config;
 };

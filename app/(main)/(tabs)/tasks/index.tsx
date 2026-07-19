@@ -100,7 +100,7 @@ export default function TaskListScreen() {
 	const [selectedDate, setSelectedDate] = useState(getTodayDate)
 	const [showPicker, setShowPicker] = useState(false)
 	const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate)
-	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
+	const { isBlocking, activeSessionId, startBlocking, stopBlocking } = useBlocker()
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
@@ -132,11 +132,18 @@ export default function TaskListScreen() {
 		}, [refetch]),
 	)
 
+	// Only stop the native session when ITS OWN task is confirmed completed.
+	// `tasks` is filtered by the user-selected date — inferring "no active
+	// task" from it would let a date change kill an active blocking session.
+	// If the session task isn't in this list, the Kotlin TaskStatusChecker
+	// remains the authority for unblocking.
 	useEffect(() => {
-		if (tasks && !hasActiveTask && isBlocking) {
+		if (!isBlocking || !activeSessionId || !tasks) return
+		const sessionTask = tasks.find(t => t.id === activeSessionId)
+		if (sessionTask?.completed) {
 			stopBlocking()
 		}
-	}, [tasks, hasActiveTask, isBlocking, stopBlocking])
+	}, [tasks, isBlocking, activeSessionId, stopBlocking])
 
 	const activeTask = tasks?.find(t => t.started && !t.completed)
 

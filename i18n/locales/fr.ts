@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "Les horaires nécessitent l'autorisation « Alarmes et rappels ». Activez-la pour BrainClean dans les paramètres système.",
     title: 'Horaires',
     noSchedules: 'Aucun horaire pour le moment.\nAppuyez sur + pour en créer un.',
     createSchedule: 'Créer un horaire',
@@ -390,5 +392,23 @@ export default {
     gracePeriod: 'Problème de paiement — veuillez mettre à jour votre moyen de paiement sur le Play Store.',
     canceled: 'Votre abonnement se termine le {{date}}. Renouvelez pour garder l\'accès.',
     pending: 'Paiement en cours…',
+  },
+  native: {
+    blockerNotifText: "BrainClean protège votre concentration.",
+    overlayTitle: "Cette appli est bloquée",
+    overlaySubtitle: "Revenez à BrainClean pour vérifier votre session.",
+    wellnessNotifEye: "Soin des yeux actif",
+    wellnessNotifAutoBlock: "Surveillance d'utilisation active",
+    wellnessNotifBoth: "Soin des yeux et surveillance d'utilisation actifs",
+    eyeTitle: "Regardez au loin",
+    eyeSubtitle: "Regardez quelque chose à environ 6 mètres",
+    breakTitle: "Faites une pause",
+    breakSubtitle: "Vous faites défiler depuis {minutes} minutes",
+    scheduleStartedTitle: "Tâche planifiée démarrée",
+    scheduleStartedText: "{name} — blocage pendant {duration}",
+    scheduleFailedTitle: "Échec du blocage planifié",
+    scheduleFailedAuth: "Impossible de démarrer le blocage planifié. Ouvrez BrainClean et reconnectez-vous.",
+    scheduleFailedSubscription: "Impossible de démarrer le blocage planifié. Un abonnement actif est requis.",
+    scheduleFailedGeneric: "Impossible de démarrer le blocage planifié. Ouvrez BrainClean et réessayez.",
   },
 } as const

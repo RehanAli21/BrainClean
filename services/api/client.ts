@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/constants/config';
 import axios from 'axios';
-import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { triggerLogout } from './authEvents';
 
 // 1. Create the Axios Instance
 const apiClient = axios.create({
@@ -25,7 +25,9 @@ apiClient.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
 
-        console.log(`[Outgoing] ${config.method?.toUpperCase()} ${config.url}`);
+        if (__DEV__) {
+            console.log(`[Outgoing] ${config.method?.toUpperCase()} ${config.url}`);
+        }
         return config;
     },
     (error) => {
@@ -38,36 +40,29 @@ apiClient.interceptors.request.use(
 // =================================================================
 apiClient.interceptors.response.use(
     (response) => {
-        // A. If success, just return the data (strip the axios wrapper if you want)
         return response;
     },
     async (error) => {
-        const originalRequest = error.config;
-        const url = originalRequest?.url || '';
+        const url = error.config?.url || '';
 
         // Auth endpoints handle their own errors (e.g. wrong password).
-        // Only auto-logout for 401s on protected endpoints.
         const isAuthEndpoint = url.startsWith('/auth/');
 
         const status = error.response?.status;
 
-        if (status === 402) {
+        // Auto-logout on 401 only. 403 is an authorization failure (roles,
+        // business rules) — the session itself may still be valid.
+        if (status === 401 && !isAuthEndpoint) {
+            if (__DEV__) {
+                console.warn('[Interceptor] 401 detected. Logging out...');
+            }
+            await triggerLogout();
             return Promise.reject(error);
         }
 
-        if ((status === 401 || status === 403) && !originalRequest._retry && !isAuthEndpoint) {
-            console.warn(`[Interceptor] ${status} Detected. Logging out...`);
-
-            await SecureStore.deleteItemAsync('user_token');
-            await SecureStore.deleteItemAsync('user_email');
-
-            router.replace('/auth/login');
-
-            return Promise.reject(error);
+        if (__DEV__) {
+            console.error('[Interceptor] API Error:', error.response?.data || error.message);
         }
-
-        // C. Log other errors
-        console.error('[Interceptor] API Error:', error.response?.data || error.message);
         return Promise.reject(error);
     }
 );

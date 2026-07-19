@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "日程功能需要「闹钟与提醒」权限。请在系统设置中为 BrainClean 允许该权限。",
     title: '定时计划',
     noSchedules: '暂无计划。\n点击 + 创建一个。',
     createSchedule: '创建计划',
@@ -390,5 +392,23 @@ export default {
     gracePeriod: '付款问题 — 请在 Play 商店更新您的付款方式。',
     canceled: '您的订阅将于 {{date}} 到期。续订以保持访问权限。',
     pending: '正在处理付款…',
+  },
+  native: {
+    blockerNotifText: "BrainClean 正在守护你的专注。",
+    overlayTitle: "此应用已被屏蔽",
+    overlaySubtitle: "返回 BrainClean 查看你的专注时段。",
+    wellnessNotifEye: "护眼提醒已开启",
+    wellnessNotifAutoBlock: "使用监控已开启",
+    wellnessNotifBoth: "护眼提醒与使用监控已开启",
+    eyeTitle: "看向远处",
+    eyeSubtitle: "看看约 6 米以外的东西",
+    breakTitle: "休息一下",
+    breakSubtitle: "你已连续滑动 {minutes} 分钟",
+    scheduleStartedTitle: "定时任务已开始",
+    scheduleStartedText: "{name} — 屏蔽 {duration}",
+    scheduleFailedTitle: "定时屏蔽失败",
+    scheduleFailedAuth: "无法开始定时屏蔽。请打开 BrainClean 重新登录。",
+    scheduleFailedSubscription: "无法开始定时屏蔽。需要有效的订阅。",
+    scheduleFailedGeneric: "无法开始定时屏蔽。请打开 BrainClean 重试。",
   },
 } as const

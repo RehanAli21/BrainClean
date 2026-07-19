@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "تحتاج الجداول إلى إذن «المنبهات والتذكيرات». يرجى السماح به لتطبيق BrainClean من إعدادات النظام.",
     title: 'الجداول',
     noSchedules: 'لا توجد جداول بعد.\nاضغط + لإنشاء واحد.',
     createSchedule: 'إنشاء جدول',
@@ -390,5 +392,23 @@ export default {
     gracePeriod: 'مشكلة في الدفع — يرجى تحديث طريقة الدفع في متجر Play.',
     canceled: 'ينتهي اشتراكك في {{date}}. جدّد للحفاظ على الوصول.',
     pending: 'جارٍ معالجة الدفع…',
+  },
+  native: {
+    blockerNotifText: "BrainClean يحمي تركيزك.",
+    overlayTitle: "هذا التطبيق محظور",
+    overlaySubtitle: "عُد إلى BrainClean للتحقق من جلستك.",
+    wellnessNotifEye: "العناية بالعين مفعّلة",
+    wellnessNotifAutoBlock: "مراقبة الاستخدام مفعّلة",
+    wellnessNotifBoth: "العناية بالعين ومراقبة الاستخدام مفعّلتان",
+    eyeTitle: "انظر بعيدًا",
+    eyeSubtitle: "انظر إلى شيء يبعد 6 أمتار",
+    breakTitle: "خذ استراحة",
+    breakSubtitle: "أنت تتصفح منذ {minutes} دقيقة",
+    scheduleStartedTitle: "بدأت المهمة المجدولة",
+    scheduleStartedText: "{name} — الحظر لمدة {duration}",
+    scheduleFailedTitle: "فشل الحظر المجدول",
+    scheduleFailedAuth: "تعذّر بدء الحظر المجدول. افتح BrainClean وسجّل الدخول مرة أخرى.",
+    scheduleFailedSubscription: "تعذّر بدء الحظر المجدول. يلزم اشتراك نشط.",
+    scheduleFailedGeneric: "تعذّر بدء الحظر المجدول. افتح BrainClean وحاول مجددًا.",
   },
 } as const

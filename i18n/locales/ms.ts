@@ -21,6 +21,8 @@ export default {
   tabs: { tasks: 'Tugas', schedules: 'Jadual', apps: 'Aplikasi', wellness: 'Kesihatan', settings: 'Tetapan' },
 
   schedules: {
+
+    exactAlarmRequired: "Jadual memerlukan kebenaran 'Penggera & peringatan'. Sila benarkan untuk BrainClean dalam tetapan sistem.",
     title: 'Jadual',
     noSchedules: 'Belum ada jadual.\nKetuk + untuk mencipta.',
     createSchedule: 'Cipta jadual',
@@ -111,5 +113,23 @@ export default {
     gracePeriod: 'Masalah pembayaran — sila kemas kini kaedah pembayaran anda di Play Store.',
     canceled: 'Langganan anda tamat pada {{date}}. Perbaharui untuk mengekalkan akses.',
     pending: 'Memproses pembayaran…',
+  },
+  native: {
+    blockerNotifText: "BrainClean sedang melindungi fokus anda.",
+    overlayTitle: "Aplikasi ini disekat",
+    overlaySubtitle: "Kembali ke BrainClean untuk menyemak sesi anda.",
+    wellnessNotifEye: "Penjagaan mata aktif",
+    wellnessNotifAutoBlock: "Pemantauan penggunaan aktif",
+    wellnessNotifBoth: "Penjagaan mata & pemantauan penggunaan aktif",
+    eyeTitle: "Alihkan Pandangan",
+    eyeSubtitle: "Lihat sesuatu sejauh kira-kira 6 meter",
+    breakTitle: "Berehat Sebentar",
+    breakSubtitle: "Anda telah menatal selama {minutes} minit",
+    scheduleStartedTitle: "Tugasan berjadual dimulakan",
+    scheduleStartedText: "{name} — menyekat selama {duration}",
+    scheduleFailedTitle: "Sekatan berjadual gagal",
+    scheduleFailedAuth: "Tidak dapat memulakan sekatan berjadual. Buka BrainClean dan log masuk semula.",
+    scheduleFailedSubscription: "Tidak dapat memulakan sekatan berjadual. Langganan aktif diperlukan.",
+    scheduleFailedGeneric: "Tidak dapat memulakan sekatan berjadual. Buka BrainClean dan cuba lagi.",
   },
 } as const

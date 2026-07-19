@@ -64,7 +64,11 @@ class GoogleAuthModule : Module() {
                 }
             }
 
-            latch.await()
+            // A hung Credential Manager call must not block the module queue
+            // forever — give the user 2 minutes to finish the account picker.
+            if (!latch.await(2, java.util.concurrent.TimeUnit.MINUTES)) {
+                throw CodedException("SIGN_IN_TIMEOUT", "Google sign-in timed out", null)
+            }
 
             val error = errorRef.get()
             if (error != null) throw error

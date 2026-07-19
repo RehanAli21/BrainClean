@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "Zeitpläne benötigen die Berechtigung „Wecker und Erinnerungen“. Bitte erlaube sie für BrainClean in den Systemeinstellungen.",
     title: 'Zeitpläne',
     noSchedules: 'Noch keine Zeitpläne.\nTippe auf + um einen zu erstellen.',
     createSchedule: 'Zeitplan erstellen',
@@ -390,5 +392,23 @@ export default {
     gracePeriod: 'Zahlungsproblem — bitte aktualisiere deine Zahlungsmethode im Play Store.',
     canceled: 'Dein Abo endet am {{date}}. Verlängere, um den Zugang zu behalten.',
     pending: 'Zahlung wird verarbeitet…',
+  },
+  native: {
+    blockerNotifText: "BrainClean schützt deinen Fokus.",
+    overlayTitle: "Diese App ist blockiert",
+    overlaySubtitle: "Kehre zu BrainClean zurück, um deine Sitzung zu prüfen.",
+    wellnessNotifEye: "Augenpflege aktiv",
+    wellnessNotifAutoBlock: "Nutzungsüberwachung aktiv",
+    wellnessNotifBoth: "Augenpflege & Nutzungsüberwachung aktiv",
+    eyeTitle: "Schau in die Ferne",
+    eyeSubtitle: "Schau auf etwas in ca. 6 Metern Entfernung",
+    breakTitle: "Mach eine Pause",
+    breakSubtitle: "Du scrollst seit {minutes} Minuten",
+    scheduleStartedTitle: "Geplante Aufgabe gestartet",
+    scheduleStartedText: "{name} — Blockierung für {duration}",
+    scheduleFailedTitle: "Geplante Blockierung fehlgeschlagen",
+    scheduleFailedAuth: "Geplante Blockierung konnte nicht starten. Öffne BrainClean und melde dich erneut an.",
+    scheduleFailedSubscription: "Geplante Blockierung konnte nicht starten. Ein aktives Abo ist erforderlich.",
+    scheduleFailedGeneric: "Geplante Blockierung konnte nicht starten. Öffne BrainClean und versuche es erneut.",
   },
 } as const

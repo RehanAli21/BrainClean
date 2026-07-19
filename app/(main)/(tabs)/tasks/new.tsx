@@ -196,7 +196,9 @@ export default function NewTaskScreen() {
 					})
 				},
 				onError: async (err: any) => {
-					console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
+					if (__DEV__) {
+						console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
+					}
 					if (err.response?.status === 402) {
 						await queryClient.invalidateQueries({ queryKey: subscriptionQueryKey });
 						try {

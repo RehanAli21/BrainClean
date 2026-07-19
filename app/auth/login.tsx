@@ -81,7 +81,9 @@ export default function LoginScreen() {
 			const data = await authService.googleLogin(idToken)
 			login(data.token, data.user.email, data.expiresAt)
 		} catch (err: any) {
-			console.error('[GoogleSignIn] Error:', err.code, err.message, JSON.stringify(err))
+			if (__DEV__) {
+				console.error('[GoogleSignIn] Error:', err.code, err.message)
+			}
 			const nativeCode = err.code
 			if (nativeCode === 'SIGN_IN_CANCELLED') {
 				// silent dismissal

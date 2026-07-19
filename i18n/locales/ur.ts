@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "شیڈول کے لیے «الارمز اور یاد دہانیاں» کی اجازت درکار ہے۔ براہ کرم سسٹم سیٹنگز میں BrainClean کے لیے اس کی اجازت دیں۔",
     title: 'شیڈولز',
     noSchedules: 'ابھی کوئی شیڈول نہیں ہے۔\nایک بنانے کے لیے + دبائیں۔',
     createSchedule: 'شیڈول بنائیں',
@@ -390,5 +392,23 @@ export default {
     gracePeriod: 'ادائیگی میں مسئلہ — براہ کرم Play Store میں اپنا ادائیگی کا طریقہ اپ ڈیٹ کریں۔',
     canceled: 'آپ کی سبسکرپشن {{date}} کو ختم ہو جائے گی۔ رسائی برقرار رکھنے کے لیے تجدید کریں۔',
     pending: 'ادائیگی کی کارروائی جاری ہے…',
+  },
+  native: {
+    blockerNotifText: "BrainClean آپ کی توجہ کی حفاظت کر رہا ہے۔",
+    overlayTitle: "یہ ایپ بلاک ہے",
+    overlaySubtitle: "اپنے سیشن کی جانچ کے لیے BrainClean پر واپس جائیں۔",
+    wellnessNotifEye: "آنکھوں کی حفاظت فعال ہے",
+    wellnessNotifAutoBlock: "استعمال کی نگرانی فعال ہے",
+    wellnessNotifBoth: "آنکھوں کی حفاظت اور استعمال کی نگرانی فعال ہے",
+    eyeTitle: "دور دیکھیں",
+    eyeSubtitle: "تقریباً 6 میٹر دور کسی چیز کو دیکھیں",
+    breakTitle: "وقفہ لیں",
+    breakSubtitle: "آپ {minutes} منٹ سے اسکرول کر رہے ہیں",
+    scheduleStartedTitle: "شیڈول شدہ ٹاسک شروع ہو گیا",
+    scheduleStartedText: "{name} — {duration} کے لیے بلاکنگ",
+    scheduleFailedTitle: "شیڈول شدہ بلاکنگ ناکام",
+    scheduleFailedAuth: "شیڈول شدہ بلاکنگ شروع نہیں ہو سکی۔ BrainClean کھولیں اور دوبارہ سائن ان کریں۔",
+    scheduleFailedSubscription: "شیڈول شدہ بلاکنگ شروع نہیں ہو سکی۔ فعال سبسکرپشن درکار ہے۔",
+    scheduleFailedGeneric: "شیڈول شدہ بلاکنگ شروع نہیں ہو سکی۔ BrainClean کھول کر دوبارہ کوشش کریں۔",
   },
 } as const

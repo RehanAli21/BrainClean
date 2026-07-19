@@ -2,6 +2,7 @@ import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
 import { Colors } from '@/constants/theme'
 import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
+import { useUiStore } from '@/store/uiStore'
 import {
 	requestBatteryOptimizationExemption,
 	requestOverlayPermission,
@@ -19,12 +20,14 @@ export default function PermissionsScreen() {
 	const router = useRouter()
 	const { permissions, isLoading, allGranted } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
+	const setSetupCompleted = useUiStore(s => s.setSetupCompleted)
 
 	useEffect(() => {
 		if (allGranted) {
+			setSetupCompleted(true)
 			router.replace('/(main)/(tabs)/tasks')
 		}
-	}, [allGranted, router])
+	}, [allGranted, router, setSetupCompleted])
 
 	useEffect(() => {
 		const handler = BackHandler.addEventListener('hardwareBackPress', () => {

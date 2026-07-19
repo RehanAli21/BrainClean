@@ -1,12 +1,29 @@
 import type { SubscriptionState } from '@/types/subscription';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
-const secureStorage: StateStorage = {
-  getItem: (name: string) => SecureStore.getItemAsync(name),
-  setItem: (name: string, value: string) => SecureStore.setItemAsync(name, value),
-  removeItem: (name: string) => SecureStore.deleteItemAsync(name),
+// Nothing in this store is a secret (the auth token lives elsewhere), and
+// SecureStore is slow and warns above 2048 bytes — which a long selectedApps
+// list exceeds. AsyncStorage is the right home; existing installs migrate
+// their SecureStore blob on first read.
+const storage: StateStorage = {
+  getItem: async (name: string) => {
+    const value = await AsyncStorage.getItem(name);
+    if (value != null) return value;
+    try {
+      const legacy = await SecureStore.getItemAsync(name);
+      if (legacy != null) {
+        await AsyncStorage.setItem(name, legacy);
+        await SecureStore.deleteItemAsync(name);
+        return legacy;
+      }
+    } catch {}
+    return null;
+  },
+  setItem: (name: string, value: string) => AsyncStorage.setItem(name, value),
+  removeItem: (name: string) => AsyncStorage.removeItem(name),
 };
 
 interface UiState {
@@ -22,6 +39,9 @@ interface UiState {
   setPadlockConfirmed: (confirmed: boolean) => void;
   tutorialSeen: boolean;
   setTutorialSeen: (seen: boolean) => void;
+  // True once the user has completed the first-launch permission wizard.
+  setupCompleted: boolean;
+  setSetupCompleted: (completed: boolean) => void;
   hasRated: boolean;
   setHasRated: (rated: boolean) => void;
   selectedLanguage: string | null;
@@ -82,6 +102,12 @@ export const useUiStore = create<UiState>()(
         set({ tutorialSeen: seen });
       },
 
+      setupCompleted: false,
+
+      setSetupCompleted: (completed: boolean) => {
+        set({ setupCompleted: completed });
+      },
+
       hasRated: false,
 
       setHasRated: (rated: boolean) => {
@@ -135,7 +161,7 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'brainclean-ui',
-      storage: createJSONStorage(() => secureStorage),
+      storage: createJSONStorage(() => storage),
     },
   ),
 );

@@ -194,15 +194,15 @@
 	<body>
 		<main>
 			<h1>Privacy Policy</h1>
-			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 15 July 2026</p>
+			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 18 July 2026</p>
 
 			<div class="summary">
 				<p>
 					<strong>Short version.</strong> BrainClean is an Android app that helps you block distracting apps until you complete a focus
-					task, and offers optional eye-care and screen-time features. We collect the minimum data needed to operate the service: your
-					email and password (or a Google Sign-In, if you choose that) to sign you in, and your tasks. The apps you choose to block and
-					everything the app observes about your app usage stay on your device. We do not use analytics, advertising, or tracking SDKs. You
-					can delete your account at any time from inside the app.
+					task, and offers optional scheduling, eye-care and screen-time features. We collect the minimum data needed to operate the
+					service: your email and password (or a Google Sign-In, if you choose that) to sign you in, your tasks, and any feedback you
+					choose to send us. The apps you choose to block, your schedules, and everything the app observes about your app usage stay on
+					your device. We do not use analytics, advertising, or tracking SDKs. You can delete your account at any time from inside the app.
 				</p>
 			</div>
 
@@ -298,7 +298,41 @@
 				<code>Authorization</code> header of requests to our backend so the server knows which account is making the request.
 			</p>
 
-			<h3>2.6 What we do <em>not</em> collect</h3>
+			<h3>2.6 Schedules</h3>
+			<p>
+				You can set up schedules that start a blocking session automatically at a time you choose. The schedule itself &mdash; its time,
+				duration, repeat days, and the optional label you give it &mdash; is stored <strong>only on your device</strong>.
+			</p>
+			<p>
+				When a schedule fires, the App creates and starts a focus task on our servers on your behalf, exactly as if you had created it
+				yourself, and the task information in section&nbsp;2.3 is stored. <strong>The label you give a schedule becomes that task&rsquo;s
+				name and is therefore sent to our servers</strong> when the schedule runs. If you leave the label empty, the App uses the time and
+				date instead. This happens even if the App is closed at the time.
+			</p>
+
+			<h3>2.7 Feedback you send us</h3>
+			<p>If you use the &ldquo;Send Feedback&rdquo; form in the App, we receive and store:</p>
+			<ul>
+				<li>The <strong>category</strong> you select (for example &ldquo;Bugs &amp; Crashes&rdquo; or &ldquo;Privacy Concerns&rdquo;).</li>
+				<li>The <strong>message</strong> you write, up to 2,000 characters.</li>
+				<li>
+					An <strong>email address, only if you choose to enter one</strong>. This field is optional and is left blank unless you fill it
+					in. We use it to reply to you about your feedback.
+				</li>
+			</ul>
+			<p>
+				If you are signed in when you send feedback, the submission is also associated with your account so we can follow up. You can send
+				feedback without being signed in.
+			</p>
+			<div class="callout">
+				<p>
+					<strong>Please note:</strong> the message box is free text, and we store whatever you type in it. Please do not include
+					passwords, financial details, or other sensitive personal information in your feedback.
+				</p>
+			</div>
+			<p>We use feedback only to understand problems and improve the App. We do not publish it or use it for marketing.</p>
+
+			<h3>2.8 What we do <em>not</em> collect</h3>
 			<ul>
 				<li>
 					We do <strong>not</strong> collect your phone number, address, or any government identifiers. We do not ask you for your real name
@@ -309,6 +343,10 @@
 				<li>
 					We do <strong>not</strong> collect which apps you use, how long you use them, or which apps are installed on your device. The App
 					observes these on your device to make blocking work, but never sends them to us. See section&nbsp;3.
+				</li>
+				<li>
+					We do <strong>not</strong> collect the content of your notifications, and do not store or transmit it, even when notification
+					blocking is switched on. See section&nbsp;3.3.
 				</li>
 				<li>
 					We do <strong>not</strong> directly collect or store any payment or credit-card information. All payments are processed by Google
@@ -343,10 +381,37 @@
 
 			<h3>3.3 Notification listener (optional)</h3>
 			<p>
-				If you turn on the &ldquo;Block Notifications&rdquo; option in Settings, the App will use Android&rsquo;s notification listener to
-				silence notifications coming from the apps you have chosen to block while a focus task is active. The notification content is
-				processed locally only, is not stored, and is not transmitted to our servers. You can turn this option off at any time.
+				In Settings you can choose how notifications are handled while a focus task is running. There are three options, and the default is
+				<strong>Off</strong>:
 			</p>
+			<ul>
+				<li><strong>Off</strong> &mdash; the App does not touch your notifications at all.</li>
+				<li><strong>Selected Apps</strong> &mdash; notifications from the apps you chose to block are dismissed during a session.</li>
+				<li>
+					<strong>All Apps</strong> &mdash; notifications from <em>every</em> app on your device are dismissed during a session, except
+					BrainClean&rsquo;s own.
+				</li>
+			</ul>
+			<p>
+				The last two options require you to grant Notification Access in Android Settings. Granting it means Android delivers every posted
+				notification to the App so it can decide whether to dismiss it &mdash; this is how Android&rsquo;s notification listener works, and
+				it applies to the &ldquo;Selected Apps&rdquo; option too, not only &ldquo;All Apps&rdquo;.
+			</p>
+			<p>
+				<strong
+					>Notification content is examined on your device, in the moment, and only to decide whether to dismiss it. We do not read it for
+					any other purpose, do not store it, do not log it, and never transmit it to our servers.</strong
+				>
+				The App only ever looks at which app posted a notification &mdash; not at the message inside it.
+			</p>
+			<div class="callout">
+				<p>
+					<strong>Before choosing &ldquo;All Apps&rdquo;:</strong> this dismisses notifications from every app during a session, including
+					calls, messages, and other alerts you may be waiting for. Please read section&nbsp;6.1 of the
+					<a href="terms.html">Terms &amp; Conditions</a> before turning it on, and do not use it if you may need to be reachable.
+				</p>
+			</div>
+			<p>You can change this setting or revoke Notification Access at any time.</p>
 
 			<h3>3.4 Wellness features (optional)</h3>
 			<p>
@@ -436,15 +501,25 @@
 					<tr>
 						<td><code>RECEIVE_BOOT_COMPLETED</code></td>
 						<td>
-							To restart blocking automatically after you reboot your device, only if a focus task was active when the device shut down.
-							No data is sent at boot.
+							To restore your setup after you reboot your device: restarting blocking if a focus task was active when the device shut
+							down, restarting an enabled wellness feature, and re-registering your schedules so they still fire. No data is sent at
+							boot.
+						</td>
+					</tr>
+					<tr>
+						<td>Alarms (no permission required)</td>
+						<td>
+							To start your schedules at the time you set, the App registers them with Android&rsquo;s alarm clock. This uses the same
+							mechanism as a normal alarm and needs no special permission, but your device may show an alarm indicator while a schedule
+							is pending.
 						</td>
 					</tr>
 					<tr>
 						<td>Notification Listener (<code>BIND_NOTIFICATION_LISTENER_SERVICE</code>)</td>
 						<td>
-							Optional. Only used if you turn on &ldquo;Block Notifications&rdquo;. Lets the App silence notifications from blocked apps
-							while a focus task is active. Granted by you in Android Settings.
+							Optional, and only used if you set notification blocking to &ldquo;Selected Apps&rdquo; or &ldquo;All Apps&rdquo;. Lets
+							the App dismiss notifications during a focus task, as described in section&nbsp;3.3. Granted by you in Android Settings
+							and revocable there at any time.
 						</td>
 					</tr>
 					<tr>
@@ -473,14 +548,15 @@
 				</li>
 				<li>
 					<strong>App-private storage</strong> &mdash; blocking session state (such as the package names you chose to block, session
-					identifier, start time, and your maximum block-time setting) and your wellness-feature settings are stored in Android
-					<code>SharedPreferences</code> in the App&rsquo;s private storage area, accessible only to the App. The blocking engine keeps its
-					own copy here so that blocking keeps working even if you force-close the App or restart your device.
+					identifier, start time, and your maximum block-time setting), your wellness-feature settings, and your schedules are stored in
+					Android <code>SharedPreferences</code> in the App&rsquo;s private storage area, accessible only to the App. The blocking engine
+					keeps its own copy here so that blocking keeps working even if you force-close the App or restart your device.
 				</li>
 				<li>
-					<strong>While a focus task is active</strong>, the blocking engine also keeps a copy of your authentication token in that
-					app-private area, because it needs to ask our server whether your task is complete even when the rest of the App is not running.
-					It is removed when the session ends.
+					<strong>A copy of your authentication token</strong> is also kept in that app-private area, because the blocking engine has to
+					reach our server without the rest of the App running &mdash; to check whether your task is complete, and to create and start the
+					task when a schedule fires. It is kept while a focus task is active, and for as long as you have any schedule saved. It is
+					cleared when you sign out or delete the App.
 				</li>
 			</ul>
 
@@ -511,6 +587,10 @@
 					<code>BrainClean &mdash; Eye care active</code> / <code>Usage monitoring active</code> /
 					<code>Eye care &amp; usage monitoring active</code> &mdash; shown while an optional wellness feature is switched on, naming
 					whichever is running. It disappears when you switch the feature off.
+				</li>
+				<li>
+					<code>Scheduled task started</code> &mdash; shown once when one of your schedules fires, naming the task and how long it will
+					block for.
 				</li>
 			</ul>
 			<p>
@@ -575,8 +655,14 @@
 				it is also deleted.
 			</p>
 			<p>
-				Locally stored data (your authentication token, email, selected apps, wellness settings, and other preferences described in
-				section&nbsp;5.1) is removed from your device when you sign out, delete your account, or uninstall the App.
+				Locally stored data (your authentication token, email, selected apps, schedules, wellness settings, and other preferences described
+				in section&nbsp;5.1) is removed from your device when you sign out, delete your account, or uninstall the App.
+			</p>
+			<p>
+				<strong>Feedback</strong> is kept separately from your account, because it can be sent without being signed in and we need it to fix
+				the problems it reports. Deleting your account removes the link between your feedback and your account, but does not automatically
+				delete the feedback text itself. If you want feedback you sent deleted as well, email us at support@brainclean.app and we will
+				remove it.
 			</p>
 
 			<h2 id="rights">9. Your rights and account deletion</h2>
@@ -602,6 +688,14 @@
 				<li>
 					<strong>Turn off the wellness features</strong> at any time in Settings, which stops the on-device usage monitoring described in
 					section&nbsp;3.4 immediately.
+				</li>
+				<li>
+					<strong>Disable or delete your schedules</strong> at any time from the Schedules tab, which cancels the pending alarm so no
+					further sessions start automatically.
+				</li>
+				<li>
+					<strong>Change notification blocking</strong> at any time in Settings, including setting it back to &ldquo;Off&rdquo;, and revoke
+					Notification Access in Android Settings.
 				</li>
 			</ul>
 			<p>

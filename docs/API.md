@@ -820,6 +820,163 @@ server-side check).
 
 ---
 
+## Feedback
+
+### POST /api/feedback
+
+Submit product feedback. **Public — no auth required.** Both anonymous users and
+authenticated users can submit; if a valid Bearer token is present, the
+submission is associated with that user in the background (not returned in the
+response).
+
+Rate limited to **3 submissions per hour per client IP**. Exceeding returns
+`429 Too Many Requests` with `RATE_LIMIT_EXCEEDED` and a `Retry-After` header.
+
+**Auth:** Public
+
+**Request Body:**
+
+| Field    | Type   | Validation                                                                                               |
+| -------- | ------ | -------------------------------------------------------------------------------------------------------- |
+| category | string | Required. One of the values listed below (kebab-case)                                                    |
+| message  | string | Required. 1–2000 characters                                                                              |
+| email    | string | Optional. If provided, must be a valid email (≤255 chars). Omit or send `null` for anonymous submissions |
+
+**Allowed `category` values:**
+
+- `hard-to-use`
+- `missing-features`
+- `too-many-permissions`
+- `battery-drain`
+- `not-what-expected`
+- `found-alternative`
+- `bugs-crashes`
+- `privacy-concerns`
+- `other`
+
+**Example Request:**
+
+```json
+{
+	"category": "bugs-crashes",
+	"message": "App crashes when I try to start a task after 10 minutes.",
+	"email": "user@example.com"
+}
+```
+
+**Success Response:** `201 Created`
+
+```json
+{
+	"id": "550e8400-e29b-41d4-a716-446655440000",
+	"category": "bugs-crashes",
+	"message": "App crashes when I try to start a task after 10 minutes.",
+	"email": "user@example.com",
+	"createdAt": "2026-06-30T12:00:00Z"
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code          | When                                                            |
+| ------ | ------------------- | --------------------------------------------------------------- |
+| 400    | VALIDATION_ERROR    | Invalid category, missing/oversized message, or malformed email |
+| 429    | RATE_LIMIT_EXCEEDED | More than 3 submissions from this IP in the last hour           |
+
+---
+
+### GET /api/feedback
+
+List all submitted feedback with pagination and optional filters.
+
+**Auth:** Authenticated + **admin only** (`user.isAdmin = true`)
+
+**Query Parameters:**
+
+| Param    | Type    | Required | Default | Description                                                      |
+| -------- | ------- | -------- | ------- | ---------------------------------------------------------------- |
+| page     | integer | No       | 0       | Zero-indexed page number                                         |
+| limit    | integer | No       | 20      | Page size (max 100)                                              |
+| category | string  | No       | —       | Filter to a single category (same values as POST endpoint)       |
+| from     | string  | No       | —       | ISO 8601 datetime — only show feedback created on or after this  |
+| to       | string  | No       | —       | ISO 8601 datetime — only show feedback created on or before this |
+
+**Example Request:**
+
+```
+GET /api/feedback?page=0&limit=50&category=bugs-crashes&from=2026-06-01T00:00:00Z
+```
+
+**Success Response:** `200 OK`
+
+```json
+{
+	"data": [
+		{
+			"id": "550e8400-e29b-41d4-a716-446655440000",
+			"category": "bugs-crashes",
+			"message": "App crashes on task start",
+			"email": "user@example.com",
+			"createdAt": "2026-06-30T12:00:00Z"
+		}
+	],
+	"total": 42,
+	"page": 0,
+	"limit": 50
+}
+```
+
+Feedback is ordered by `createdAt` DESC (newest first).
+
+**Error Responses:**
+
+| Status | Error Code       | When                                                  |
+| ------ | ---------------- | ----------------------------------------------------- |
+| 401    | —                | Missing or invalid JWT                                |
+| 403    | ADMIN_REQUIRED   | Authenticated but not an admin                        |
+| 400    | VALIDATION_ERROR | Malformed `from`/`to` datetime, or unknown `category` |
+
+---
+
+### GET /api/feedback/stats
+
+Aggregate counts. Admin dashboard uses this for a summary tile.
+
+**Auth:** Authenticated + **admin only**
+
+**Success Response:** `200 OK`
+
+```json
+{
+	"totalCount": 42,
+	"categoryCounts": {
+		"hard-to-use": 3,
+		"missing-features": 8,
+		"too-many-permissions": 1,
+		"battery-drain": 2,
+		"not-what-expected": 5,
+		"found-alternative": 4,
+		"bugs-crashes": 12,
+		"privacy-concerns": 0,
+		"other": 7
+	},
+	"last7Days": 6,
+	"last30Days": 22
+}
+```
+
+`categoryCounts` always includes every category, defaulting to `0` — so the
+client can render a stable set of tiles.
+
+**Error Responses:**
+
+| Status | Error Code     | When                           |
+| ------ | -------------- | ------------------------------ |
+| 401    | —              | Missing or invalid JWT         |
+| 403    | ADMIN_REQUIRED | Authenticated but not an admin |
+
+---
+
 ## Wishlist
 
 ### POST /api/wishlist/join

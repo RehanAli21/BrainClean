@@ -7,6 +7,13 @@
   <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
   <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
   <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <!-- Schedules fire at an exact user-chosen time; setAlarmClock() requires an
+       exact-alarm permission on API 31+. USE_EXACT_ALARM exists only on API 33+,
+       so Android 12 (31/32) uses SCHEDULE_EXACT_ALARM, which is auto-granted there. -->
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+  <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+  <!-- Schedule started/failed notifications on API 33+ -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
   <application>
     <service

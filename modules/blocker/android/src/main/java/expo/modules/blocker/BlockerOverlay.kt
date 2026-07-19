@@ -56,7 +56,7 @@ class BlockerOverlay {
         }
 
         val title = TextView(context).apply {
-            text = "This app is blocked"
+            text = LocalizedStrings.get(context, "blocker.overlayTitle")
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
             typeface = Typeface.DEFAULT_BOLD
@@ -65,7 +65,7 @@ class BlockerOverlay {
         }
 
         val subtitle = TextView(context).apply {
-            text = "Return to BrainClean to check your session."
+            text = LocalizedStrings.get(context, "blocker.overlaySubtitle")
             setTextColor(Color.parseColor("#A1A1AA"))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             gravity = Gravity.CENTER

@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "शेड्यूल के लिए 'अलार्म और रिमाइंडर' अनुमति चाहिए। कृपया सिस्टम सेटिंग्स में BrainClean के लिए इसे अनुमति दें।",
     title: 'शेड्यूल',
     noSchedules: 'अभी कोई शेड्यूल नहीं है।\nएक बनाने के लिए + दबाएं।',
     createSchedule: 'शेड्यूल बनाएं',
@@ -359,9 +361,54 @@ export default {
     restore: 'खरीदारी पुनर्स्थापित करें',
   },
 
+  feedback: {
+    title: 'प्रतिक्रिया भेजें',
+    subtitle: 'BrainClean को बेहतर बनाने में हमारी मदद करें। आपकी प्रतिक्रिया मायने रखती है!',
+    categoryLabel: 'श्रेणी',
+    selectCategory: 'श्रेणी चुनें',
+    categoryRequired: 'कृपया एक श्रेणी चुनें',
+    messageLabel: 'आपकी प्रतिक्रिया',
+    messagePlaceholder: 'हमें बताएं आप क्या सोचते हैं...',
+    messageRequired: 'कृपया अपनी प्रतिक्रिया दर्ज करें',
+    messageTooLong: 'प्रतिक्रिया 2000 अक्षरों से कम होनी चाहिए',
+    emailLabel: 'ईमेल (वैकल्पिक)',
+    emailPlaceholder: 'your@email.com',
+    submit: 'प्रतिक्रिया भेजें',
+    thankYou: 'धन्यवाद!',
+    submitted: 'आपकी प्रतिक्रिया सबमिट हो गई है। सुधार में मदद करने के लिए धन्यवाद।',
+    categories: {
+      'hard-to-use': 'उपयोग में कठिन',
+      'missing-features': 'सुविधाएं गायब हैं',
+      'too-many-permissions': 'बहुत अधिक अनुमतियां',
+      'not-what-expected': 'उम्मीद के अनुसार नहीं',
+      'found-alternative': 'विकल्प मिल गया',
+      'bugs-crashes': 'बग और क्रैश',
+      'privacy-concerns': 'गोपनीयता चिंताएं',
+      'other': 'अन्य',
+    },
+  },
+
   subscription: {
     gracePeriod: 'भुगतान समस्या — कृपया Play Store में अपना भुगतान तरीका अपडेट करें।',
     canceled: 'आपकी सदस्यता {{date}} को समाप्त हो जाएगी। एक्सेस बनाए रखने के लिए नवीनीकरण करें।',
     pending: 'भुगतान प्रोसेसिंग हो रही है…',
+  },
+  native: {
+    blockerNotifText: "BrainClean आपके फ़ोकस की रक्षा कर रहा है।",
+    overlayTitle: "यह ऐप ब्लॉक है",
+    overlaySubtitle: "अपना सेशन देखने के लिए BrainClean पर वापस जाएँ।",
+    wellnessNotifEye: "आँखों की देखभाल सक्रिय",
+    wellnessNotifAutoBlock: "उपयोग निगरानी सक्रिय",
+    wellnessNotifBoth: "आँखों की देखभाल और उपयोग निगरानी सक्रिय",
+    eyeTitle: "दूर देखें",
+    eyeSubtitle: "लगभग 6 मीटर दूर किसी चीज़ को देखें",
+    breakTitle: "ब्रेक लें",
+    breakSubtitle: "आप {minutes} मिनट से स्क्रॉल कर रहे हैं",
+    scheduleStartedTitle: "शेड्यूल किया गया टास्क शुरू हुआ",
+    scheduleStartedText: "{name} — {duration} के लिए ब्लॉकिंग",
+    scheduleFailedTitle: "शेड्यूल की गई ब्लॉकिंग विफल",
+    scheduleFailedAuth: "शेड्यूल की गई ब्लॉकिंग शुरू नहीं हो सकी। BrainClean खोलें और फिर से साइन इन करें।",
+    scheduleFailedSubscription: "शेड्यूल की गई ब्लॉकिंग शुरू नहीं हो सकी। सक्रिय सब्सक्रिप्शन आवश्यक है।",
+    scheduleFailedGeneric: "शेड्यूल की गई ब्लॉकिंग शुरू नहीं हो सकी। BrainClean खोलकर फिर से कोशिश करें।",
   },
 } as const

@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "تحتاج الجداول إلى إذن «المنبهات والتذكيرات». يرجى السماح به لتطبيق BrainClean من إعدادات النظام.",
     title: 'الجداول',
     noSchedules: 'لا توجد جداول بعد.\nاضغط + لإنشاء واحد.',
     createSchedule: 'إنشاء جدول',
@@ -359,9 +361,54 @@ export default {
     restore: 'استعادة المشتريات',
   },
 
+  feedback: {
+    title: 'إرسال ملاحظات',
+    subtitle: 'ساعدنا في تحسين BrainClean. ملاحظاتك مهمة!',
+    categoryLabel: 'الفئة',
+    selectCategory: 'اختر فئة',
+    categoryRequired: 'يرجى اختيار فئة',
+    messageLabel: 'ملاحظاتك',
+    messagePlaceholder: 'أخبرنا برأيك...',
+    messageRequired: 'يرجى إدخال ملاحظاتك',
+    messageTooLong: 'يجب أن تكون الملاحظات أقل من 2000 حرف',
+    emailLabel: 'البريد الإلكتروني (اختياري)',
+    emailPlaceholder: 'your@email.com',
+    submit: 'إرسال الملاحظات',
+    thankYou: 'شكراً لك!',
+    submitted: 'تم إرسال ملاحظاتك. نقدر مساعدتك في التحسين.',
+    categories: {
+      'hard-to-use': 'صعب الاستخدام',
+      'missing-features': 'ميزات مفقودة',
+      'too-many-permissions': 'أذونات كثيرة جداً',
+      'not-what-expected': 'ليس كما توقعت',
+      'found-alternative': 'وجدت بديلاً',
+      'bugs-crashes': 'أخطاء وأعطال',
+      'privacy-concerns': 'مخاوف الخصوصية',
+      'other': 'أخرى',
+    },
+  },
+
   subscription: {
     gracePeriod: 'مشكلة في الدفع — يرجى تحديث طريقة الدفع في متجر Play.',
     canceled: 'ينتهي اشتراكك في {{date}}. جدّد للحفاظ على الوصول.',
     pending: 'جارٍ معالجة الدفع…',
+  },
+  native: {
+    blockerNotifText: "BrainClean يحمي تركيزك.",
+    overlayTitle: "هذا التطبيق محظور",
+    overlaySubtitle: "عُد إلى BrainClean للتحقق من جلستك.",
+    wellnessNotifEye: "العناية بالعين مفعّلة",
+    wellnessNotifAutoBlock: "مراقبة الاستخدام مفعّلة",
+    wellnessNotifBoth: "العناية بالعين ومراقبة الاستخدام مفعّلتان",
+    eyeTitle: "انظر بعيدًا",
+    eyeSubtitle: "انظر إلى شيء يبعد 6 أمتار",
+    breakTitle: "خذ استراحة",
+    breakSubtitle: "أنت تتصفح منذ {minutes} دقيقة",
+    scheduleStartedTitle: "بدأت المهمة المجدولة",
+    scheduleStartedText: "{name} — الحظر لمدة {duration}",
+    scheduleFailedTitle: "فشل الحظر المجدول",
+    scheduleFailedAuth: "تعذّر بدء الحظر المجدول. افتح BrainClean وسجّل الدخول مرة أخرى.",
+    scheduleFailedSubscription: "تعذّر بدء الحظر المجدول. يلزم اشتراك نشط.",
+    scheduleFailedGeneric: "تعذّر بدء الحظر المجدول. افتح BrainClean وحاول مجددًا.",
   },
 } as const

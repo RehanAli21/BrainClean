@@ -29,7 +29,7 @@ export function useSubscription() {
     onPurchaseSuccess: async (purchase) => {
       try {
         const response = await subscriptionService.verify({
-          purchaseToken: purchase.transactionReceipt ?? '',
+          purchaseToken: purchase.purchaseToken ?? '',
           productId: purchase.productId,
         });
         await finishTransaction({ purchase, isConsumable: false });

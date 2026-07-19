@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "Os agendamentos precisam da permissão \"Alarmes e lembretes\". Ative-a para o BrainClean nas configurações do sistema.",
     title: 'Agendamentos',
     noSchedules: 'Nenhum agendamento ainda.\nToque em + para criar um.',
     createSchedule: 'Criar agendamento',
@@ -359,9 +361,54 @@ export default {
     restore: 'Restaurar Compras',
   },
 
+  feedback: {
+    title: 'Enviar Feedback',
+    subtitle: 'Ajude-nos a melhorar o BrainClean. Sua opinião importa!',
+    categoryLabel: 'Categoria',
+    selectCategory: 'Selecione uma categoria',
+    categoryRequired: 'Por favor selecione uma categoria',
+    messageLabel: 'Seu Feedback',
+    messagePlaceholder: 'Conte-nos o que você pensa...',
+    messageRequired: 'Por favor insira seu feedback',
+    messageTooLong: 'O feedback deve ter menos de 2000 caracteres',
+    emailLabel: 'E-mail (opcional)',
+    emailPlaceholder: 'seu@email.com',
+    submit: 'Enviar Feedback',
+    thankYou: 'Obrigado!',
+    submitted: 'Seu feedback foi enviado. Agradecemos sua ajuda para melhorar.',
+    categories: {
+      'hard-to-use': 'Difícil de usar',
+      'missing-features': 'Recursos ausentes',
+      'too-many-permissions': 'Permissões demais',
+      'not-what-expected': 'Não é o que eu esperava',
+      'found-alternative': 'Encontrei uma alternativa',
+      'bugs-crashes': 'Bugs e falhas',
+      'privacy-concerns': 'Preocupações com privacidade',
+      'other': 'Outro',
+    },
+  },
+
   subscription: {
     gracePeriod: 'Problema de pagamento — atualize seu método de pagamento na Play Store.',
     canceled: 'Sua assinatura termina em {{date}}. Renove para manter o acesso.',
     pending: 'Processando pagamento…',
+  },
+  native: {
+    blockerNotifText: "O BrainClean está protegendo seu foco.",
+    overlayTitle: "Este app está bloqueado",
+    overlaySubtitle: "Volte ao BrainClean para verificar sua sessão.",
+    wellnessNotifEye: "Cuidado com os olhos ativo",
+    wellnessNotifAutoBlock: "Monitoramento de uso ativo",
+    wellnessNotifBoth: "Cuidado com os olhos e monitoramento de uso ativos",
+    eyeTitle: "Olhe para longe",
+    eyeSubtitle: "Olhe para algo a uns 6 metros de distância",
+    breakTitle: "Faça uma pausa",
+    breakSubtitle: "Você está rolando há {minutes} minutos",
+    scheduleStartedTitle: "Tarefa agendada iniciada",
+    scheduleStartedText: "{name} — bloqueando por {duration}",
+    scheduleFailedTitle: "Falha no bloqueio agendado",
+    scheduleFailedAuth: "Não foi possível iniciar o bloqueio agendado. Abra o BrainClean e entre novamente.",
+    scheduleFailedSubscription: "Não foi possível iniciar o bloqueio agendado. É necessária uma assinatura ativa.",
+    scheduleFailedGeneric: "Não foi possível iniciar o bloqueio agendado. Abra o BrainClean e tente novamente.",
   },
 } as const

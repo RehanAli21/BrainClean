@@ -325,6 +325,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "Schedules need the 'Alarms & reminders' permission. Please allow it for BrainClean in system settings.",
     title: 'Schedules',
     noSchedules: 'No schedules yet.\nTap + to create one.',
     createSchedule: 'Create Schedule',
@@ -373,9 +375,54 @@ export default {
     restore: 'Restore Purchases',
   },
 
+  feedback: {
+    title: 'Send Feedback',
+    subtitle: 'Help us improve BrainClean. Your feedback matters!',
+    categoryLabel: 'Category',
+    selectCategory: 'Select a category',
+    categoryRequired: 'Please select a category',
+    messageLabel: 'Your Feedback',
+    messagePlaceholder: 'Tell us what you think...',
+    messageRequired: 'Please enter your feedback',
+    messageTooLong: 'Feedback must be under 2000 characters',
+    emailLabel: 'Email (optional)',
+    emailPlaceholder: 'your@email.com',
+    submit: 'Submit Feedback',
+    thankYou: 'Thank You!',
+    submitted: 'Your feedback has been submitted. We appreciate you helping us improve.',
+    categories: {
+      'hard-to-use': 'Hard to Use',
+      'missing-features': 'Missing Features',
+      'too-many-permissions': 'Too Many Permissions',
+      'not-what-expected': 'Not What I Expected',
+      'found-alternative': 'Found an Alternative',
+      'bugs-crashes': 'Bugs & Crashes',
+      'privacy-concerns': 'Privacy Concerns',
+      'other': 'Other',
+    },
+  },
+
   subscription: {
     gracePeriod: 'Payment issue — please update your payment method in Play Store.',
     canceled: 'Your subscription ends on {{date}}. Renew to keep access.',
     pending: 'Payment processing…',
+  },
+  native: {
+    blockerNotifText: "BrainClean is protecting your focus.",
+    overlayTitle: "This app is blocked",
+    overlaySubtitle: "Return to BrainClean to check your session.",
+    wellnessNotifEye: "Eye care active",
+    wellnessNotifAutoBlock: "Usage monitoring active",
+    wellnessNotifBoth: "Eye care & usage monitoring active",
+    eyeTitle: "Look Away",
+    eyeSubtitle: "Look at something 20 feet (6 m) away",
+    breakTitle: "Take a Break",
+    breakSubtitle: "You've been scrolling for {minutes} minutes",
+    scheduleStartedTitle: "Scheduled task started",
+    scheduleStartedText: "{name} — blocking for {duration}",
+    scheduleFailedTitle: "Scheduled block failed",
+    scheduleFailedAuth: "Couldn't start your scheduled block. Open BrainClean and sign in again.",
+    scheduleFailedSubscription: "Couldn't start your scheduled block. An active subscription is required.",
+    scheduleFailedGeneric: "Couldn't start your scheduled block. Open BrainClean to try again.",
   },
 } as const

@@ -21,6 +21,8 @@ export default {
   tabs: { tasks: 'Tugas', schedules: 'Jadwal', apps: 'Aplikasi', wellness: 'Kesehatan', settings: 'Pengaturan' },
 
   schedules: {
+
+    exactAlarmRequired: "Jadwal memerlukan izin 'Alarm & pengingat'. Izinkan untuk BrainClean di pengaturan sistem.",
     title: 'Jadwal',
     noSchedules: 'Belum ada jadwal.\nKetuk + untuk membuat.',
     createSchedule: 'Buat jadwal',
@@ -89,9 +91,45 @@ export default {
     restore: 'Pulihkan Pembelian',
   },
 
+  feedback: {
+    title: 'Kirim Masukan',
+    subtitle: 'Bantu kami meningkatkan BrainClean. Masukan Anda penting!',
+    categoryLabel: 'Kategori',
+    selectCategory: 'Pilih kategori',
+    categoryRequired: 'Silakan pilih kategori',
+    messageLabel: 'Masukan Anda',
+    messagePlaceholder: 'Ceritakan pendapat Anda...',
+    messageRequired: 'Silakan masukkan masukan Anda',
+    messageTooLong: 'Masukan harus kurang dari 2000 karakter',
+    emailLabel: 'Email (opsional)',
+    emailPlaceholder: 'anda@email.com',
+    submit: 'Kirim Masukan',
+    thankYou: 'Terima Kasih!',
+    submitted: 'Masukan Anda telah dikirim. Terima kasih telah membantu kami meningkatkan.',
+    categories: { 'hard-to-use': 'Sulit digunakan', 'missing-features': 'Fitur kurang', 'too-many-permissions': 'Terlalu banyak izin', 'not-what-expected': 'Tidak sesuai harapan', 'found-alternative': 'Menemukan alternatif', 'bugs-crashes': 'Bug & crash', 'privacy-concerns': 'Masalah privasi', 'other': 'Lainnya' },
+  },
+
   subscription: {
     gracePeriod: 'Masalah pembayaran — perbarui metode pembayaran Anda di Play Store.',
     canceled: 'Langganan Anda berakhir pada {{date}}. Perpanjang untuk mempertahankan akses.',
     pending: 'Memproses pembayaran…',
+  },
+  native: {
+    blockerNotifText: "BrainClean sedang melindungi fokus Anda.",
+    overlayTitle: "Aplikasi ini diblokir",
+    overlaySubtitle: "Kembali ke BrainClean untuk memeriksa sesi Anda.",
+    wellnessNotifEye: "Perawatan mata aktif",
+    wellnessNotifAutoBlock: "Pemantauan penggunaan aktif",
+    wellnessNotifBoth: "Perawatan mata & pemantauan penggunaan aktif",
+    eyeTitle: "Alihkan Pandangan",
+    eyeSubtitle: "Lihat sesuatu yang berjarak sekitar 6 meter",
+    breakTitle: "Istirahat Dulu",
+    breakSubtitle: "Anda sudah menggulir selama {minutes} menit",
+    scheduleStartedTitle: "Tugas terjadwal dimulai",
+    scheduleStartedText: "{name} — memblokir selama {duration}",
+    scheduleFailedTitle: "Pemblokiran terjadwal gagal",
+    scheduleFailedAuth: "Tidak dapat memulai pemblokiran terjadwal. Buka BrainClean dan masuk lagi.",
+    scheduleFailedSubscription: "Tidak dapat memulai pemblokiran terjadwal. Diperlukan langganan aktif.",
+    scheduleFailedGeneric: "Tidak dapat memulai pemblokiran terjadwal. Buka BrainClean dan coba lagi.",
   },
 } as const

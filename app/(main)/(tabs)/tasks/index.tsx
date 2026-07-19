@@ -1,3 +1,4 @@
+import { FeedbackModal } from '@/components/FeedbackModal'
 import { registerRef, triggerWalkthrough, unregisterRef } from '@/components/walkthroughRegistry'
 import { API_BASE_URL, TASK_POLL_INTERVAL_MS } from '@/constants/config'
 import { Colors } from '@/constants/theme'
@@ -99,13 +100,15 @@ export default function TaskListScreen() {
 	const [selectedDate, setSelectedDate] = useState(getTodayDate)
 	const [showPicker, setShowPicker] = useState(false)
 	const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate)
-	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
+	const { isBlocking, activeSessionId, startBlocking, stopBlocking } = useBlocker()
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 	const isPremium = useUiStore(s => s.isPremium)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 	const fabCooldown = useRef(false)
+	const feedbackCooldown = useRef(false)
+	const [feedbackVisible, setFeedbackVisible] = useState(false)
 	const fabRef = useRef<View>(null)
 	const dateRef = useRef<View>(null)
 
@@ -129,11 +132,18 @@ export default function TaskListScreen() {
 		}, [refetch]),
 	)
 
+	// Only stop the native session when ITS OWN task is confirmed completed.
+	// `tasks` is filtered by the user-selected date — inferring "no active
+	// task" from it would let a date change kill an active blocking session.
+	// If the session task isn't in this list, the Kotlin TaskStatusChecker
+	// remains the authority for unblocking.
 	useEffect(() => {
-		if (tasks && !hasActiveTask && isBlocking) {
+		if (!isBlocking || !activeSessionId || !tasks) return
+		const sessionTask = tasks.find(t => t.id === activeSessionId)
+		if (sessionTask?.completed) {
 			stopBlocking()
 		}
-	}, [tasks, hasActiveTask, isBlocking, stopBlocking])
+	}, [tasks, isBlocking, activeSessionId, stopBlocking])
 
 	const activeTask = tasks?.find(t => t.started && !t.completed)
 
@@ -254,6 +264,19 @@ export default function TaskListScreen() {
 				/>
 			)}
 
+			<TouchableOpacity
+				style={[styles.feedbackFab, { backgroundColor: theme.surface, borderColor: theme.border }]}
+				onPress={() => {
+					if (feedbackCooldown.current) return
+					feedbackCooldown.current = true
+					setFeedbackVisible(true)
+					setTimeout(() => { feedbackCooldown.current = false }, 1000)
+				}}
+				activeOpacity={0.8}>
+				<Ionicons name='chatbubble-ellipses-outline' size={18} color={theme.primary} />
+				<Text style={[styles.feedbackFabText, { color: theme.primary }]}>{t('feedback.title')}</Text>
+			</TouchableOpacity>
+
 			{hasActiveTask ? null : (
 				<TouchableOpacity
 					ref={fabRef}
@@ -274,6 +297,8 @@ export default function TaskListScreen() {
 					/>
 				</TouchableOpacity>
 			)}
+
+			<FeedbackModal visible={feedbackVisible} onClose={() => setFeedbackVisible(false)} />
 		</View>
 	)
 }
@@ -319,6 +344,23 @@ const styles = StyleSheet.create({
 	taskNameCompleted: { textDecorationLine: 'line-through', opacity: 0.6 },
 	taskDuration: { fontSize: 13 },
 	taskHint: { fontSize: 11, marginTop: 2 },
+	feedbackFab: {
+		position: 'absolute',
+		bottom: 24,
+		left: 24,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 6,
+		borderWidth: 1,
+		borderRadius: 22,
+		paddingHorizontal: 14,
+		paddingVertical: 10,
+		elevation: 4,
+	},
+	feedbackFabText: {
+		fontSize: 13,
+		fontWeight: '600',
+	},
 	fab: {
 		position: 'absolute',
 		bottom: 24,

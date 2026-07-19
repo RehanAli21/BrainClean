@@ -1,3 +1,5 @@
+import { clearAuthState } from '@/modules/blocker'
+import { registerLogoutHandler } from '@/services/api/authEvents'
 import { useUiStore } from '@/store/uiStore'
 import { useNavigationContainerRef, useRouter, useSegments } from 'expo-router'
 import * as SecureStore from 'expo-secure-store'
@@ -89,12 +91,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		await SecureStore.deleteItemAsync('user_token')
 		await SecureStore.deleteItemAsync('user_email')
 		await SecureStore.deleteItemAsync('user_token_expires_at')
-		useUiStore.getState().setHasRated(false)
+		// Reset account-scoped client state so a different account on the same
+		// device doesn't inherit it.
+		const ui = useUiStore.getState()
+		ui.setHasRated(false)
+		ui.setIsPremium(false)
+		ui.setSubscriptionState('NONE')
+		ui.setSubscriptionExpiresAt(null)
+		// Clear the token persisted on the Kotlin side (schedule config).
+		try {
+			clearAuthState()
+		} catch {}
 		setToken(null)
 		setEmail(null)
 		setTokenExpiresAt(null)
 		router.replace('/auth/login')
 	}
+
+	// Let the axios interceptor trigger a full logout on 401 — it has no
+	// access to this context, and clearing storage alone leaves stale React
+	// state that fights the redirect logic.
+	useEffect(() => {
+		registerLogoutHandler(logout)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<AuthContext.Provider value={{ token, email, tokenExpiresAt, isLoading, login, logout }}>

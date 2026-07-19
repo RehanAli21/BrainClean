@@ -60,6 +60,27 @@ class ScheduleState private constructor(context: Context) {
             .apply()
     }
 
+    fun clearAuthConfig() {
+        prefs.edit()
+            .putString(KEY_AUTH_TOKEN, "")
+            .putString(KEY_BASE_URL, "")
+            .apply()
+    }
+
+    // A schedule the alarm receiver has handed off to BlockerService for
+    // execution (task creation happens in the service, not the receiver,
+    // because broadcast receivers get killed after ~10s).
+    fun setPendingScheduleId(id: String) {
+        prefs.edit().putString(KEY_PENDING_SCHEDULE, id).apply()
+    }
+
+    fun getPendingScheduleId(): String? =
+        prefs.getString(KEY_PENDING_SCHEDULE, null)?.takeIf { it.isNotEmpty() }
+
+    fun clearPendingSchedule() {
+        prefs.edit().remove(KEY_PENDING_SCHEDULE).apply()
+    }
+
     fun getAuthToken(): String = prefs.getString(KEY_AUTH_TOKEN, "") ?: ""
     fun getBaseUrl(): String = prefs.getString(KEY_BASE_URL, "") ?: ""
     fun getSelectedApps(): Set<String> = prefs.getStringSet(KEY_SELECTED_APPS, emptySet()) ?: emptySet()
@@ -110,6 +131,7 @@ class ScheduleState private constructor(context: Context) {
         private const val KEY_SELECTED_APPS = "selected_apps"
         private const val KEY_NOTIFICATION_BLOCK_MODE = "notification_block_mode"
         private const val KEY_SCHEDULES = "schedules_json"
+        private const val KEY_PENDING_SCHEDULE = "pending_schedule_id"
 
         @Volatile
         private var instance: ScheduleState? = null

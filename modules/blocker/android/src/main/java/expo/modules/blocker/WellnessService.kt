@@ -93,14 +93,14 @@ class WellnessService : Service() {
 
     private fun buildNotification(state: WellnessState): Notification {
         val text = when {
-            state.isEyeBlinkerEnabled() && state.isAutoBlockEnabled() -> "Eye care & usage monitoring active"
-            state.isEyeBlinkerEnabled() -> "Eye care active"
-            state.isAutoBlockEnabled() -> "Usage monitoring active"
+            state.isEyeBlinkerEnabled() && state.isAutoBlockEnabled() -> LocalizedStrings.get(this, "wellness.notifBoth")
+            state.isEyeBlinkerEnabled() -> LocalizedStrings.get(this, "wellness.notifEye")
+            state.isAutoBlockEnabled() -> LocalizedStrings.get(this, "wellness.notifAutoBlock")
             else -> "BrainClean wellness"
         }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("BrainClean")
+            .setContentTitle(LocalizedStrings.get(this, "blocker.notifTitle"))
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setOngoing(true)
@@ -114,8 +114,12 @@ class WellnessService : Service() {
         private const val NOTIFICATION_ID = 1002
 
         fun start(context: Context) {
-            val intent = Intent(context, WellnessService::class.java)
-            ContextCompat.startForegroundService(context, intent)
+            try {
+                val intent = Intent(context, WellnessService::class.java)
+                ContextCompat.startForegroundService(context, intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Unable to start WellnessService", e)
+            }
         }
 
         fun stop(context: Context) {

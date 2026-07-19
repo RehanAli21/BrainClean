@@ -21,6 +21,8 @@ export default {
   tabs: { tasks: 'Задачи', schedules: 'Расписание', apps: 'Приложения', wellness: 'Здоровье', settings: 'Настройки' },
 
   schedules: {
+
+    exactAlarmRequired: "Для расписаний нужно разрешение «Будильники и напоминания». Разрешите его для BrainClean в настройках системы.",
     title: 'Расписание',
     noSchedules: 'Пока нет расписаний.\nНажмите + чтобы создать.',
     createSchedule: 'Создать расписание',
@@ -89,9 +91,45 @@ export default {
     restore: 'Восстановить покупки',
   },
 
+  feedback: {
+    title: 'Отправить отзыв',
+    subtitle: 'Помогите нам улучшить BrainClean. Ваш отзыв важен!',
+    categoryLabel: 'Категория',
+    selectCategory: 'Выберите категорию',
+    categoryRequired: 'Пожалуйста, выберите категорию',
+    messageLabel: 'Ваш отзыв',
+    messagePlaceholder: 'Расскажите, что вы думаете...',
+    messageRequired: 'Пожалуйста, введите ваш отзыв',
+    messageTooLong: 'Отзыв должен быть менее 2000 символов',
+    emailLabel: 'Email (необязательно)',
+    emailPlaceholder: 'ваш@email.com',
+    submit: 'Отправить отзыв',
+    thankYou: 'Спасибо!',
+    submitted: 'Ваш отзыв отправлен. Спасибо, что помогаете нам улучшаться.',
+    categories: { 'hard-to-use': 'Сложно использовать', 'missing-features': 'Не хватает функций', 'too-many-permissions': 'Слишком много разрешений', 'not-what-expected': 'Не то, что ожидал', 'found-alternative': 'Нашёл альтернативу', 'bugs-crashes': 'Баги и сбои', 'privacy-concerns': 'Проблемы конфиденциальности', 'other': 'Другое' },
+  },
+
   subscription: {
     gracePeriod: 'Проблема с оплатой — обновите способ оплаты в Play Store.',
     canceled: 'Ваша подписка заканчивается {{date}}. Продлите, чтобы сохранить доступ.',
     pending: 'Обработка платежа…',
+  },
+  native: {
+    blockerNotifText: "BrainClean защищает вашу концентрацию.",
+    overlayTitle: "Это приложение заблокировано",
+    overlaySubtitle: "Вернитесь в BrainClean, чтобы проверить сессию.",
+    wellnessNotifEye: "Забота о глазах включена",
+    wellnessNotifAutoBlock: "Мониторинг использования включён",
+    wellnessNotifBoth: "Забота о глазах и мониторинг использования включены",
+    eyeTitle: "Посмотрите вдаль",
+    eyeSubtitle: "Посмотрите на что-нибудь в 6 метрах от вас",
+    breakTitle: "Сделайте перерыв",
+    breakSubtitle: "Вы листаете уже {minutes} минут",
+    scheduleStartedTitle: "Запланированная задача началась",
+    scheduleStartedText: "{name} — блокировка на {duration}",
+    scheduleFailedTitle: "Сбой запланированной блокировки",
+    scheduleFailedAuth: "Не удалось запустить блокировку по расписанию. Откройте BrainClean и войдите снова.",
+    scheduleFailedSubscription: "Не удалось запустить блокировку по расписанию. Требуется активная подписка.",
+    scheduleFailedGeneric: "Не удалось запустить блокировку по расписанию. Откройте BrainClean и повторите попытку.",
   },
 } as const

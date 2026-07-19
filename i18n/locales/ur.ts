@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "شیڈول کے لیے «الارمز اور یاد دہانیاں» کی اجازت درکار ہے۔ براہ کرم سسٹم سیٹنگز میں BrainClean کے لیے اس کی اجازت دیں۔",
     title: 'شیڈولز',
     noSchedules: 'ابھی کوئی شیڈول نہیں ہے۔\nایک بنانے کے لیے + دبائیں۔',
     createSchedule: 'شیڈول بنائیں',
@@ -359,9 +361,54 @@ export default {
     restore: 'خریداری بحال کریں',
   },
 
+  feedback: {
+    title: 'رائے بھیجیں',
+    subtitle: 'BrainClean کو بہتر بنانے میں ہماری مدد کریں۔ آپ کی رائے اہم ہے!',
+    categoryLabel: 'زمرہ',
+    selectCategory: 'زمرہ منتخب کریں',
+    categoryRequired: 'براہ کرم زمرہ منتخب کریں',
+    messageLabel: 'آپ کی رائے',
+    messagePlaceholder: 'ہمیں بتائیں آپ کیا سوچتے ہیں...',
+    messageRequired: 'براہ کرم اپنی رائے درج کریں',
+    messageTooLong: 'رائے 2000 حروف سے کم ہونی چاہیے',
+    emailLabel: 'ای میل (اختیاری)',
+    emailPlaceholder: 'your@email.com',
+    submit: 'رائے جمع کریں',
+    thankYou: 'شکریہ!',
+    submitted: 'آپ کی رائے جمع ہو گئی ہے۔ بہتری میں مدد کرنے کا شکریہ۔',
+    categories: {
+      'hard-to-use': 'استعمال مشکل ہے',
+      'missing-features': 'خصوصیات غائب ہیں',
+      'too-many-permissions': 'بہت زیادہ اجازتیں',
+      'not-what-expected': 'جیسی توقع تھی ویسا نہیں',
+      'found-alternative': 'متبادل مل گیا',
+      'bugs-crashes': 'خرابیاں اور کریش',
+      'privacy-concerns': 'رازداری کے خدشات',
+      'other': 'دیگر',
+    },
+  },
+
   subscription: {
     gracePeriod: 'ادائیگی میں مسئلہ — براہ کرم Play Store میں اپنا ادائیگی کا طریقہ اپ ڈیٹ کریں۔',
     canceled: 'آپ کی سبسکرپشن {{date}} کو ختم ہو جائے گی۔ رسائی برقرار رکھنے کے لیے تجدید کریں۔',
     pending: 'ادائیگی کی کارروائی جاری ہے…',
+  },
+  native: {
+    blockerNotifText: "BrainClean آپ کی توجہ کی حفاظت کر رہا ہے۔",
+    overlayTitle: "یہ ایپ بلاک ہے",
+    overlaySubtitle: "اپنے سیشن کی جانچ کے لیے BrainClean پر واپس جائیں۔",
+    wellnessNotifEye: "آنکھوں کی حفاظت فعال ہے",
+    wellnessNotifAutoBlock: "استعمال کی نگرانی فعال ہے",
+    wellnessNotifBoth: "آنکھوں کی حفاظت اور استعمال کی نگرانی فعال ہے",
+    eyeTitle: "دور دیکھیں",
+    eyeSubtitle: "تقریباً 6 میٹر دور کسی چیز کو دیکھیں",
+    breakTitle: "وقفہ لیں",
+    breakSubtitle: "آپ {minutes} منٹ سے اسکرول کر رہے ہیں",
+    scheduleStartedTitle: "شیڈول شدہ ٹاسک شروع ہو گیا",
+    scheduleStartedText: "{name} — {duration} کے لیے بلاکنگ",
+    scheduleFailedTitle: "شیڈول شدہ بلاکنگ ناکام",
+    scheduleFailedAuth: "شیڈول شدہ بلاکنگ شروع نہیں ہو سکی۔ BrainClean کھولیں اور دوبارہ سائن ان کریں۔",
+    scheduleFailedSubscription: "شیڈول شدہ بلاکنگ شروع نہیں ہو سکی۔ فعال سبسکرپشن درکار ہے۔",
+    scheduleFailedGeneric: "شیڈول شدہ بلاکنگ شروع نہیں ہو سکی۔ BrainClean کھول کر دوبارہ کوشش کریں۔",
   },
 } as const

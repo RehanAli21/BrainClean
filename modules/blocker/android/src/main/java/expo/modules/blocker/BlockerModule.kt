@@ -169,8 +169,12 @@ class BlockerModule : Module() {
 
         Function("isNotificationListenerEnabled") {
             val context = appContext.reactContext ?: return@Function false
-            val flat = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-            flat?.contains("${context.packageName}/expo.modules.blocker.NotificationBlockerService") == true
+            // Some OEMs store the abbreviated component form in the raw
+            // settings string, so a contains() check on the full class name
+            // fails there — NotificationManagerCompat handles both forms.
+            androidx.core.app.NotificationManagerCompat
+                .getEnabledListenerPackages(context)
+                .contains(context.packageName)
         }
 
         Function("requestNotificationListenerPermission") {
@@ -363,6 +367,23 @@ class BlockerModule : Module() {
             val context = appContext.reactContext ?: return@Function
             val state = ScheduleState.getInstance(context)
             state.setAuthConfig(authToken, baseUrl, selectedApps.toSet(), notificationBlockMode)
+        }
+
+        Function("canScheduleExactAlarms") {
+            val context = appContext.reactContext ?: return@Function false
+            ScheduleAlarmReceiver.canScheduleExactAlarms(context)
+        }
+
+        // Called on logout / account deletion so the auth token does not
+        // outlive the session in plaintext SharedPreferences.
+        Function("clearAuthState") {
+            val context = appContext.reactContext ?: return@Function Unit
+            ScheduleState.getInstance(context).clearAuthConfig()
+        }
+
+        Function("syncLocalizedStrings") { strings: Map<String, String> ->
+            val context = appContext.reactContext ?: return@Function
+            LocalizedStrings.sync(context, strings)
         }
     }
 

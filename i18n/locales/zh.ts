@@ -291,6 +291,8 @@ export default {
   },
 
   schedules: {
+
+    exactAlarmRequired: "日程功能需要「闹钟与提醒」权限。请在系统设置中为 BrainClean 允许该权限。",
     title: '定时计划',
     noSchedules: '暂无计划。\n点击 + 创建一个。',
     createSchedule: '创建计划',
@@ -359,9 +361,54 @@ export default {
     restore: '恢复购买',
   },
 
+  feedback: {
+    title: '发送反馈',
+    subtitle: '帮助我们改进 BrainClean。您的反馈很重要！',
+    categoryLabel: '类别',
+    selectCategory: '选择类别',
+    categoryRequired: '请选择一个类别',
+    messageLabel: '您的反馈',
+    messagePlaceholder: '告诉我们您的想法...',
+    messageRequired: '请输入您的反馈',
+    messageTooLong: '反馈不得超过2000个字符',
+    emailLabel: '邮箱（可选）',
+    emailPlaceholder: 'your@email.com',
+    submit: '提交反馈',
+    thankYou: '谢谢！',
+    submitted: '您的反馈已提交。感谢您帮助我们改进。',
+    categories: {
+      'hard-to-use': '难以使用',
+      'missing-features': '缺少功能',
+      'too-many-permissions': '权限太多',
+      'not-what-expected': '不符合预期',
+      'found-alternative': '找到了替代品',
+      'bugs-crashes': '错误和崩溃',
+      'privacy-concerns': '隐私顾虑',
+      'other': '其他',
+    },
+  },
+
   subscription: {
     gracePeriod: '付款问题 — 请在 Play 商店更新您的付款方式。',
     canceled: '您的订阅将于 {{date}} 到期。续订以保持访问权限。',
     pending: '正在处理付款…',
+  },
+  native: {
+    blockerNotifText: "BrainClean 正在守护你的专注。",
+    overlayTitle: "此应用已被屏蔽",
+    overlaySubtitle: "返回 BrainClean 查看你的专注时段。",
+    wellnessNotifEye: "护眼提醒已开启",
+    wellnessNotifAutoBlock: "使用监控已开启",
+    wellnessNotifBoth: "护眼提醒与使用监控已开启",
+    eyeTitle: "看向远处",
+    eyeSubtitle: "看看约 6 米以外的东西",
+    breakTitle: "休息一下",
+    breakSubtitle: "你已连续滑动 {minutes} 分钟",
+    scheduleStartedTitle: "定时任务已开始",
+    scheduleStartedText: "{name} — 屏蔽 {duration}",
+    scheduleFailedTitle: "定时屏蔽失败",
+    scheduleFailedAuth: "无法开始定时屏蔽。请打开 BrainClean 重新登录。",
+    scheduleFailedSubscription: "无法开始定时屏蔽。需要有效的订阅。",
+    scheduleFailedGeneric: "无法开始定时屏蔽。请打开 BrainClean 重试。",
   },
 } as const

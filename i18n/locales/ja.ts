@@ -41,6 +41,8 @@ export default {
   tabs: { tasks: 'タスク', schedules: 'スケジュール', apps: 'アプリ', wellness: 'ウェルネス', settings: '設定' },
 
   schedules: {
+
+    exactAlarmRequired: "スケジュールには「アラームとリマインダー」の権限が必要です。システム設定で BrainClean に許可してください。",
     title: 'スケジュール',
     noSchedules: 'まだスケジュールがありません。\n+ をタップして作成しましょう。',
     createSchedule: 'スケジュール作成',
@@ -109,9 +111,45 @@ export default {
     restore: '購入を復元',
   },
 
+  feedback: {
+    title: 'フィードバックを送信',
+    subtitle: 'BrainCleanの改善にご協力ください。ご意見をお待ちしております！',
+    categoryLabel: 'カテゴリー',
+    selectCategory: 'カテゴリーを選択',
+    categoryRequired: 'カテゴリーを選択してください',
+    messageLabel: 'フィードバック',
+    messagePlaceholder: 'ご意見をお聞かせください...',
+    messageRequired: 'フィードバックを入力してください',
+    messageTooLong: 'フィードバックは2000文字以内にしてください',
+    emailLabel: 'メール（任意）',
+    emailPlaceholder: 'your@email.com',
+    submit: 'フィードバックを送信',
+    thankYou: 'ありがとうございます！',
+    submitted: 'フィードバックが送信されました。改善にご協力いただきありがとうございます。',
+    categories: { 'hard-to-use': '使いにくい', 'missing-features': '機能不足', 'too-many-permissions': '権限が多すぎる', 'not-what-expected': '期待と違う', 'found-alternative': '代替を見つけた', 'bugs-crashes': 'バグとクラッシュ', 'privacy-concerns': 'プライバシーの懸念', 'other': 'その他' },
+  },
+
   subscription: {
     gracePeriod: 'お支払いに問題があります — Play ストアでお支払い方法を更新してください。',
     canceled: 'サブスクリプションは {{date}} に終了します。アクセスを維持するには更新してください。',
     pending: 'お支払い処理中…',
+  },
+  native: {
+    blockerNotifText: "BrainClean が集中を守っています。",
+    overlayTitle: "このアプリはブロック中です",
+    overlaySubtitle: "BrainClean に戻ってセッションを確認してください。",
+    wellnessNotifEye: "アイケア有効",
+    wellnessNotifAutoBlock: "使用状況モニタリング有効",
+    wellnessNotifBoth: "アイケアと使用状況モニタリング有効",
+    eyeTitle: "遠くを見て",
+    eyeSubtitle: "約6メートル先のものを見ましょう",
+    breakTitle: "休憩しましょう",
+    breakSubtitle: "{minutes}分間スクロールし続けています",
+    scheduleStartedTitle: "予定タスクを開始しました",
+    scheduleStartedText: "{name} — {duration}ブロックします",
+    scheduleFailedTitle: "予定ブロックに失敗しました",
+    scheduleFailedAuth: "予定ブロックを開始できませんでした。BrainClean を開いて再度サインインしてください。",
+    scheduleFailedSubscription: "予定ブロックを開始できませんでした。有効なサブスクリプションが必要です。",
+    scheduleFailedGeneric: "予定ブロックを開始できませんでした。BrainClean を開いて再試行してください。",
   },
 } as const

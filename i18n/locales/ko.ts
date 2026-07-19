@@ -21,6 +21,8 @@ export default {
   tabs: { tasks: '작업', schedules: '스케줄', apps: '앱', wellness: '웰니스', settings: '설정' },
 
   schedules: {
+
+    exactAlarmRequired: "일정 기능에는 '알람 및 리마인더' 권한이 필요합니다. 시스템 설정에서 BrainClean에 허용해 주세요.",
     title: '스케줄',
     noSchedules: '아직 스케줄이 없습니다.\n+ 를 탭하여 만드세요.',
     createSchedule: '스케줄 만들기',
@@ -89,9 +91,45 @@ export default {
     restore: '구매 복원',
   },
 
+  feedback: {
+    title: '피드백 보내기',
+    subtitle: 'BrainClean 개선에 도움을 주세요. 여러분의 의견이 중요합니다!',
+    categoryLabel: '카테고리',
+    selectCategory: '카테고리 선택',
+    categoryRequired: '카테고리를 선택해 주세요',
+    messageLabel: '피드백',
+    messagePlaceholder: '의견을 알려주세요...',
+    messageRequired: '피드백을 입력해 주세요',
+    messageTooLong: '피드백은 2000자 미만이어야 합니다',
+    emailLabel: '이메일 (선택사항)',
+    emailPlaceholder: 'your@email.com',
+    submit: '피드백 제출',
+    thankYou: '감사합니다!',
+    submitted: '피드백이 제출되었습니다. 개선에 도움을 주셔서 감사합니다.',
+    categories: { 'hard-to-use': '사용하기 어려움', 'missing-features': '기능 부족', 'too-many-permissions': '권한이 너무 많음', 'not-what-expected': '기대와 다름', 'found-alternative': '대안을 찾음', 'bugs-crashes': '버그 및 충돌', 'privacy-concerns': '개인정보 우려', 'other': '기타' },
+  },
+
   subscription: {
     gracePeriod: '결제 문제 — Play 스토어에서 결제 수단을 업데이트해 주세요.',
     canceled: '구독이 {{date}}에 종료됩니다. 액세스를 유지하려면 갱신하세요.',
     pending: '결제 처리 중…',
+  },
+  native: {
+    blockerNotifText: "BrainClean이 집중을 지키고 있습니다.",
+    overlayTitle: "이 앱은 차단되었습니다",
+    overlaySubtitle: "BrainClean으로 돌아가 세션을 확인하세요.",
+    wellnessNotifEye: "눈 건강 보호 사용 중",
+    wellnessNotifAutoBlock: "사용 모니터링 사용 중",
+    wellnessNotifBoth: "눈 건강 보호 및 사용 모니터링 사용 중",
+    eyeTitle: "먼 곳을 보세요",
+    eyeSubtitle: "약 6미터 떨어진 곳을 바라보세요",
+    breakTitle: "잠깐 쉬어가세요",
+    breakSubtitle: "{minutes}분째 스크롤 중입니다",
+    scheduleStartedTitle: "예약된 작업 시작됨",
+    scheduleStartedText: "{name} — {duration} 동안 차단",
+    scheduleFailedTitle: "예약 차단 실패",
+    scheduleFailedAuth: "예약 차단을 시작할 수 없습니다. BrainClean을 열고 다시 로그인해 주세요.",
+    scheduleFailedSubscription: "예약 차단을 시작할 수 없습니다. 활성 구독이 필요합니다.",
+    scheduleFailedGeneric: "예약 차단을 시작할 수 없습니다. BrainClean을 열고 다시 시도해 주세요.",
   },
 } as const

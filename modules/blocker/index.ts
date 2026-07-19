@@ -153,6 +153,24 @@ export function syncScheduleConfig(
   BlockerModule.syncScheduleConfig(authToken, baseUrl, selectedApps, notificationBlockMode);
 }
 
+// True when the OS allows exact alarms (auto-granted via USE_EXACT_ALARM;
+// false only if the user explicitly revoked it in system settings).
+export function canScheduleExactAlarms(): boolean {
+  return BlockerModule.canScheduleExactAlarms();
+}
+
+// Clears the auth token persisted on the Kotlin side (schedule config).
+// Call on logout and account deletion.
+export function clearAuthState(): void {
+  BlockerModule.clearAuthState();
+}
+
+// Pushes translated strings for native UI (overlays, notifications).
+// Call on app start and whenever the language changes.
+export function syncLocalizedStrings(strings: Record<string, string>): void {
+  BlockerModule.syncLocalizedStrings(strings);
+}
+
 export function addBlockedAppListener(
   callback: (event: { packageName: string }) => void,
 ): EventSubscription {

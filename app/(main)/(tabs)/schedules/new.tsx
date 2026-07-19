@@ -2,7 +2,7 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { Colors } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/config'
 import { useAuth } from '@/context/AuthContext'
-import { addSchedule, syncScheduleConfig } from '@/modules/blocker'
+import { addSchedule, canScheduleExactAlarms, syncScheduleConfig } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
@@ -11,6 +11,8 @@ import { useTranslation } from 'react-i18next'
 import {
 	NativeScrollEvent,
 	NativeSyntheticEvent,
+	PermissionsAndroid,
+	Platform,
 	ScrollView,
 	StyleSheet,
 	Text,
@@ -194,7 +196,7 @@ export default function NewScheduleScreen() {
 		})
 	}
 
-	const handleCreate = () => {
+	const handleCreate = async () => {
 		setError('')
 
 		if (durationHours === 0 && durationMinutes === 0) {
@@ -210,6 +212,23 @@ export default function NewScheduleScreen() {
 		if (!token) {
 			setError(t('common.somethingWentWrong'))
 			return
+		}
+
+		// setAlarmClock silently no-ops without this (revocable in system
+		// settings even though USE_EXACT_ALARM is auto-granted).
+		try {
+			if (!canScheduleExactAlarms()) {
+				setError(t('schedules.exactAlarmRequired'))
+				return
+			}
+		} catch {}
+
+		// Android 13+: schedule started/failed notifications need this grant.
+		// A denial doesn't block the schedule — it just stays silent.
+		if (Platform.OS === 'android' && Platform.Version >= 33) {
+			try {
+				await PermissionsAndroid.request('android.permission.POST_NOTIFICATIONS')
+			} catch {}
 		}
 
 		const hour24 = ampm === 0

@@ -1,7 +1,7 @@
 import { AuthInput } from '@/components/AuthInput'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { SocialButton } from '@/components/SocialButton'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/context/AuthContext'
 import { signInWithGoogle } from '@/modules/google-auth'
 import { authService } from '@/services/api/auth'
@@ -12,7 +12,7 @@ import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { z } from 'zod'
 
 export default function SignupScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { login } = useAuth()

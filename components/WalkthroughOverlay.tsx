@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
@@ -119,7 +119,7 @@ interface Props {
 }
 
 export function WalkthroughOverlay({ visible, onClose }: Props) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const setTutorialSeen = useUiStore(s => s.setTutorialSeen)

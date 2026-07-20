@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { feedbackService } from '@/services/api/feedback'
 import { FEEDBACK_CATEGORIES, type FeedbackCategory } from '@/types/feedback'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -24,7 +24,7 @@ interface FeedbackModalProps {
 }
 
 export function FeedbackModal({ visible, onClose }: FeedbackModalProps) {
-  const theme = Colors.dark
+  const theme = useTheme()
   const { t } = useTranslation()
   const [category, setCategory] = useState<FeedbackCategory | null>(null)
   const [message, setMessage] = useState('')

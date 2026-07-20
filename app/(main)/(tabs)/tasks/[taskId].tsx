@@ -1,6 +1,6 @@
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { API_BASE_URL } from '@/constants/config'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/context/AuthContext'
 import { subscriptionQueryKey } from '@/hooks/queries/useSubscription'
 import { useCompleteTaskMutation, useDeleteTaskMutation, useStartTaskMutation, useTaskQuery } from '@/hooks/queries/useTasks'
@@ -38,7 +38,7 @@ function formatDate(iso: string): string {
 }
 
 export default function TaskDetailScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const formatDuration = useFormatDuration()
 	const router = useRouter()

@@ -1,5 +1,5 @@
 import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export default function PermissionsScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { permissions, isLoading, allGranted } = usePermissions()
@@ -86,7 +86,7 @@ export default function PermissionsScreen() {
 }
 
 function PermissionCard({ title, description, granted, onRequest }: { title: string; description: string; granted: boolean; onRequest: () => void }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const cooldown = useRef(false)
 

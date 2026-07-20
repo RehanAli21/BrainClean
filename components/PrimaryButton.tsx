@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from 'react'
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native'
-import { Colors } from '../constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 
 interface PrimaryButtonProps {
 	title: string
@@ -10,7 +10,7 @@ interface PrimaryButtonProps {
 }
 
 export function PrimaryButton({ title, onPress, isLoading, disabled }: PrimaryButtonProps) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const cooldownRef = useRef(false)
 
 	const handlePress = useCallback(() => {

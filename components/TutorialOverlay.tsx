@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useRef, useState } from 'react'
@@ -35,7 +35,7 @@ interface Props {
 }
 
 export function TutorialOverlay({ visible, onClose }: Props) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const setTutorialSeen = useUiStore(s => s.setTutorialSeen)
 	const [currentIndex, setCurrentIndex] = useState(0)

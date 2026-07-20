@@ -2,7 +2,7 @@ import { LanguagePicker } from '@/components/LanguagePicker'
 import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
 import { TutorialOverlay } from '@/components/TutorialOverlay'
 import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { SUPPORTED_LANGUAGES } from '@/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { useBlocker } from '@/hooks/useBlocker'
@@ -35,7 +35,7 @@ import {
 } from 'react-native'
 
 export default function SettingsScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t, i18n } = useTranslation()
 	const { email, logout } = useAuth()
 	const { permissions, recheck } = usePermissions()
@@ -43,6 +43,8 @@ export default function SettingsScreen() {
 	const { isBlocking } = useBlocker()
 	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 	const setNotificationBlockMode = useUiStore(s => s.setNotificationBlockMode)
+	const themeMode = useUiStore(s => s.themeMode)
+	const setThemeMode = useUiStore(s => s.setThemeMode)
 	const subscriptionState = useUiStore(s => s.subscriptionState)
 	const subscriptionExpiresAt = useUiStore(s => s.subscriptionExpiresAt)
 	const [deleting, setDeleting] = useState(false)
@@ -213,6 +215,47 @@ export default function SettingsScreen() {
 
 				<LanguagePicker visible={showLanguagePicker} onClose={() => setShowLanguagePicker(false)} />
 
+				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.themeSection')}</Text>
+				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+					<View style={styles.notifHeader}>
+						<Ionicons name='color-palette-outline' size={20} color={theme.icon} />
+						<View style={styles.rowText}>
+							<Text style={[styles.label, { color: theme.icon }]}>{t('settings.themeMode')}</Text>
+						</View>
+					</View>
+					<View style={styles.notifModes}>
+						{(['system', 'light', 'dark'] as const).map(mode => {
+							const labels = {
+								system: t('settings.themeSystem'),
+								light: t('settings.themeLight'),
+								dark: t('settings.themeDark'),
+							}
+							const active = themeMode === mode
+							return (
+								<TouchableOpacity
+									key={mode}
+									style={[
+										styles.notifModeBtn,
+										{
+											backgroundColor: active ? theme.primary : 'transparent',
+											borderColor: active ? theme.primary : theme.border,
+										},
+									]}
+									onPress={() => setThemeMode(mode)}
+									activeOpacity={0.7}>
+									<Text
+										style={[
+											styles.notifModeBtnText,
+											{ color: active ? '#FFFFFF' : theme.icon },
+										]}>
+										{labels[mode]}
+									</Text>
+								</TouchableOpacity>
+							)
+						})}
+					</View>
+				</View>
+
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.blocking')}</Text>
 
 				<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -363,7 +406,7 @@ function PermissionRow({
 	disabled?: boolean
 	onRequest: () => void
 }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const cooldown = useRef(false)
 

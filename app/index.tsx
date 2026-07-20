@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
@@ -8,7 +8,7 @@ import { Image, StyleSheet, Text, View } from 'react-native'
 const logo = require('@/assets/images/logo_in_white_color.png')
 
 export default function SplashPage() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const router = useRouter()
 	const { token, isLoading } = useAuth()
 

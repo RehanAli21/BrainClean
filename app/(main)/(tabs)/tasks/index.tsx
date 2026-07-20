@@ -1,7 +1,7 @@
 import { FeedbackModal } from '@/components/FeedbackModal'
 import { registerRef, triggerWalkthrough, unregisterRef } from '@/components/walkthroughRegistry'
 import { API_BASE_URL, TASK_POLL_INTERVAL_MS } from '@/constants/config'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { TOKEN_EXPIRY_BUFFER_MS, useAuth } from '@/context/AuthContext'
 import { useTasksQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
@@ -57,7 +57,7 @@ function useGetTaskStatus() {
 }
 
 function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const formatDuration = useFormatDuration()
 	const getTaskStatus = useGetTaskStatus()
@@ -93,7 +93,7 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 }
 
 export default function TaskListScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const formatDateLabel = useFormatDateLabel()

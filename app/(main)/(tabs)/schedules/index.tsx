@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE_URL } from '@/constants/config'
@@ -33,7 +33,7 @@ function ScheduleCard({
 	onToggle: (enabled: boolean) => void
 	onDelete: () => void
 }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 
 	return (
@@ -94,7 +94,7 @@ function ScheduleCard({
 }
 
 export default function ScheduleListScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { token } = useAuth()

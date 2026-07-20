@@ -1,5 +1,5 @@
 import { PrimaryButton } from '@/components/PrimaryButton'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { API_BASE_URL } from '@/constants/config'
 import { useAuth } from '@/context/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
@@ -44,7 +44,7 @@ function RollerPicker({
 	onSelect: (index: number) => void
 	label: string
 }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const scrollRef = useRef<ScrollView | null>(null)
 	const mounted = useRef(false)
 
@@ -107,7 +107,7 @@ function RollerPicker({
 }
 
 function AmPmPicker({ selected, onSelect }: { selected: number; onSelect: (i: number) => void }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const scrollRef = useRef<ScrollView | null>(null)
 	const mounted = useRef(false)
 
@@ -168,7 +168,7 @@ function AmPmPicker({ selected, onSelect }: { selected: number; onSelect: (i: nu
 }
 
 export default function NewScheduleScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { token } = useAuth()

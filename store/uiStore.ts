@@ -1,3 +1,4 @@
+import type { ThemeMode } from '@/hooks/useTheme';
 import type { SubscriptionState } from '@/types/subscription';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
@@ -64,6 +65,8 @@ interface UiState {
   setSubscriptionState: (state: SubscriptionState) => void;
   subscriptionExpiresAt: string | null;
   setSubscriptionExpiresAt: (expiresAt: string | null) => void;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -157,6 +160,11 @@ export const useUiStore = create<UiState>()(
       subscriptionExpiresAt: null,
       setSubscriptionExpiresAt: (expiresAt: string | null) => {
         set({ subscriptionExpiresAt: expiresAt });
+      },
+
+      themeMode: 'system' as ThemeMode,
+      setThemeMode: (mode: ThemeMode) => {
+        set({ themeMode: mode });
       },
     }),
     {

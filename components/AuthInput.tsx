@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import React, { useState } from 'react'
 import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native'
-import { Colors } from '../constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 
 interface AuthInputProps extends TextInputProps {
 	label: string
@@ -9,7 +9,7 @@ interface AuthInputProps extends TextInputProps {
 }
 
 export function AuthInput({ label, isPassword = false, ...props }: AuthInputProps) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const [isVisible, setIsVisible] = useState(false)
 
 	return (

@@ -1,6 +1,6 @@
 import { AuthInput } from '@/components/AuthInput'
 import { PrimaryButton } from '@/components/PrimaryButton'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { authService } from '@/services/api/auth'
 import { Ionicons } from '@expo/vector-icons'
 import { Link, useRouter } from 'expo-router'
@@ -10,7 +10,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
 export default function ForgotPasswordScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const [email, setEmail] = useState('')

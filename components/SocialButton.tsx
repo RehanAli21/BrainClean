@@ -1,7 +1,7 @@
 import { AntDesign } from '@expo/vector-icons' // Standard Expo Icons
 import React from 'react'
 import { StyleSheet, Text, TouchableOpacity } from 'react-native'
-import { Colors } from '../constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 
 interface SocialButtonProps {
 	title: string
@@ -10,7 +10,7 @@ interface SocialButtonProps {
 }
 
 export function SocialButton({ title, onPress, iconName = 'google' }: SocialButtonProps) {
-	const theme = Colors.dark
+	const theme = useTheme()
 
 	return (
 		<TouchableOpacity

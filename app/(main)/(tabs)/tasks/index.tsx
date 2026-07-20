@@ -1,7 +1,7 @@
 import { FeedbackModal } from '@/components/FeedbackModal'
 import { registerRef, triggerWalkthrough, unregisterRef } from '@/components/walkthroughRegistry'
 import { API_BASE_URL, TASK_POLL_INTERVAL_MS } from '@/constants/config'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { TOKEN_EXPIRY_BUFFER_MS, useAuth } from '@/context/AuthContext'
 import { useTasksQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
@@ -57,7 +57,7 @@ function useGetTaskStatus() {
 }
 
 function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const formatDuration = useFormatDuration()
 	const getTaskStatus = useGetTaskStatus()
@@ -93,7 +93,7 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 }
 
 export default function TaskListScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const formatDateLabel = useFormatDateLabel()
@@ -111,11 +111,13 @@ export default function TaskListScreen() {
 	const [feedbackVisible, setFeedbackVisible] = useState(false)
 	const fabRef = useRef<View>(null)
 	const dateRef = useRef<View>(null)
+	const feedbackRef = useRef<View>(null)
 
 	useEffect(() => {
 		registerRef('tasks-fab', fabRef)
 		registerRef('tasks-date', dateRef)
-		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date') }
+		registerRef('tasks-feedback', feedbackRef)
+		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date'); unregisterRef('tasks-feedback') }
 	}, [])
 
 	useFocusEffect(
@@ -265,6 +267,7 @@ export default function TaskListScreen() {
 			)}
 
 			<TouchableOpacity
+				ref={feedbackRef}
 				style={[styles.feedbackFab, { backgroundColor: theme.surface, borderColor: theme.border }]}
 				onPress={() => {
 					if (feedbackCooldown.current) return

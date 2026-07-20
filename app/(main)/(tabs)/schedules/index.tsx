@@ -1,11 +1,12 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { useAuth } from '@/context/AuthContext'
 import { API_BASE_URL } from '@/constants/config'
 import { getSchedules, removeSchedule, toggleSchedule, syncScheduleConfig, type ScheduleInfo } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect, useRouter } from 'expo-router'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert, FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
 
@@ -32,7 +33,7 @@ function ScheduleCard({
 	onToggle: (enabled: boolean) => void
 	onDelete: () => void
 }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 
 	return (
@@ -93,7 +94,7 @@ function ScheduleCard({
 }
 
 export default function ScheduleListScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { token } = useAuth()
@@ -102,6 +103,12 @@ export default function ScheduleListScreen() {
 	const isPremium = useUiStore(s => s.isPremium)
 	const [schedules, setSchedules] = useState<ScheduleInfo[]>([])
 	const fabCooldown = useRef(false)
+	const fabRef = useRef<View>(null)
+
+	useEffect(() => {
+		registerRef('schedules-fab', fabRef)
+		return () => unregisterRef('schedules-fab')
+	}, [])
 
 	const loadSchedules = useCallback(() => {
 		try {
@@ -173,6 +180,7 @@ export default function ScheduleListScreen() {
 			)}
 
 			<TouchableOpacity
+				ref={fabRef}
 				style={[styles.fab, { backgroundColor: theme.primary }]}
 				onPress={() => {
 					if (fabCooldown.current) return

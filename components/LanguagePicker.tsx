@@ -1,5 +1,5 @@
 import { SUPPORTED_LANGUAGES } from '@/i18n'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React from 'react'
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function LanguagePicker({ visible, onClose, dismissable = true }: Props) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t, i18n } = useTranslation()
 	const setSelectedLanguage = useUiStore(s => s.setSelectedLanguage)
 	const currentLanguage = i18n.language

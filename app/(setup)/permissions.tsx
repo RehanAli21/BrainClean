@@ -1,8 +1,7 @@
 import { PadlockProtectionCard } from '@/components/PadlockProtectionCard'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
-import { useUiStore } from '@/store/uiStore'
 import {
 	requestBatteryOptimizationExemption,
 	requestOverlayPermission,
@@ -12,33 +11,20 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, BackHandler, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export default function PermissionsScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { permissions, isLoading, allGranted } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
-	const setSetupCompleted = useUiStore(s => s.setSetupCompleted)
 
 	useEffect(() => {
 		if (allGranted) {
-			setSetupCompleted(true)
-			router.replace('/(main)/(tabs)/tasks')
+			router.back()
 		}
-	}, [allGranted, router, setSetupCompleted])
-
-	useEffect(() => {
-		const handler = BackHandler.addEventListener('hardwareBackPress', () => {
-			if (!allGranted) {
-				BackHandler.exitApp()
-				return true
-			}
-			return false
-		})
-		return () => handler.remove()
-	}, [allGranted])
+	}, [allGranted, router])
 
 	if (isLoading || !permissions) {
 		return (
@@ -100,7 +86,7 @@ export default function PermissionsScreen() {
 }
 
 function PermissionCard({ title, description, granted, onRequest }: { title: string; description: string; granted: boolean; onRequest: () => void }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const cooldown = useRef(false)
 

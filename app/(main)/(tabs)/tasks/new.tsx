@@ -1,6 +1,6 @@
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { isWalkthroughActive, registerRef, unregisterRef } from '@/components/walkthroughRegistry'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { subscriptionQueryKey } from '@/hooks/queries/useSubscription'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
@@ -48,7 +48,7 @@ function RollerPicker({
 	onSelect: (index: number) => void
 	label: string
 }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const scrollRef = useRef<ScrollView | null>(null)
 	const mounted = useRef(false)
 
@@ -113,7 +113,7 @@ function RollerPicker({
 }
 
 export default function NewTaskScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const queryClient = useQueryClient()

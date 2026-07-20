@@ -1,5 +1,5 @@
 import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useBlocker } from '@/hooks/useBlocker'
 import { getInstalledApps } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, FlatList, Image, InteractionManager, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 
 function AppRow({ app, disabled }: { app: AppInfo; disabled: boolean }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const isSelected = useUiStore(s => s.selectedApps.includes(app.packageName))
 	const toggleApp = useUiStore(s => s.toggleApp)
 
@@ -55,7 +55,7 @@ function AppRow({ app, disabled }: { app: AppInfo; disabled: boolean }) {
 }
 
 export default function AppsScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const [apps, setApps] = useState<AppInfo[]>([])
 	const [isLoading, setIsLoading] = useState(true)

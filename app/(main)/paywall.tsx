@@ -1,5 +1,5 @@
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUiStore } from '@/store/uiStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,7 +16,7 @@ const FEATURES = [
 ] as const;
 
 export default function PaywallScreen() {
-  const theme = Colors.dark;
+  const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const {

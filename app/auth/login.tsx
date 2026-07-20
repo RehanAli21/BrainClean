@@ -2,7 +2,7 @@ import { AuthInput } from '@/components/AuthInput'
 import { FeedbackModal } from '@/components/FeedbackModal'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { SocialButton } from '@/components/SocialButton'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useAuth } from '@/context/AuthContext'
 import { signInWithGoogle } from '@/modules/google-auth'
 import { authService } from '@/services/api/auth'
@@ -14,7 +14,7 @@ import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { z } from 'zod'
 
 export default function LoginScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const { login } = useAuth()
 	const [email, setEmail] = useState('')

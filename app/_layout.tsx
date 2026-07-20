@@ -1,12 +1,12 @@
 import i18n from '@/i18n'
-import { Colors } from '@/constants/theme'
+import { useTheme, useThemeMode } from '@/hooks/useTheme'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as ExpoInAppUpdates from 'expo-in-app-updates'
 import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useCallback, useEffect, useState } from 'react'
-import { AppState, Platform, StyleSheet, Text, TouchableOpacity, View, type AppStateStatus } from 'react-native'
+import { AppState, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View, type AppStateStatus } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { isBlocking as nativeIsBlocking } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
@@ -63,7 +63,7 @@ function useForceUpdate() {
 }
 
 function UpdateBlocker({ onRetry }: { onRetry: () => void }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	return (
 		<View style={[updateStyles.container, { backgroundColor: theme.background }]}>
@@ -156,6 +156,7 @@ export default function RootLayout() {
 
 	useAppStateFocusManager()
 	useSyncLanguage()
+	const resolvedTheme = useThemeMode()
 	const { updateRequired, retry } = useForceUpdate()
 
 	if (updateRequired) {
@@ -165,6 +166,11 @@ export default function RootLayout() {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<AuthProvider>
+				<StatusBar
+					barStyle={resolvedTheme === 'dark' ? 'light-content' : 'dark-content'}
+					backgroundColor='transparent'
+					translucent
+				/>
 				<Stack screenOptions={{ headerShown: false }}>
 					<Stack.Screen name='index' />
 					<Stack.Screen name='auth/login' />

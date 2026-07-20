@@ -2,7 +2,7 @@ import { LanguagePicker } from '@/components/LanguagePicker'
 import { TutorialOverlay } from '@/components/TutorialOverlay'
 import { WalkthroughOverlay } from '@/components/WalkthroughOverlay'
 import { onShowWalkthrough } from '@/components/walkthroughRegistry'
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useSubscriptionStatusQuery } from '@/hooks/queries/useSubscription'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -11,7 +11,7 @@ import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export default function TabsLayout() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const tutorialSeen = useUiStore(s => s.tutorialSeen)
 	const selectedLanguage = useUiStore(s => s.selectedLanguage)

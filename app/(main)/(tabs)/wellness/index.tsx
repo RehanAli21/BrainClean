@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useWellness } from '@/hooks/useWellness'
@@ -26,7 +26,7 @@ function NumericStepper({
 	onValueChange: (v: number) => void
 	disabled?: boolean
 }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 
 	return (
 		<View style={styles.stepperContainer}>
@@ -68,7 +68,7 @@ function NumericStepper({
 }
 
 export default function WellnessScreen() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { isBlocking } = useBlocker()

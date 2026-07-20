@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React from 'react'
@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 export function PadlockProtectionCard({ manufacturer }: { manufacturer: string }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	const padlockConfirmedAt = useUiStore(s => s.padlockConfirmedAt)
 	const setPadlockConfirmed = useUiStore(s => s.setPadlockConfirmed)
@@ -56,7 +56,7 @@ export function PadlockProtectionCard({ manufacturer }: { manufacturer: string }
 }
 
 function GestureIllustration() {
-	const theme = Colors.dark
+	const theme = useTheme()
 	const { t } = useTranslation()
 	return (
 		<View style={styles.illustration}>
@@ -70,7 +70,7 @@ function GestureIllustration() {
 }
 
 function Step({ n, icon, label }: { n: number; icon: keyof typeof Ionicons.glyphMap; label: string }) {
-	const theme = Colors.dark
+	const theme = useTheme()
 	return (
 		<View style={styles.step}>
 			<View style={[styles.stepCircle, { backgroundColor: theme.background, borderColor: theme.border }]}>

@@ -111,11 +111,13 @@ export default function TaskListScreen() {
 	const [feedbackVisible, setFeedbackVisible] = useState(false)
 	const fabRef = useRef<View>(null)
 	const dateRef = useRef<View>(null)
+	const feedbackRef = useRef<View>(null)
 
 	useEffect(() => {
 		registerRef('tasks-fab', fabRef)
 		registerRef('tasks-date', dateRef)
-		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date') }
+		registerRef('tasks-feedback', feedbackRef)
+		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date'); unregisterRef('tasks-feedback') }
 	}, [])
 
 	useFocusEffect(
@@ -265,6 +267,7 @@ export default function TaskListScreen() {
 			)}
 
 			<TouchableOpacity
+				ref={feedbackRef}
 				style={[styles.feedbackFab, { backgroundColor: theme.surface, borderColor: theme.border }]}
 				onPress={() => {
 					if (feedbackCooldown.current) return

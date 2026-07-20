@@ -63,6 +63,13 @@ const STEPS: WalkthroughStep[] = [
 		tooltipPosition: 'bottom',
 	},
 	{
+		key: 'schedules-fab',
+		route: '/(main)/(tabs)/schedules',
+		titleKey: 'walkthrough.schedules',
+		descriptionKey: 'walkthrough.schedulesDesc',
+		tooltipPosition: 'top',
+	},
+	{
 		key: 'wellness-eyeblinker',
 		route: '/(main)/(tabs)/wellness',
 		titleKey: 'walkthrough.eyeBlinker',
@@ -79,8 +86,8 @@ const STEPS: WalkthroughStep[] = [
 	{
 		key: 'settings-notifications',
 		route: '/(main)/(tabs)/settings',
-		titleKey: 'walkthrough.blockNotifs',
-		descriptionKey: 'walkthrough.blockNotifsDesc',
+		titleKey: 'walkthrough.notifModes',
+		descriptionKey: 'walkthrough.notifModesDesc',
 		tooltipPosition: 'bottom',
 	},
 	{
@@ -88,6 +95,13 @@ const STEPS: WalkthroughStep[] = [
 		route: '/(main)/(tabs)/settings',
 		titleKey: 'walkthrough.grantPerms',
 		descriptionKey: 'walkthrough.grantPermsDesc',
+		tooltipPosition: 'top',
+	},
+	{
+		key: 'tasks-feedback',
+		route: '/(main)/(tabs)/tasks',
+		titleKey: 'walkthrough.feedback',
+		descriptionKey: 'walkthrough.feedbackDesc',
 		tooltipPosition: 'top',
 	},
 ]

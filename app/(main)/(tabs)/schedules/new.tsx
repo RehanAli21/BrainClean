@@ -2,6 +2,7 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { Colors } from '@/constants/theme'
 import { API_BASE_URL } from '@/constants/config'
 import { useAuth } from '@/context/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { addSchedule, canScheduleExactAlarms, syncScheduleConfig } from '@/modules/blocker'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -171,6 +172,7 @@ export default function NewScheduleScreen() {
 	const { t } = useTranslation()
 	const router = useRouter()
 	const { token } = useAuth()
+	const { allGranted, isLoading: permsLoading } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 
@@ -264,6 +266,24 @@ export default function NewScheduleScreen() {
 				<View style={{ width: 24 }} />
 			</View>
 
+			{!permsLoading && !allGranted ? (
+				<View style={styles.form}>
+					<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
+						<Text style={[styles.errorBannerText, { color: theme.accent }]}>
+							{t('newTask.permsRequired')}
+						</Text>
+					</View>
+					<Text style={[styles.hintText, { color: theme.icon, marginTop: 8 }]}>
+						{t('newTask.permsHint')}
+					</Text>
+					<View style={{ marginTop: 16 }}>
+						<PrimaryButton
+							title={t('newTask.grantPerms')}
+							onPress={() => router.push('/(setup)/permissions')}
+						/>
+					</View>
+				</View>
+			) : (
 			<ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
 				{error ? (
 					<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
@@ -334,6 +354,7 @@ export default function NewScheduleScreen() {
 					/>
 				</View>
 			</ScrollView>
+			)}
 		</View>
 	)
 }

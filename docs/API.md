@@ -450,6 +450,31 @@ doesn't retry unnecessarily.
 
 ## Tasks
 
+### Scopes
+
+Tasks belong to one of two **scopes**:
+
+| Scope       | Meaning                                                                                   |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| `SHARED`    | Default. Visible to the mobile app and to the browser extension in _mirror mode_.         |
+| `EXTENSION` | Only visible to the browser extension in _independent mode_. Invisible to the mobile app. |
+
+Users can have **one active task per scope simultaneously** — e.g. one SHARED
+task blocking mobile apps AND one EXTENSION task blocking browser tabs, at the
+same time.
+
+**Rules:**
+
+- Every task has a `scope`. Create with `"scope": "EXTENSION"` or omit for `SHARED`.
+- Read endpoints accept an optional `?scope=EXTENSION` query param. Omitted defaults
+  to `SHARED` — so mobile keeps its old behavior with zero changes.
+- The `ACTIVE_TASK_EXISTS` uniqueness check is per-scope. A SHARED active task
+  does **not** block starting an EXTENSION task, and vice versa.
+
+The `scope` field appears on every `TaskResponse`.
+
+---
+
 ### POST /api/tasks
 
 Create a new task.
@@ -463,6 +488,7 @@ Create a new task.
 | name                   | string             | Required, max 255 chars                                                                                                                                                                                                                                                                                                                                    |
 | minimumDurationSeconds | integer            | Required, min 1                                                                                                                                                                                                                                                                                                                                            |
 | maximumDurationSeconds | integer (nullable) | Optional. If set, must be `> minimumDurationSeconds`. When the task is started and this many seconds pass, the backend will auto-complete it (sets `completed=true`, `autoCompleted=true`). Omit (or send `null`) for no cap. The same field is returned on every task response: `null` if the task has no cap, otherwise the configured value in seconds. |
+| scope                  | string (enum)      | Optional. `"SHARED"` (default) or `"EXTENSION"`. Extension in independent mode sends `"EXTENSION"` so its task is invisible to mobile.                                                                                                                                                                                                                     |
 
 **Example Request:**
 
@@ -488,6 +514,7 @@ Create a new task.
 	"completedAt": null,
 	"autoCompleted": false,
 	"userCompleted": false,
+	"scope": "SHARED",
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```
@@ -563,10 +590,11 @@ Get all tasks for the authenticated user. Optionally filter by date range.
 
 **Query Parameters:**
 
-| Param | Type   | Required | Description                                                     |
-| ----- | ------ | -------- | --------------------------------------------------------------- |
-| start | string | No       | ISO 8601 datetime — filter tasks created on or after this time  |
-| end   | string | No       | ISO 8601 datetime — filter tasks created on or before this time |
+| Param | Type   | Required | Description                                                                                 |
+| ----- | ------ | -------- | ------------------------------------------------------------------------------------------- |
+| start | string | No       | ISO 8601 datetime — filter tasks created on or after this time                              |
+| end   | string | No       | ISO 8601 datetime — filter tasks created on or before this time                             |
+| scope | string | No       | `"SHARED"` (default) or `"EXTENSION"` — which lane to list. Omitting defaults to `"SHARED"` |
 
 Both `start` and `end` must be provided together. If omitted, all tasks are returned.
 
@@ -591,6 +619,7 @@ GET /api/tasks?start=2026-04-01T00:00:00Z&end=2026-04-02T00:00:00Z
 		"completedAt": null,
 		"autoCompleted": false,
 		"userCompleted": false,
+		"scope": "SHARED",
 		"createdAt": "2026-04-01T10:00:00Z"
 	}
 ]
@@ -615,9 +644,10 @@ Get all tasks for the authenticated user created on a specific date.
 
 **Query Parameters:**
 
-| Param | Type   | Required | Description                       |
-| ----- | ------ | -------- | --------------------------------- |
-| date  | string | Yes      | ISO 8601 date (e.g. `2026-04-04`) |
+| Param | Type   | Required | Description                                                                                 |
+| ----- | ------ | -------- | ------------------------------------------------------------------------------------------- |
+| date  | string | Yes      | ISO 8601 date (e.g. `2026-04-04`)                                                           |
+| scope | string | No       | `"SHARED"` (default) or `"EXTENSION"` — which lane to list. Omitting defaults to `"SHARED"` |
 
 **Example Request:**
 
@@ -640,6 +670,7 @@ GET /api/tasks/by-date?date=2026-04-04
 		"completedAt": null,
 		"autoCompleted": false,
 		"userCompleted": false,
+		"scope": "SHARED",
 		"createdAt": "2026-04-04T10:00:00Z"
 	}
 ]
@@ -658,9 +689,15 @@ Returns an empty array `[]` if no tasks were created on that date.
 
 ### GET /api/tasks/status-counts
 
-Get counts of tasks grouped by status for the authenticated user.
+Get counts of tasks grouped by status for the authenticated user, within a scope.
 
 **Auth:** Authenticated
+
+**Query Parameters:**
+
+| Param | Type   | Required | Description                                                                                  |
+| ----- | ------ | -------- | -------------------------------------------------------------------------------------------- |
+| scope | string | No       | `"SHARED"` (default) or `"EXTENSION"` — which lane to count. Omitting defaults to `"SHARED"` |
 
 **Example Response:** `200 OK`
 
@@ -706,6 +743,7 @@ Get a single task by ID. Only returns tasks owned by the authenticated user.
 	"completedAt": null,
 	"autoCompleted": false,
 	"userCompleted": false,
+	"scope": "SHARED",
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```
@@ -758,6 +796,7 @@ Called from mobile to begin app blocking.
 	"completedAt": null,
 	"autoCompleted": false,
 	"userCompleted": false,
+	"scope": "SHARED",
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```
@@ -805,6 +844,7 @@ server-side check).
 	"completedAt": "2026-03-29T12:10:00Z",
 	"autoCompleted": false,
 	"userCompleted": false,
+	"scope": "SHARED",
 	"createdAt": "2026-03-29T12:00:00Z"
 }
 ```

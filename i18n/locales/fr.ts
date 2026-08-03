@@ -297,6 +297,13 @@ export default {
     step2: 'Appuyer sur le menu à côté de BrainClean',
     step3: 'Appuyer sur Verrouiller',
   },
+  loginRequired: {
+    title: 'Connexion requise',
+    tasksMessage: 'Connectez-vous pour créer des tâches et bloquer les applications pendant votre concentration.',
+    schedulesMessage: 'Connectez-vous pour créer des horaires et automatiser vos sessions de concentration.',
+    loginButton: 'Se connecter',
+    signupLink: 'Créer un compte',
+  },
   tabs: {
     tasks: 'Tâches',
     apps: 'Apps',

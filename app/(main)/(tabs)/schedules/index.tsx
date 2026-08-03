@@ -93,7 +93,57 @@ function ScheduleCard({
 	)
 }
 
+function LoginRequiredView() {
+	const theme = useTheme()
+	const { t } = useTranslation()
+	const router = useRouter()
+	const cooldown = useRef(false)
+
+	return (
+		<View style={[styles.container, { backgroundColor: theme.background }]}>
+			<View style={styles.header}>
+				<Text style={[styles.title, { color: theme.text }]}>{t('schedules.title')}</Text>
+			</View>
+			<View style={styles.centered}>
+				<Ionicons name='lock-closed-outline' size={56} color={theme.border} />
+				<Text style={[styles.loginTitle, { color: theme.text }]}>{t('loginRequired.title')}</Text>
+				<Text style={[styles.loginSubtitle, { color: theme.icon }]}>{t('loginRequired.schedulesMessage')}</Text>
+				<TouchableOpacity
+					style={[styles.loginButton, { backgroundColor: theme.primary }]}
+					onPress={() => {
+						if (cooldown.current) return
+						cooldown.current = true
+						router.push('/auth/login')
+						setTimeout(() => { cooldown.current = false }, 1000)
+					}}
+					activeOpacity={0.8}>
+					<Ionicons name='log-in-outline' size={20} color='#FFFFFF' />
+					<Text style={styles.loginButtonText}>{t('loginRequired.loginButton')}</Text>
+				</TouchableOpacity>
+				<TouchableOpacity
+					onPress={() => {
+						if (cooldown.current) return
+						cooldown.current = true
+						router.push('/auth/signup')
+						setTimeout(() => { cooldown.current = false }, 1000)
+					}}
+					activeOpacity={0.7}>
+					<Text style={[styles.signupLink, { color: theme.primary }]}>{t('loginRequired.signupLink')}</Text>
+				</TouchableOpacity>
+			</View>
+		</View>
+	)
+}
+
 export default function ScheduleListScreen() {
+	const { token } = useAuth()
+
+	if (!token) return <LoginRequiredView />
+
+	return <ScheduleListContent />
+}
+
+function ScheduleListContent() {
 	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
@@ -259,5 +309,37 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.3,
 		shadowRadius: 8,
 		elevation: 6,
+	},
+	loginTitle: {
+		fontSize: 22,
+		fontWeight: '700',
+		marginTop: 20,
+		marginBottom: 8,
+	},
+	loginSubtitle: {
+		fontSize: 15,
+		textAlign: 'center',
+		lineHeight: 22,
+		marginBottom: 28,
+		paddingHorizontal: 20,
+	},
+	loginButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 8,
+		height: 52,
+		borderRadius: 12,
+		paddingHorizontal: 32,
+		marginBottom: 16,
+	},
+	loginButtonText: {
+		color: '#FFFFFF',
+		fontSize: 16,
+		fontWeight: '600',
+	},
+	signupLink: {
+		fontSize: 14,
+		fontWeight: '600',
 	},
 })

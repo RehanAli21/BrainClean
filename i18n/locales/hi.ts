@@ -297,6 +297,13 @@ export default {
     step2: 'BrainClean के बगल में मेनू टैप करें',
     step3: 'लॉक टैप करें',
   },
+  loginRequired: {
+    title: 'लॉगिन आवश्यक',
+    tasksMessage: 'कार्य बनाने और ध्यान केंद्रित करते समय ऐप्स ब्लॉक करने के लिए साइन इन करें।',
+    schedulesMessage: 'शेड्यूल बनाने और अपने फोकस सत्र स्वचालित करने के लिए साइन इन करें।',
+    loginButton: 'साइन इन',
+    signupLink: 'खाता बनाएं',
+  },
   tabs: {
     tasks: 'कार्य',
     apps: 'ऐप्स',

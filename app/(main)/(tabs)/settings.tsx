@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { SUPPORTED_LANGUAGES } from '@/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { useBlocker } from '@/hooks/useBlocker'
+import { useRouter } from 'expo-router'
 import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
@@ -37,7 +38,9 @@ import {
 export default function SettingsScreen() {
 	const theme = useTheme()
 	const { t, i18n } = useTranslation()
-	const { email, logout } = useAuth()
+	const router = useRouter()
+	const { token, email, logout } = useAuth()
+	const isLoggedIn = !!token
 	const { permissions, recheck } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 	const { isBlocking } = useBlocker()
@@ -140,7 +143,7 @@ export default function SettingsScreen() {
 				contentContainerStyle={styles.content}>
 				<Text style={[styles.title, { color: theme.text }]}>{t('settings.title')}</Text>
 
-				{isBlocking ? (
+				{isLoggedIn && isBlocking ? (
 					<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
 						<Ionicons
 							name='lock-closed'
@@ -153,7 +156,7 @@ export default function SettingsScreen() {
 					</View>
 				) : null}
 
-				{subscriptionState === 'IN_GRACE_PERIOD' ? (
+				{isLoggedIn && subscriptionState === 'IN_GRACE_PERIOD' ? (
 					<View style={[styles.lockBanner, { backgroundColor: '#F59E0B1A', borderColor: '#F59E0B' }]}>
 						<Ionicons name='warning-outline' size={18} color='#F59E0B' />
 						<Text style={[styles.lockBannerText, { color: '#F59E0B' }]}>
@@ -162,7 +165,7 @@ export default function SettingsScreen() {
 					</View>
 				) : null}
 
-				{subscriptionState === 'CANCELED' && subscriptionExpiresAt && new Date(subscriptionExpiresAt) > new Date() ? (
+				{isLoggedIn && subscriptionState === 'CANCELED' && subscriptionExpiresAt && new Date(subscriptionExpiresAt) > new Date() ? (
 					<View style={[styles.lockBanner, { backgroundColor: '#F59E0B1A', borderColor: '#F59E0B' }]}>
 						<Ionicons name='time-outline' size={18} color='#F59E0B' />
 						<Text style={[styles.lockBannerText, { color: '#F59E0B' }]}>
@@ -171,7 +174,7 @@ export default function SettingsScreen() {
 					</View>
 				) : null}
 
-				{subscriptionState === 'PENDING' ? (
+				{isLoggedIn && subscriptionState === 'PENDING' ? (
 					<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
 						<ActivityIndicator size='small' color={theme.primary} />
 						<Text style={[styles.lockBannerText, { color: theme.primary }]}>
@@ -180,20 +183,24 @@ export default function SettingsScreen() {
 					</View>
 				) : null}
 
-				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.profile')}</Text>
-				<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-					<View style={styles.row}>
-						<Ionicons
-							name='mail-outline'
-							size={20}
-							color={theme.icon}
-						/>
-						<View style={styles.rowText}>
-							<Text style={[styles.label, { color: theme.icon }]}>{t('settings.email')}</Text>
-							<Text style={[styles.value, { color: theme.text }]}>{email ?? t('settings.notAvailable')}</Text>
+				{isLoggedIn ? (
+					<>
+						<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.profile')}</Text>
+						<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+							<View style={styles.row}>
+								<Ionicons
+									name='mail-outline'
+									size={20}
+									color={theme.icon}
+								/>
+								<View style={styles.rowText}>
+									<Text style={[styles.label, { color: theme.icon }]}>{t('settings.email')}</Text>
+									<Text style={[styles.value, { color: theme.text }]}>{email ?? t('settings.notAvailable')}</Text>
+								</View>
+							</View>
 						</View>
-					</View>
-				</View>
+					</>
+				) : null}
 
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.language')}</Text>
 				<TouchableOpacity
@@ -256,49 +263,53 @@ export default function SettingsScreen() {
 					</View>
 				</View>
 
-				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.blocking')}</Text>
+				{isLoggedIn ? (
+					<>
+						<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.blocking')}</Text>
 
-				<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-					<View style={styles.notifHeader}>
-						<Ionicons name='notifications-off-outline' size={20} color={theme.icon} />
-						<View style={styles.rowText}>
-							<Text style={[styles.label, { color: theme.icon }]}>{t('settings.blockNotifications')}</Text>
-							<Text style={[styles.hint, { color: theme.icon }]}>{t('settings.blockNotificationsHint')}</Text>
+						<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+							<View style={styles.notifHeader}>
+								<Ionicons name='notifications-off-outline' size={20} color={theme.icon} />
+								<View style={styles.rowText}>
+									<Text style={[styles.label, { color: theme.icon }]}>{t('settings.blockNotifications')}</Text>
+									<Text style={[styles.hint, { color: theme.icon }]}>{t('settings.blockNotificationsHint')}</Text>
+								</View>
+							</View>
+							<View style={styles.notifModes}>
+								{([0, 1, 2] as const).map(mode => {
+									const labels = [
+										t('settings.notifModeOff'),
+										t('settings.notifModeSelected'),
+										t('settings.notifModeAll'),
+									]
+									const active = notificationBlockMode === mode
+									return (
+										<TouchableOpacity
+											key={mode}
+											style={[
+												styles.notifModeBtn,
+												{
+													backgroundColor: active ? theme.primary : 'transparent',
+													borderColor: active ? theme.primary : theme.border,
+												},
+											]}
+											onPress={() => handleSetNotifMode(mode)}
+											activeOpacity={0.7}
+											disabled={isBlocking}>
+											<Text
+												style={[
+													styles.notifModeBtnText,
+													{ color: active ? '#FFFFFF' : theme.icon },
+												]}>
+												{labels[mode]}
+											</Text>
+										</TouchableOpacity>
+									)
+								})}
+							</View>
 						</View>
-					</View>
-					<View style={styles.notifModes}>
-						{([0, 1, 2] as const).map(mode => {
-							const labels = [
-								t('settings.notifModeOff'),
-								t('settings.notifModeSelected'),
-								t('settings.notifModeAll'),
-							]
-							const active = notificationBlockMode === mode
-							return (
-								<TouchableOpacity
-									key={mode}
-									style={[
-										styles.notifModeBtn,
-										{
-											backgroundColor: active ? theme.primary : 'transparent',
-											borderColor: active ? theme.primary : theme.border,
-										},
-									]}
-									onPress={() => handleSetNotifMode(mode)}
-									activeOpacity={0.7}
-									disabled={isBlocking}>
-									<Text
-										style={[
-											styles.notifModeBtnText,
-											{ color: active ? '#FFFFFF' : theme.icon },
-										]}>
-										{labels[mode]}
-									</Text>
-								</TouchableOpacity>
-							)
-						})}
-					</View>
-				</View>
+					</>
+				) : null}
 
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.permissionsSection')}</Text>
 				<View ref={permsRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -352,40 +363,52 @@ export default function SettingsScreen() {
 
 				<TutorialOverlay visible={showTutorial} onClose={() => setShowTutorial(false)} />
 
-				<TouchableOpacity
-					style={[styles.logoutButton, { borderColor: theme.accent }, isBlocking && styles.disabled]}
-					onPress={handleLogout}
-					activeOpacity={0.7}
-					disabled={isBlocking}>
-					<Ionicons
-						name='log-out-outline'
-						size={20}
-						color={theme.accent}
-					/>
-					<Text style={[styles.logoutText, { color: theme.accent }]}>{t('settings.logout')}</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					style={[styles.deleteButton, { backgroundColor: theme.accent }, isBlocking && styles.disabled]}
-					onPress={handleDeleteAccount}
-					activeOpacity={0.7}
-					disabled={deleting || isBlocking}>
-					{deleting ? (
-						<ActivityIndicator
-							size='small'
-							color='#FFFFFF'
-						/>
-					) : (
-						<>
+				{isLoggedIn ? (
+					<>
+						<TouchableOpacity
+							style={[styles.logoutButton, { borderColor: theme.accent }, isBlocking && styles.disabled]}
+							onPress={handleLogout}
+							activeOpacity={0.7}
+							disabled={isBlocking}>
 							<Ionicons
-								name='trash-outline'
+								name='log-out-outline'
 								size={20}
-								color='#FFFFFF'
+								color={theme.accent}
 							/>
-							<Text style={styles.deleteText}>{t('settings.deleteAccount')}</Text>
-						</>
-					)}
-				</TouchableOpacity>
+							<Text style={[styles.logoutText, { color: theme.accent }]}>{t('settings.logout')}</Text>
+						</TouchableOpacity>
+
+						<TouchableOpacity
+							style={[styles.deleteButton, { backgroundColor: theme.accent }, isBlocking && styles.disabled]}
+							onPress={handleDeleteAccount}
+							activeOpacity={0.7}
+							disabled={deleting || isBlocking}>
+							{deleting ? (
+								<ActivityIndicator
+									size='small'
+									color='#FFFFFF'
+								/>
+							) : (
+								<>
+									<Ionicons
+										name='trash-outline'
+										size={20}
+										color='#FFFFFF'
+									/>
+									<Text style={styles.deleteText}>{t('settings.deleteAccount')}</Text>
+								</>
+							)}
+						</TouchableOpacity>
+					</>
+				) : (
+					<TouchableOpacity
+						style={[styles.loginButton, { backgroundColor: theme.primary }]}
+						onPress={() => router.push('/auth/login')}
+						activeOpacity={0.8}>
+						<Ionicons name='log-in-outline' size={20} color='#FFFFFF' />
+						<Text style={styles.loginButtonText}>{t('loginRequired.loginButton')}</Text>
+					</TouchableOpacity>
+				)}
 			</ScrollView>
 		</KeyboardAvoidingView>
 	)
@@ -545,4 +568,18 @@ const styles = StyleSheet.create({
 	},
 	lockBannerText: { flex: 1, fontSize: 13, lineHeight: 18 },
 	disabled: { opacity: 0.4 },
+	loginButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: 8,
+		height: 52,
+		borderRadius: 12,
+		marginTop: 8,
+	},
+	loginButtonText: {
+		color: '#FFFFFF',
+		fontSize: 16,
+		fontWeight: '600',
+	},
 })

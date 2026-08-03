@@ -297,6 +297,13 @@ export default {
     step2: 'BrainClean کے آگے مینو دبائیں',
     step3: 'لاک دبائیں',
   },
+  loginRequired: {
+    title: 'لاگ ان ضروری ہے',
+    tasksMessage: 'ٹاسک بنانے اور توجہ کے دوران ایپس بلاک کرنے کے لیے سائن ان کریں۔',
+    schedulesMessage: 'شیڈول بنانے اور اپنے فوکس سیشنز خودکار کرنے کے لیے سائن ان کریں۔',
+    loginButton: 'سائن ان',
+    signupLink: 'اکاؤنٹ بنائیں',
+  },
   tabs: {
     tasks: 'ٹاسکس',
     apps: 'ایپس',

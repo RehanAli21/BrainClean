@@ -297,6 +297,13 @@ export default {
     step2: '点击 BrainClean 旁边的菜单',
     step3: '点击锁定',
   },
+  loginRequired: {
+    title: '需要登录',
+    tasksMessage: '登录以创建任务并在专注时屏蔽干扰应用。',
+    schedulesMessage: '登录以创建计划并自动化您的专注会话。',
+    loginButton: '登录',
+    signupLink: '创建账户',
+  },
   tabs: {
     tasks: '任务',
     apps: '应用',

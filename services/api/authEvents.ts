@@ -28,7 +28,7 @@ export async function triggerLogout(): Promise<void> {
       await SecureStore.deleteItemAsync('user_token');
       await SecureStore.deleteItemAsync('user_email');
       await SecureStore.deleteItemAsync('user_token_expires_at');
-      router.replace('/auth/login');
+      router.replace('/(main)/(tabs)/wellness');
     }
   } finally {
     setTimeout(() => {

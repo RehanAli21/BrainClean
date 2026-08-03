@@ -6,7 +6,7 @@ import { AppState, Platform } from 'react-native';
 
 export const subscriptionQueryKey = ['subscription', 'status'] as const;
 
-export function useSubscriptionStatusQuery() {
+export function useSubscriptionStatusQuery(enabled = true) {
   const setIsPremium = useUiStore(s => s.setIsPremium);
   const setSubscriptionState = useUiStore(s => s.setSubscriptionState);
   const setSubscriptionExpiresAt = useUiStore(s => s.setSubscriptionExpiresAt);
@@ -16,6 +16,7 @@ export function useSubscriptionStatusQuery() {
     queryFn: () => subscriptionService.getStatus(),
     retry: 1,
     staleTime: 60_000,
+    enabled,
   });
 
   useEffect(() => {

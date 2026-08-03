@@ -1,5 +1,4 @@
 import { useTheme } from '@/hooks/useTheme'
-import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
@@ -10,23 +9,18 @@ const logo = require('@/assets/images/logo_in_white_color.png')
 export default function SplashPage() {
 	const theme = useTheme()
 	const router = useRouter()
-	const { token, isLoading } = useAuth()
 
 	useEffect(() => {
 		SplashScreen.hideAsync()
 	}, [])
 
-	// Route based on stored auth state — always sending users to the login
-	// screen makes signed-in users see a login flash before being bounced.
 	useEffect(() => {
-		if (isLoading) return
-
 		const timer = setTimeout(() => {
-			router.replace(token ? '/(main)/(tabs)/tasks' : '/auth/login')
+			router.replace('/(main)/(tabs)/wellness')
 		}, 300)
 
 		return () => clearTimeout(timer)
-	}, [isLoading, token, router])
+	}, [router])
 
 	return (
 		<View style={[styles.container, { backgroundColor: '#2563EB' }]}>

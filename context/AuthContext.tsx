@@ -61,16 +61,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, [])
 
 	// 2. Protect Routes (The Redirect Logic)
+	// Unauthenticated users can access (main) routes — Tasks/Schedules show
+	// a login prompt inline. Only redirect authenticated users OFF auth pages.
 	useEffect(() => {
 		if (isLoading) return
 		if (!navigationRef.isReady()) return
 
 		const inAuthGroup = segments[0] === 'auth'
 
-		if (!token && !inAuthGroup) {
-			router.replace('/auth/login')
-		} else if (token && inAuthGroup) {
-			router.replace('/(main)/(tabs)/tasks')
+		if (token && inAuthGroup) {
+			router.replace('/(main)/(tabs)/wellness')
 		}
 	}, [token, segments, isLoading, navigationRef.isReady()])
 
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		setToken(newToken)
 		setEmail(userEmail)
 		setTokenExpiresAt(expiresAtMs)
-		router.replace('/(main)/(tabs)/tasks')
+		router.replace('/(main)/(tabs)/wellness')
 	}
 
 	// 4. Logout Action
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		setToken(null)
 		setEmail(null)
 		setTokenExpiresAt(null)
-		router.replace('/auth/login')
+		router.replace('/(main)/(tabs)/wellness')
 	}
 
 	// Let the axios interceptor trigger a full logout on 401 — it has no

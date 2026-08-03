@@ -297,6 +297,13 @@ export default {
     step2: 'Menü neben BrainClean antippen',
     step3: 'Sperren antippen',
   },
+  loginRequired: {
+    title: 'Anmeldung erforderlich',
+    tasksMessage: 'Melden Sie sich an, um Aufgaben zu erstellen und ablenkende Apps zu blockieren.',
+    schedulesMessage: 'Melden Sie sich an, um Zeitpläne zu erstellen und Fokus-Sitzungen zu automatisieren.',
+    loginButton: 'Anmelden',
+    signupLink: 'Konto erstellen',
+  },
   tabs: {
     tasks: 'Aufgaben',
     apps: 'Apps',

@@ -1,8 +1,9 @@
+import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/hooks/useTheme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { getRef, setWalkthroughActive } from './walkthroughRegistry'
@@ -17,58 +18,10 @@ interface WalkthroughStep {
 	titleKey: string
 	descriptionKey: string
 	tooltipPosition: 'top' | 'bottom'
+	requiresAuth?: boolean
 }
 
 const STEPS: WalkthroughStep[] = [
-	{
-		key: 'tasks-fab',
-		route: '/(main)/(tabs)/tasks',
-		titleKey: 'walkthrough.createTask',
-		descriptionKey: 'walkthrough.createTaskDesc',
-		tooltipPosition: 'top',
-	},
-	{
-		key: 'tasks-date',
-		route: '/(main)/(tabs)/tasks',
-		titleKey: 'walkthrough.filterDate',
-		descriptionKey: 'walkthrough.filterDateDesc',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'newtask-name',
-		route: '/(main)/(tabs)/tasks/new',
-		titleKey: 'walkthrough.taskName',
-		descriptionKey: 'walkthrough.taskNameDesc',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'newtask-duration',
-		route: '/(main)/(tabs)/tasks/new',
-		titleKey: 'walkthrough.duration',
-		descriptionKey: 'walkthrough.durationDesc',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'newtask-create',
-		route: '/(main)/(tabs)/tasks/new',
-		titleKey: 'walkthrough.createButton',
-		descriptionKey: 'walkthrough.createButtonDesc',
-		tooltipPosition: 'top',
-	},
-	{
-		key: 'apps-search',
-		route: '/(main)/(tabs)/apps',
-		titleKey: 'walkthrough.findApps',
-		descriptionKey: 'walkthrough.findAppsDesc',
-		tooltipPosition: 'bottom',
-	},
-	{
-		key: 'schedules-fab',
-		route: '/(main)/(tabs)/schedules',
-		titleKey: 'walkthrough.schedules',
-		descriptionKey: 'walkthrough.schedulesDesc',
-		tooltipPosition: 'top',
-	},
 	{
 		key: 'wellness-eyeblinker',
 		route: '/(main)/(tabs)/wellness',
@@ -84,11 +37,67 @@ const STEPS: WalkthroughStep[] = [
 		tooltipPosition: 'top',
 	},
 	{
+		key: 'tasks-fab',
+		route: '/(main)/(tabs)/tasks',
+		titleKey: 'walkthrough.createTask',
+		descriptionKey: 'walkthrough.createTaskDesc',
+		tooltipPosition: 'top',
+		requiresAuth: true,
+	},
+	{
+		key: 'tasks-date',
+		route: '/(main)/(tabs)/tasks',
+		titleKey: 'walkthrough.filterDate',
+		descriptionKey: 'walkthrough.filterDateDesc',
+		tooltipPosition: 'bottom',
+		requiresAuth: true,
+	},
+	{
+		key: 'newtask-name',
+		route: '/(main)/(tabs)/tasks/new',
+		titleKey: 'walkthrough.taskName',
+		descriptionKey: 'walkthrough.taskNameDesc',
+		tooltipPosition: 'bottom',
+		requiresAuth: true,
+	},
+	{
+		key: 'newtask-duration',
+		route: '/(main)/(tabs)/tasks/new',
+		titleKey: 'walkthrough.duration',
+		descriptionKey: 'walkthrough.durationDesc',
+		tooltipPosition: 'bottom',
+		requiresAuth: true,
+	},
+	{
+		key: 'newtask-create',
+		route: '/(main)/(tabs)/tasks/new',
+		titleKey: 'walkthrough.createButton',
+		descriptionKey: 'walkthrough.createButtonDesc',
+		tooltipPosition: 'top',
+		requiresAuth: true,
+	},
+	{
+		key: 'apps-search',
+		route: '/(main)/(tabs)/apps',
+		titleKey: 'walkthrough.findApps',
+		descriptionKey: 'walkthrough.findAppsDesc',
+		tooltipPosition: 'bottom',
+	},
+	{
+		key: 'schedules-fab',
+		route: '/(main)/(tabs)/schedules',
+		titleKey: 'walkthrough.schedules',
+		descriptionKey: 'walkthrough.schedulesDesc',
+		tooltipPosition: 'top',
+		requiresAuth: true,
+	},
+	{
 		key: 'settings-notifications',
 		route: '/(main)/(tabs)/settings',
 		titleKey: 'walkthrough.notifModes',
 		descriptionKey: 'walkthrough.notifModesDesc',
 		tooltipPosition: 'bottom',
+		requiresAuth: true,
 	},
 	{
 		key: 'settings-permissions',
@@ -103,6 +112,7 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.feedback',
 		descriptionKey: 'walkthrough.feedbackDesc',
 		tooltipPosition: 'top',
+		requiresAuth: true,
 	},
 ]
 
@@ -122,12 +132,18 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
+	const { token } = useAuth()
 	const setTutorialSeen = useUiStore(s => s.setTutorialSeen)
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [targetRect, setTargetRect] = useState<TargetRect | null>(null)
 	const measureTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-	const step = STEPS[currentIndex]
+	const activeSteps = useMemo(
+		() => (token ? STEPS : STEPS.filter(s => !s.requiresAuth)),
+		[token],
+	)
+
+	const step = activeSteps[currentIndex]
 
 	const measureTarget = useCallback(() => {
 		if (!visible || !step) return
@@ -164,7 +180,7 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 	}, [visible, currentIndex])
 
 	const handleNext = () => {
-		if (currentIndex < STEPS.length - 1) {
+		if (currentIndex < activeSteps.length - 1) {
 			setTargetRect(null)
 			setCurrentIndex(currentIndex + 1)
 		} else {
@@ -176,13 +192,13 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 		setTutorialSeen(true)
 		setCurrentIndex(0)
 		setTargetRect(null)
-		router.navigate('/(main)/(tabs)/tasks' as any)
+		router.navigate('/(main)/(tabs)/wellness' as any)
 		onClose()
 	}
 
 	if (!visible || !step) return null
 
-	const isLast = currentIndex === STEPS.length - 1
+	const isLast = currentIndex === activeSteps.length - 1
 
 	return (
 		<Modal
@@ -232,7 +248,7 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 					]}>
 					<View style={styles.tooltipHeader}>
 						<Text style={[styles.stepCounter, { color: theme.icon }]}>
-							{currentIndex + 1} / {STEPS.length}
+							{currentIndex + 1} / {activeSteps.length}
 						</Text>
 						<TouchableOpacity
 							onPress={handleFinish}

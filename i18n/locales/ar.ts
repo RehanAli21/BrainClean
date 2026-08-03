@@ -297,6 +297,13 @@ export default {
     step2: 'اضغط القائمة بجانب BrainClean',
     step3: 'اضغط قفل',
   },
+  loginRequired: {
+    title: 'تسجيل الدخول مطلوب',
+    tasksMessage: 'سجل الدخول لإنشاء المهام وحظر التطبيقات المشتتة أثناء التركيز.',
+    schedulesMessage: 'سجل الدخول لإنشاء الجداول وأتمتة جلسات التركيز.',
+    loginButton: 'تسجيل الدخول',
+    signupLink: 'إنشاء حساب',
+  },
   tabs: {
     tasks: 'المهام',
     apps: 'التطبيقات',

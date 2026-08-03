@@ -311,6 +311,14 @@ export default {
     step3: 'Tap Lock',
   },
 
+  loginRequired: {
+    title: 'Login Required',
+    tasksMessage: 'Sign in to create tasks and block distracting apps while you focus.',
+    schedulesMessage: 'Sign in to create schedules and automate your focus sessions.',
+    loginButton: 'Sign In',
+    signupLink: 'Create an account',
+  },
+
   tabs: {
     tasks: 'Tasks',
     schedules: 'Schedules',

@@ -297,6 +297,13 @@ export default {
     step2: 'Tocar el menú junto a BrainClean',
     step3: 'Tocar Bloquear',
   },
+  loginRequired: {
+    title: 'Inicio de sesión requerido',
+    tasksMessage: 'Inicia sesión para crear tareas y bloquear aplicaciones mientras te concentras.',
+    schedulesMessage: 'Inicia sesión para crear horarios y automatizar tus sesiones de enfoque.',
+    loginButton: 'Iniciar sesión',
+    signupLink: 'Crear una cuenta',
+  },
   tabs: {
     tasks: 'Tareas',
     apps: 'Apps',

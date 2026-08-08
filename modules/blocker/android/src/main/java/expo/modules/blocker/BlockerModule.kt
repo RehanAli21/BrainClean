@@ -69,6 +69,7 @@ class BlockerModule : Module() {
             val state = BlockerState.getInstance(context)
             state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs)
             BlockerService.start(context)
+            ServiceGuardReceiver.scheduleIfNeeded(context)
         }
 
         Function("stopBlocking") {
@@ -198,6 +199,7 @@ class BlockerModule : Module() {
             } else {
                 WellnessService.stop(context)
             }
+            ServiceGuardReceiver.scheduleIfNeeded(context)
         }
 
         Function("setAutoBlockConfig") { enabled: Boolean, usageLimitMinutes: Int, durationSeconds: Int, apps: List<String> ->
@@ -209,6 +211,7 @@ class BlockerModule : Module() {
             } else {
                 WellnessService.stop(context)
             }
+            ServiceGuardReceiver.scheduleIfNeeded(context)
         }
 
         Function("getWellnessConfig") {
@@ -321,6 +324,7 @@ class BlockerModule : Module() {
             )
             state.addSchedule(schedule)
             ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
+            ServiceGuardReceiver.scheduleIfNeeded(context)
             Log.i("BlockerModule", "Schedule added: id=$id, time=$hour:$minute")
             id
         }
@@ -343,6 +347,7 @@ class BlockerModule : Module() {
             } else {
                 ScheduleAlarmReceiver.cancelAlarm(context, id)
             }
+            ServiceGuardReceiver.scheduleIfNeeded(context)
             Log.i("BlockerModule", "Schedule toggled: id=$id, enabled=$enabled")
         }
 

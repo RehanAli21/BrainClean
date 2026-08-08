@@ -26,6 +26,8 @@ class BootReceiver : BroadcastReceiver() {
             Log.i(TAG, "Boot completed, re-registering schedule alarms")
             ScheduleAlarmReceiver.rescheduleAll(context)
         }
+
+        ServiceGuardReceiver.scheduleIfNeeded(context)
     }
 
     companion object {

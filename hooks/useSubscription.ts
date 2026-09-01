@@ -1,5 +1,6 @@
 import { SUBSCRIPTION_SKU } from '@/constants/config';
 import { subscriptionQueryKey, useSubscriptionStatusQuery } from '@/hooks/queries/useSubscription';
+import { analytics } from '@/services/analytics';
 import { subscriptionService } from '@/services/api/subscriptions';
 import { useUiStore } from '@/store/uiStore';
 import { ErrorCode, useIAP } from 'expo-iap';
@@ -36,6 +37,7 @@ export function useSubscription() {
         setIsPremium(response.hasAccess);
         setSubscriptionState(response.state);
         setSubscriptionExpiresAt(response.expiresAt);
+        analytics.track('subscription_purchased', { productId: purchase.productId });
         queryClient.invalidateQueries({ queryKey: subscriptionQueryKey });
       } catch {
         await finishTransaction({ purchase, isConsumable: false });

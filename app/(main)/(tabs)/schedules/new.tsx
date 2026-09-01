@@ -5,6 +5,7 @@ import { API_BASE_URL } from '@/constants/config'
 import { useAuth } from '@/context/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { addSchedule, canScheduleExactAlarms, syncScheduleConfig } from '@/modules/blocker'
+import { analytics } from '@/services/analytics'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
@@ -250,6 +251,10 @@ export default function NewScheduleScreen() {
 				label.trim(),
 				notifMode,
 			)
+			analytics.track('schedule_created', {
+				repeatDayCount: repeatDays.size,
+				notificationBlockMode: notifMode,
+			})
 			router.back()
 		} catch {
 			setError(t('common.somethingWentWrong'))

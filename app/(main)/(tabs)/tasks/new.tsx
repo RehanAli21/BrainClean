@@ -1,9 +1,11 @@
+import { NotificationModeSelector } from '@/components/NotificationModeSelector'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { isWalkthroughActive, registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { useTheme } from '@/hooks/useTheme'
 import { subscriptionQueryKey } from '@/hooks/queries/useSubscription'
 import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
+import { useUiStore } from '@/store/uiStore'
 import { subscriptionService } from '@/services/api/subscriptions'
 import { taskService } from '@/services/api/tasks'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -119,6 +121,7 @@ export default function NewTaskScreen() {
 	const queryClient = useQueryClient()
 	const createMutation = useCreateTaskMutation()
 	const { isLoading: permsLoading, allGranted } = usePermissions()
+	const setTaskNotificationMode = useUiStore(s => s.setTaskNotificationMode)
 
 	const [name, setName] = useState('')
 	const [hours, setHours] = useState(1)
@@ -126,10 +129,12 @@ export default function NewTaskScreen() {
 	const [autoComplete, setAutoComplete] = useState(false)
 	const [maxHours, setMaxHours] = useState(10)
 	const [maxMinutes, setMaxMinutes] = useState(0)
+	const [notifMode, setNotifMode] = useState(0)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
 	const nameRef = useRef<View | null>(null)
 	const durationRef = useRef<View | null>(null)
+	const notifRef = useRef<View | null>(null)
 	const createRef = useRef<View | null>(null)
 
 	const createTaskSchema = useMemo(() => z.object({
@@ -140,10 +145,12 @@ export default function NewTaskScreen() {
 	useEffect(() => {
 		registerRef('newtask-name', nameRef)
 		registerRef('newtask-duration', durationRef)
+		registerRef('newtask-notif', notifRef)
 		registerRef('newtask-create', createRef)
 		return () => {
 			unregisterRef('newtask-name')
 			unregisterRef('newtask-duration')
+			unregisterRef('newtask-notif')
 			unregisterRef('newtask-create')
 		}
 	}, [])
@@ -190,6 +197,7 @@ export default function NewTaskScreen() {
 			},
 			{
 				onSuccess: task => {
+					setTaskNotificationMode(task.id, notifMode)
 					router.replace({
 						pathname: '/(main)/(tabs)/tasks/[taskId]',
 						params: { taskId: task.id },
@@ -232,6 +240,7 @@ export default function NewTaskScreen() {
 							})
 							const created = tasks.find(t => t.name === result.data.name)
 							if (created) {
+								setTaskNotificationMode(created.id, notifMode)
 								router.replace({
 									pathname: '/(main)/(tabs)/tasks/[taskId]',
 									params: { taskId: created.id },
@@ -370,6 +379,8 @@ export default function NewTaskScreen() {
 							{errors.maxDuration ? <Text style={[styles.fieldError, { color: theme.accent }]}>{errors.maxDuration}</Text> : null}
 						</View>
 					) : null}
+
+					<NotificationModeSelector ref={notifRef} value={notifMode} onChange={setNotifMode} />
 
 					<View
 						ref={createRef}

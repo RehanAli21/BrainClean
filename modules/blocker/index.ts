@@ -119,6 +119,7 @@ export interface ScheduleInfo {
   repeatDays: number[];
   label: string;
   enabled: boolean;
+  notificationBlockMode: number;
 }
 
 export function addSchedule(
@@ -128,8 +129,9 @@ export function addSchedule(
   durationMinutes: number,
   repeatDays: number[],
   label: string,
+  notificationBlockMode: number,
 ): string {
-  return BlockerModule.addSchedule(hour, minute, durationHours, durationMinutes, repeatDays, label);
+  return BlockerModule.addSchedule(hour, minute, durationHours, durationMinutes, repeatDays, label, notificationBlockMode);
 }
 
 export function removeSchedule(id: string): void {
@@ -148,9 +150,8 @@ export function syncScheduleConfig(
   authToken: string,
   baseUrl: string,
   selectedApps: string[],
-  notificationBlockMode: number,
 ): void {
-  BlockerModule.syncScheduleConfig(authToken, baseUrl, selectedApps, notificationBlockMode);
+  BlockerModule.syncScheduleConfig(authToken, baseUrl, selectedApps);
 }
 
 // True when the OS allows exact alarms (auto-granted via USE_EXACT_ALARM;

@@ -10,9 +10,7 @@ import { useRouter } from 'expo-router'
 import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
-	isNotificationListenerEnabled,
 	requestBatteryOptimizationExemption,
-	requestNotificationListenerPermission,
 	requestOverlayPermission,
 	requestUsageStatsPermission,
 } from '@/modules/blocker'
@@ -24,12 +22,10 @@ import { useTranslation } from 'react-i18next'
 import {
 	ActivityIndicator,
 	Alert,
-	AppState,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
 	StyleSheet,
-	Switch,
 	Text,
 	TouchableOpacity,
 	View,
@@ -44,8 +40,6 @@ export default function SettingsScreen() {
 	const { permissions, recheck } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 	const { isBlocking } = useBlocker()
-	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
-	const setNotificationBlockMode = useUiStore(s => s.setNotificationBlockMode)
 	const themeMode = useUiStore(s => s.themeMode)
 	const setThemeMode = useUiStore(s => s.setThemeMode)
 	const subscriptionState = useUiStore(s => s.subscriptionState)
@@ -53,54 +47,12 @@ export default function SettingsScreen() {
 	const [deleting, setDeleting] = useState(false)
 	const [showTutorial, setShowTutorial] = useState(false)
 	const [showLanguagePicker, setShowLanguagePicker] = useState(false)
-	const pendingNotificationToggle = useRef(false)
-	const pendingNotifMode = useRef(0)
-	const notifRef = useRef<View | null>(null)
 	const permsRef = useRef<View | null>(null)
 
 	useEffect(() => {
-		registerRef('settings-notifications', notifRef)
 		registerRef('settings-permissions', permsRef)
-		return () => { unregisterRef('settings-notifications'); unregisterRef('settings-permissions') }
+		return () => { unregisterRef('settings-permissions') }
 	}, [])
-
-	useEffect(() => {
-		const sub = AppState.addEventListener('change', state => {
-			if (state === 'active' && pendingNotificationToggle.current) {
-				pendingNotificationToggle.current = false
-				if (isNotificationListenerEnabled() && pendingNotifMode.current > 0) {
-					setNotificationBlockMode(pendingNotifMode.current)
-					pendingNotifMode.current = 0
-				}
-			}
-		})
-		return () => sub.remove()
-	}, [setNotificationBlockMode])
-
-	const handleSetNotifMode = (mode: number) => {
-		if (mode > 0) {
-			const enabled = isNotificationListenerEnabled()
-			if (!enabled) {
-				pendingNotifMode.current = mode
-				Alert.alert(
-					t('settings.notifPermTitle'),
-					t('settings.notifPermMessage'),
-					[
-						{ text: t('common.cancel'), style: 'cancel' },
-						{
-							text: t('settings.openSettings'),
-							onPress: () => {
-								pendingNotificationToggle.current = true
-								requestNotificationListenerPermission()
-							},
-						},
-					],
-				)
-				return
-			}
-		}
-		setNotificationBlockMode(mode)
-	}
 
 	const handleLogout = () => {
 		Alert.alert(t('settings.logout'), t('settings.logoutConfirm'), [
@@ -262,54 +214,6 @@ export default function SettingsScreen() {
 						})}
 					</View>
 				</View>
-
-				{isLoggedIn ? (
-					<>
-						<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.blocking')}</Text>
-
-						<View ref={notifRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-							<View style={styles.notifHeader}>
-								<Ionicons name='notifications-off-outline' size={20} color={theme.icon} />
-								<View style={styles.rowText}>
-									<Text style={[styles.label, { color: theme.icon }]}>{t('settings.blockNotifications')}</Text>
-									<Text style={[styles.hint, { color: theme.icon }]}>{t('settings.blockNotificationsHint')}</Text>
-								</View>
-							</View>
-							<View style={styles.notifModes}>
-								{([0, 1, 2] as const).map(mode => {
-									const labels = [
-										t('settings.notifModeOff'),
-										t('settings.notifModeSelected'),
-										t('settings.notifModeAll'),
-									]
-									const active = notificationBlockMode === mode
-									return (
-										<TouchableOpacity
-											key={mode}
-											style={[
-												styles.notifModeBtn,
-												{
-													backgroundColor: active ? theme.primary : 'transparent',
-													borderColor: active ? theme.primary : theme.border,
-												},
-											]}
-											onPress={() => handleSetNotifMode(mode)}
-											activeOpacity={0.7}
-											disabled={isBlocking}>
-											<Text
-												style={[
-													styles.notifModeBtnText,
-													{ color: active ? '#FFFFFF' : theme.icon },
-												]}>
-												{labels[mode]}
-											</Text>
-										</TouchableOpacity>
-									)
-								})}
-							</View>
-						</View>
-					</>
-				) : null}
 
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.permissionsSection')}</Text>
 				<View ref={permsRef} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>

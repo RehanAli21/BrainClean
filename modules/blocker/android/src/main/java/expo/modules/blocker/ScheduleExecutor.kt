@@ -90,7 +90,7 @@ object ScheduleExecutor {
             authToken,
             baseUrl,
             maxDurationSeconds * 1000L,
-            state.getNotificationBlockMode(),
+            schedule.notificationBlockMode,
             minDurationSeconds * 1000L
         )
         showStartedNotification(context, taskName, schedule)

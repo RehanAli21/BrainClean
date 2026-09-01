@@ -13,7 +13,9 @@ data class ScheduleData(
     val durationMinutes: Int,
     val repeatDays: Set<Int>,
     val label: String,
-    val enabled: Boolean
+    val enabled: Boolean,
+    // Per-schedule notification blocking: 0 = off, 1 = blocked apps only, 2 = all.
+    val notificationBlockMode: Int = 0
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("id", id)
@@ -24,6 +26,7 @@ data class ScheduleData(
         put("repeatDays", JSONArray(repeatDays.toList()))
         put("label", label)
         put("enabled", enabled)
+        put("notificationBlockMode", notificationBlockMode)
     }
 
     companion object {
@@ -41,7 +44,9 @@ data class ScheduleData(
                 durationMinutes = json.getInt("durationMinutes"),
                 repeatDays = days,
                 label = json.optString("label", ""),
-                enabled = json.getBoolean("enabled")
+                enabled = json.getBoolean("enabled"),
+                // Older schedules persisted before this field default to off.
+                notificationBlockMode = json.optInt("notificationBlockMode", 0)
             )
         }
     }
@@ -51,12 +56,11 @@ class ScheduleState private constructor(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun setAuthConfig(authToken: String, baseUrl: String, selectedApps: Set<String>, notificationBlockMode: Int) {
+    fun setAuthConfig(authToken: String, baseUrl: String, selectedApps: Set<String>) {
         prefs.edit()
             .putString(KEY_AUTH_TOKEN, authToken)
             .putString(KEY_BASE_URL, baseUrl)
             .putStringSet(KEY_SELECTED_APPS, selectedApps)
-            .putInt(KEY_NOTIFICATION_BLOCK_MODE, notificationBlockMode)
             .apply()
     }
 
@@ -84,7 +88,6 @@ class ScheduleState private constructor(context: Context) {
     fun getAuthToken(): String = prefs.getString(KEY_AUTH_TOKEN, "") ?: ""
     fun getBaseUrl(): String = prefs.getString(KEY_BASE_URL, "") ?: ""
     fun getSelectedApps(): Set<String> = prefs.getStringSet(KEY_SELECTED_APPS, emptySet()) ?: emptySet()
-    fun getNotificationBlockMode(): Int = prefs.getInt(KEY_NOTIFICATION_BLOCK_MODE, 0)
 
     fun getAllSchedules(): List<ScheduleData> {
         val json = prefs.getString(KEY_SCHEDULES, "[]") ?: "[]"
@@ -129,7 +132,6 @@ class ScheduleState private constructor(context: Context) {
         private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_BASE_URL = "base_url"
         private const val KEY_SELECTED_APPS = "selected_apps"
-        private const val KEY_NOTIFICATION_BLOCK_MODE = "notification_block_mode"
         private const val KEY_SCHEDULES = "schedules_json"
         private const val KEY_PENDING_SCHEDULE = "pending_schedule_id"
 

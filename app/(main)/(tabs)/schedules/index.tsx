@@ -149,7 +149,6 @@ function ScheduleListContent() {
 	const router = useRouter()
 	const { token } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 	const isPremium = useUiStore(s => s.isPremium)
 	const [schedules, setSchedules] = useState<ScheduleInfo[]>([])
 	const fabCooldown = useRef(false)
@@ -163,11 +162,11 @@ function ScheduleListContent() {
 	const loadSchedules = useCallback(() => {
 		try {
 			if (token) {
-				syncScheduleConfig(token, API_BASE_URL, selectedApps, notificationBlockMode)
+				syncScheduleConfig(token, API_BASE_URL, selectedApps)
 			}
 			setSchedules(getSchedules())
 		} catch {}
-	}, [token, selectedApps, notificationBlockMode])
+	}, [token, selectedApps])
 
 	useFocusEffect(
 		useCallback(() => {

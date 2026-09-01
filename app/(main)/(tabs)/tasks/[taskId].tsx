@@ -52,7 +52,7 @@ export default function TaskDetailScreen() {
 	const queryClient = useQueryClient()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
+	const notificationBlockMode = useUiStore(s => s.taskNotificationModes[taskId!] ?? 0)
 	const hasRated = useUiStore(s => s.hasRated)
 	const setHasRated = useUiStore(s => s.setHasRated)
 	const [apiError, setApiError] = useState('')

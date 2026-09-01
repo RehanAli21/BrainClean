@@ -308,7 +308,7 @@ class BlockerModule : Module() {
             }
         }
 
-        Function("addSchedule") { hour: Int, minute: Int, durationHours: Int, durationMinutes: Int, repeatDays: List<Int>, label: String ->
+        Function("addSchedule") { hour: Int, minute: Int, durationHours: Int, durationMinutes: Int, repeatDays: List<Int>, label: String, notificationBlockMode: Int ->
             val context = appContext.reactContext ?: return@Function ""
             val state = ScheduleState.getInstance(context)
             val id = java.util.UUID.randomUUID().toString()
@@ -320,7 +320,8 @@ class BlockerModule : Module() {
                 durationMinutes = durationMinutes,
                 repeatDays = repeatDays.toSet(),
                 label = label,
-                enabled = true
+                enabled = true,
+                notificationBlockMode = notificationBlockMode
             )
             state.addSchedule(schedule)
             ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
@@ -363,15 +364,16 @@ class BlockerModule : Module() {
                     "durationMinutes" to schedule.durationMinutes,
                     "repeatDays" to schedule.repeatDays.toList(),
                     "label" to schedule.label,
-                    "enabled" to schedule.enabled
+                    "enabled" to schedule.enabled,
+                    "notificationBlockMode" to schedule.notificationBlockMode
                 )
             }
         }
 
-        Function("syncScheduleConfig") { authToken: String, baseUrl: String, selectedApps: List<String>, notificationBlockMode: Int ->
+        Function("syncScheduleConfig") { authToken: String, baseUrl: String, selectedApps: List<String> ->
             val context = appContext.reactContext ?: return@Function
             val state = ScheduleState.getInstance(context)
-            state.setAuthConfig(authToken, baseUrl, selectedApps.toSet(), notificationBlockMode)
+            state.setAuthConfig(authToken, baseUrl, selectedApps.toSet())
         }
 
         Function("canScheduleExactAlarms") {

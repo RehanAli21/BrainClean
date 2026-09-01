@@ -69,6 +69,14 @@ const STEPS: WalkthroughStep[] = [
 		requiresAuth: true,
 	},
 	{
+		key: 'newtask-notif',
+		route: '/(main)/(tabs)/tasks/new',
+		titleKey: 'walkthrough.notifModes',
+		descriptionKey: 'walkthrough.notifModesDesc',
+		tooltipPosition: 'top',
+		requiresAuth: true,
+	},
+	{
 		key: 'newtask-create',
 		route: '/(main)/(tabs)/tasks/new',
 		titleKey: 'walkthrough.createButton',
@@ -89,14 +97,6 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.schedules',
 		descriptionKey: 'walkthrough.schedulesDesc',
 		tooltipPosition: 'top',
-		requiresAuth: true,
-	},
-	{
-		key: 'settings-notifications',
-		route: '/(main)/(tabs)/settings',
-		titleKey: 'walkthrough.notifModes',
-		descriptionKey: 'walkthrough.notifModesDesc',
-		tooltipPosition: 'bottom',
 		requiresAuth: true,
 	},
 	{

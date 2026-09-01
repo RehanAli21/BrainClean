@@ -155,7 +155,7 @@ function TaskListContent() {
 	const { isBlocking, activeSessionId, startBlocking, stopBlocking } = useBlocker()
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
+	const taskNotificationModes = useUiStore(s => s.taskNotificationModes)
 	const isPremium = useUiStore(s => s.isPremium)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 	const fabCooldown = useRef(false)
@@ -217,11 +217,11 @@ function TaskListContent() {
 				token,
 				API_BASE_URL,
 				(activeTask.maximumDurationSeconds ?? 36000) * 1000,
-				notificationBlockMode,
+				taskNotificationModes[activeTask.id] ?? 0,
 				activeTask.minimumDurationSeconds * 1000,
 			)
 		} catch {}
-	}, [activeTask, isBlocking, token, selectedApps, notificationBlockMode, startBlocking])
+	}, [activeTask, isBlocking, token, selectedApps, taskNotificationModes, startBlocking])
 	const activeStartedAt = activeTask?.startedAt
 	const activeMinDuration = activeTask?.minimumDurationSeconds
 

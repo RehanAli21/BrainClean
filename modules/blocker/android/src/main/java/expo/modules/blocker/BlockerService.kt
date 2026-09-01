@@ -30,12 +30,18 @@ class BlockerService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var maxTimeRunnable: Runnable? = null
     private var wakeLock: PowerManager.WakeLock? = null
-    private var screenReceiverRegistered = false
+    private var systemReceiverRegistered = false
 
     // Polling every 250ms is pointless while the screen is off — nobody can
     // open an app. Pausing the monitor and dropping the wake lock keeps the
     // battery cost of long sessions down without losing enforcement.
-    private val screenReceiver = object : BroadcastReceiver() {
+    //
+    // Power connect/disconnect is handled here too: charging transitions are a
+    // common moment for aggressive OEMs to freeze the app or silently re-apply
+    // battery optimization, which drops the self-rescheduling watchdog alarm and
+    // re-restricts background FGS starts. We re-anchor the keep-alive on every
+    // such transition while the service is still alive.
+    private val systemStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val state = BlockerState.getInstance(context)
             if (!state.isActive()) return
@@ -49,6 +55,15 @@ class BlockerService : Service() {
                     Log.i(TAG, "Screen on — resuming app monitor")
                     appMonitor.resume()
                     acquireWakeLock(remainingSessionMs(state))
+                    // Re-arm on every screen-on so a single dropped alarm fire
+                    // (Doze / OEM freeze) can't permanently break the chain.
+                    ServiceGuardReceiver.schedule(context)
+                }
+                Intent.ACTION_POWER_CONNECTED,
+                Intent.ACTION_POWER_DISCONNECTED -> {
+                    Log.i(TAG, "Power state changed (${intent.action}) — re-anchoring keep-alive")
+                    ServiceGuardReceiver.schedule(context)
+                    warnIfBatteryOptimizationLost(context)
                 }
             }
         }
@@ -57,13 +72,15 @@ class BlockerService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        if (!screenReceiverRegistered) {
+        if (!systemReceiverRegistered) {
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_POWER_CONNECTED)
+                addAction(Intent.ACTION_POWER_DISCONNECTED)
             }
-            registerReceiver(screenReceiver, filter)
-            screenReceiverRegistered = true
+            registerReceiver(systemStateReceiver, filter)
+            systemReceiverRegistered = true
         }
     }
 
@@ -118,7 +135,7 @@ class BlockerService : Service() {
         Log.i(TAG, "Starting blocker session=$sessionId with ${blockedPackages.size} blocked apps")
 
         acquireWakeLock(remainingSessionMs(state))
-        BlockerWatchdogReceiver.schedule(this)
+        ServiceGuardReceiver.schedule(this)
 
         if (state.getNotificationBlockMode() > 0) {
             NotificationBlockerService.ensureBound(this)
@@ -193,18 +210,17 @@ class BlockerService : Service() {
         maxTimeRunnable?.let { mainHandler.removeCallbacks(it) }
         overlay.hide()
         releaseWakeLock()
-        if (screenReceiverRegistered) {
+        if (systemReceiverRegistered) {
             try {
-                unregisterReceiver(screenReceiver)
+                unregisterReceiver(systemStateReceiver)
             } catch (_: Exception) {
             }
-            screenReceiverRegistered = false
+            systemReceiverRegistered = false
         }
-        // Cancel watchdog only if the session ended cleanly; if the OS killed us,
-        // the watchdog will fire, see isActive=true, and restart us.
-        if (!BlockerState.getInstance(this).isActive()) {
-            BlockerWatchdogReceiver.cancel(this)
-        }
+        // Cancel the guard only if nothing needs keeping alive anymore. If the OS
+        // killed us mid-session, isActive stays true, so cancelIfIdle is a no-op
+        // and the guard fires, sees isActive=true, and restarts us.
+        ServiceGuardReceiver.cancelIfIdle(this)
         super.onDestroy()
     }
 
@@ -236,6 +252,13 @@ class BlockerService : Service() {
             }
         }
         wakeLock = null
+    }
+
+    private fun warnIfBatteryOptimizationLost(context: Context) {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
+        if (!pm.isIgnoringBatteryOptimizations(context.packageName)) {
+            Log.w(TAG, "Battery optimization NO LONGER ignored — background service restarts may be blocked")
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -279,7 +302,13 @@ class BlockerService : Service() {
                 val intent = Intent(context, BlockerService::class.java)
                 ContextCompat.startForegroundService(context, intent)
             } catch (e: Exception) {
-                Log.e(TAG, "Unable to start BlockerService", e)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                    e is android.app.ForegroundServiceStartNotAllowedException) {
+                    Log.e(TAG, "FGS start BLOCKED by OS (background start not allowed) — " +
+                        "battery optimization exemption likely lost or app is background-restricted", e)
+                } else {
+                    Log.e(TAG, "Unable to start BlockerService", e)
+                }
             }
         }
 

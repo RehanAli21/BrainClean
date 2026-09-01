@@ -166,8 +166,12 @@ Returns the same `AuthResponse` shape as `/api/auth/login`:
 
 - `GOOGLE_OAUTH_WEB_CLIENT_ID` — accept tokens from the Web OAuth client
 - `GOOGLE_OAUTH_ANDROID_CLIENT_ID` — accept tokens from the Android OAuth client
+- `GOOGLE_OAUTH_CHROME_CLIENT_ID` — accept tokens from the Chrome Web Store (production) extension OAuth client
+- `GOOGLE_OAUTH_CHROME_CLIENT_ID_DEV` — accept tokens from the unpacked/dev extension OAuth client
 
-At least one must be set, or the application fails to start.
+At least one must be set, or the application fails to start. All configured client
+IDs are accepted as valid audience values on the same `/api/auth/google` endpoint —
+the extension, mobile app, and website all POST to it the same way.
 
 ---
 
@@ -269,6 +273,11 @@ Permanently delete the authenticated user and **all** of their data:
 
 This operation is irreversible.
 
+A minimal tombstone is recorded in the internal `deleted_users` table (only the
+email and the deletion timestamp — upserted by email, so re-deletion refreshes
+the timestamp). This is server-side only and does not affect the request or
+response of this endpoint.
+
 **Auth:** Authenticated
 
 **Success Response:** `204 No Content`
@@ -279,6 +288,76 @@ This operation is irreversible.
 | ------ | -------------- | ------------------------------------- |
 | 404    | USER_NOT_FOUND | User no longer exists in the database |
 | 401    | —              | Missing or invalid JWT                |
+
+---
+
+### GET /api/users/stats/signups
+
+All-time total user count plus a per-month signup time series for charting.
+
+**Auth:** Authenticated + **admin only**
+
+**Query Parameters:**
+
+| Param | Type   | Required | Description                                      |
+| ----- | ------ | -------- | ------------------------------------------------ |
+| from  | string | No       | ISO 8601 — include months with signups at/after  |
+| to    | string | No       | ISO 8601 — include months with signups at/before |
+
+`total` is always the all-time count (ignores `from`/`to`). `monthly` is the
+per-calendar-month (UTC) breakdown within the window, ascending; `month` is
+`"YYYY-MM"`. Months with zero signups are omitted.
+
+**Success Response:** `200 OK`
+
+```json
+{
+	"total": 4800,
+	"monthly": [
+		{ "month": "2026-06", "count": 120 },
+		{ "month": "2026-07", "count": 300 },
+		{ "month": "2026-08", "count": 210 }
+	]
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code     | When                           |
+| ------ | -------------- | ------------------------------ |
+| 401    | —              | Missing or invalid JWT         |
+| 403    | ADMIN_REQUIRED | Authenticated but not an admin |
+
+---
+
+### GET /api/users/stats/deletions
+
+All-time total deleted-account count plus a per-month deletion time series.
+Backed by the `deleted_users` tombstone table (see `DELETE /api/users/me`), so
+counts reflect deletion events grouped by month.
+
+**Auth:** Authenticated + **admin only**
+
+**Query Parameters:** same as `/signups` (`from`, `to`; both optional ISO 8601).
+
+**Success Response:** `200 OK` — identical shape to `/signups`:
+
+```json
+{
+	"total": 37,
+	"monthly": [
+		{ "month": "2026-07", "count": 9 },
+		{ "month": "2026-08", "count": 5 }
+	]
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code     | When                           |
+| ------ | -------------- | ------------------------------ |
+| 401    | —              | Missing or invalid JWT         |
+| 403    | ADMIN_REQUIRED | Authenticated but not an admin |
 
 ---
 
@@ -403,6 +482,27 @@ hasAccess: true, expiresAt: null`
 
 This means the client never has to reproduce the admin/grace logic — trust
 `hasAccess`.
+
+#### Global payment kill-switch (server-internal)
+
+The single-row `app_settings` table has a `payments_enabled` flag that turns the
+entire subscription/paywall system on or off app-wide, with no code change or
+redeploy. **This flag is NOT exposed in any API response and there is no endpoint
+to change it — it is controlled only via the database, by the operator.** Clients
+never see it; they only see its effect through `hasAccess`.
+
+- **`payments_enabled = FALSE`** (current state) → payments are **bypassed**. This
+  endpoint returns `state: "ACTIVE", hasAccess: true` for every user, and the write
+  endpoints (task create/start) skip the subscription check entirely. Because
+  `hasAccess` is `true`, clients show no paywall.
+- **`payments_enabled = TRUE`** → normal enforcement resumes; `hasAccess` reflects
+  the real subscription/admin/grace logic above.
+
+To re-enable payments later, flip the flag in the database:
+
+```sql
+UPDATE app_settings SET payments_enabled = TRUE;
+```
 
 **Error Responses:**
 
@@ -1007,6 +1107,257 @@ Aggregate counts. Admin dashboard uses this for a summary tile.
 
 `categoryCounts` always includes every category, defaulting to `0` — so the
 client can render a stable set of tiles.
+
+**Error Responses:**
+
+| Status | Error Code     | When                           |
+| ------ | -------------- | ------------------------------ |
+| 401    | —              | Missing or invalid JWT         |
+| 403    | ADMIN_REQUIRED | Authenticated but not an admin |
+
+---
+
+## Analytics
+
+Product analytics. **Write endpoint is public — accepts anonymous events** so
+pre-login funnel steps can be captured. **Read endpoints are admin-only.**
+
+Rate limit on the write endpoint: **30 requests per minute per client IP**.
+Each request may carry up to **100 events** in one batch. Exceeding returns
+`429 Too Many Requests` with `RATE_LIMIT_EXCEEDED`.
+
+### Server-captured fields (always populated, never trusted from the body)
+
+These come from the HTTP request itself, so a client cannot spoof them:
+
+| Field            | Source                                                                  |
+| ---------------- | ----------------------------------------------------------------------- |
+| `userId`         | JWT sub claim if a valid `Authorization: Bearer` is present             |
+| `ip`             | First hop of `X-Forwarded-For`, or `remoteAddr`                         |
+| `userAgent`      | `User-Agent` header                                                     |
+| `referer`        | `Referer` header (mainly for web)                                       |
+| `acceptLanguage` | `Accept-Language` header                                                |
+| `country`        | `CF-IPCountry` header (populated by Cloudflare / Railway if configured) |
+| `receivedAt`     | Server timestamp when the row was written                               |
+
+### POST /api/analytics/events
+
+**Auth:** Public. If a valid JWT is present, `userId` is captured; otherwise the
+row is anonymous.
+
+**Request Body:**
+
+```json
+{
+  "events": [ EventInput, ... ]   // 1..100 events per request
+}
+```
+
+**`EventInput` — every field is optional except `eventName`.** Send only what
+the platform can provide:
+
+| Field             | Type    | Notes                                                                      |
+| ----------------- | ------- | -------------------------------------------------------------------------- |
+| `eventName`       | string  | **Required.** 1–100 chars, must match `^[a-zA-Z][a-zA-Z0-9_.]{0,99}$`      |
+| `sessionId`       | string  | Client-generated UUID grouping events into a session (≤100 chars)          |
+| `platform`        | string  | `"android"`, `"web"`, `"extension"`, `"ios"`, etc. Lowercase alphanumeric. |
+| `appVersion`      | string  | e.g. `"1.2.3"` — mobile/extension fills                                    |
+| `osName`          | string  | Mobile / extension                                                         |
+| `osVersion`       | string  | Mobile / extension                                                         |
+| `deviceModel`     | string  | Mobile: `"Pixel 8"`, etc.                                                  |
+| `browserName`     | string  | Web / extension                                                            |
+| `browserVersion`  | string  | Web / extension                                                            |
+| `screenWidth`     | integer | Web / mobile                                                               |
+| `screenHeight`    | integer | Web / mobile                                                               |
+| `locale`          | string  | `"en-US"`                                                                  |
+| `timezone`        | string  | `"Asia/Karachi"`                                                           |
+| `networkType`     | string  | `"wifi"`, `"cellular"`, `"none"` — mainly mobile                           |
+| `clientTimestamp` | string  | ISO 8601 — when the event actually happened on the client                  |
+| `properties`      | object  | Event-specific data (any JSON). Total serialized ≤ ~4 KB or it's dropped.  |
+
+**Example — mobile:**
+
+```json
+{
+	"events": [
+		{
+			"eventName": "task_started",
+			"sessionId": "0a5d8f30-...",
+			"platform": "android",
+			"appVersion": "1.4.0",
+			"osName": "Android",
+			"osVersion": "14",
+			"deviceModel": "Pixel 8",
+			"screenWidth": 1080,
+			"screenHeight": 2400,
+			"locale": "en-US",
+			"timezone": "Asia/Karachi",
+			"networkType": "wifi",
+			"clientTimestamp": "2026-07-30T12:00:00Z",
+			"properties": { "taskId": "task-123", "scope": "SHARED" }
+		}
+	]
+}
+```
+
+**Example — web:**
+
+```json
+{
+	"events": [
+		{
+			"eventName": "landed_on_signup",
+			"platform": "web",
+			"browserName": "Chrome",
+			"browserVersion": "150",
+			"screenWidth": 1920,
+			"screenHeight": 1080,
+			"locale": "en-US"
+		}
+	]
+}
+```
+
+**Success Response:** `201 Created`
+
+```json
+{ "accepted": 1 }
+```
+
+**Error Responses:**
+
+| Status | Error Code          | When                                                            |
+| ------ | ------------------- | --------------------------------------------------------------- |
+| 400    | VALIDATION_ERROR    | Missing `eventName`, invalid pattern, empty batch, > 100 events |
+| 429    | RATE_LIMIT_EXCEEDED | More than 30 requests from this IP in the last minute           |
+
+---
+
+### GET /api/analytics/events
+
+Paginated event listing with filters.
+
+**Auth:** Authenticated + **admin only**
+
+**Query Parameters:**
+
+| Param     | Type    | Required | Default | Description                                    |
+| --------- | ------- | -------- | ------- | ---------------------------------------------- |
+| page      | integer | No       | 0       | Zero-indexed                                   |
+| limit     | integer | No       | 50      | Page size, capped at 200                       |
+| eventName | string  | No       | —       | Filter to a single event name                  |
+| platform  | string  | No       | —       | Filter to a single platform                    |
+| userId    | uuid    | No       | —       | Filter to events from one user                 |
+| from      | string  | No       | —       | ISO 8601 — events received on/after this time  |
+| to        | string  | No       | —       | ISO 8601 — events received on/before this time |
+
+Ordered by `receivedAt` DESC (newest first).
+
+**Success Response:** `200 OK`
+
+```json
+{
+  "data": [ AnalyticsEventResponse, ... ],
+  "total": 12345,
+  "page": 0,
+  "limit": 50
+}
+```
+
+Each row includes both client-provided fields and server-captured fields
+(`ip`, `userAgent`, `referer`, `acceptLanguage`, `country`, `receivedAt`).
+
+**Error Responses:**
+
+| Status | Error Code       | When                           |
+| ------ | ---------------- | ------------------------------ |
+| 401    | —                | Missing or invalid JWT         |
+| 403    | ADMIN_REQUIRED   | Authenticated but not an admin |
+| 400    | VALIDATION_ERROR | Malformed `from`/`to` datetime |
+
+---
+
+### GET /api/analytics/summary
+
+High-level aggregates for a dashboard tile.
+
+**Auth:** Authenticated + **admin only**
+
+**Query Parameters:**
+
+| Param | Type   | Required | Description                                                   |
+| ----- | ------ | -------- | ------------------------------------------------------------- |
+| from  | string | No       | ISO 8601 — narrow event-name / platform counts to this window |
+| to    | string | No       | ISO 8601 — narrow event-name / platform counts to this window |
+
+The `last24Hours` / `last7Days` / `last30Days` and `distinctUsers*` counters
+are always relative to _now_, not the `from`/`to` window.
+
+**Success Response:** `200 OK`
+
+```json
+{
+	"totalEvents": 1000000,
+	"last24Hours": 12500,
+	"last7Days": 68000,
+	"last30Days": 240000,
+	"distinctUsers7Days": 1240,
+	"distinctUsers30Days": 4800,
+	"eventCounts": {
+		"app_opened": 40000,
+		"task_created": 8500,
+		"task_started": 7900,
+		"task_completed": 6200,
+		"subscription_purchased": 220
+	},
+	"platformCounts": {
+		"android": 620000,
+		"web": 350000,
+		"extension": 30000,
+		"unknown": 0
+	}
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code     | When                           |
+| ------ | -------------- | ------------------------------ |
+| 401    | —              | Missing or invalid JWT         |
+| 403    | ADMIN_REQUIRED | Authenticated but not an admin |
+
+---
+
+### GET /api/analytics/distinct-users
+
+Distinct-user counts grouped by country, locale, and timezone — all three
+breakdowns returned in one response so the client can display whichever it wants.
+
+**Auth:** Authenticated + **admin only**
+
+**Query Parameters:**
+
+| Param | Type   | Required | Description                                          |
+| ----- | ------ | -------- | ---------------------------------------------------- |
+| from  | string | No       | ISO 8601 — count only events received at/after this  |
+| to    | string | No       | ISO 8601 — count only events received at/before this |
+
+**How "distinct user" is counted:** `COUNT(DISTINCT COALESCE(user_id, session_id))`
+— the authenticated user id when present, otherwise the per-tab web session id.
+This means **anonymous web visitors are included** (web events have no `user_id`).
+Rows with neither id contribute nothing. Missing dimension values are bucketed
+under `"unknown"`. Each map is `{ label: distinctUserCount }`; the sum across
+buckets is **not** the overall distinct total (a user can span multiple buckets).
+
+**Success Response:** `200 OK`
+
+```json
+{
+	"byCountry": { "PK": 1240, "US": 430, "unknown": 55 },
+	"byLocale": { "en-US": 610, "ur-PK": 540, "unknown": 12 },
+	"byTimezone": { "Asia/Karachi": 900, "America/New_York": 210, "unknown": 8 }
+}
+```
 
 **Error Responses:**
 

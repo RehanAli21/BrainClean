@@ -43,7 +43,7 @@ export default function TaskDetailScreen() {
 	const formatDuration = useFormatDuration()
 	const router = useRouter()
 	const { taskId, finishFirst } = useLocalSearchParams<{ taskId: string; finishFirst?: string }>()
-	const { data: task, isLoading, isError, refetch } = useTaskQuery(taskId!)
+	const { data: task, isLoading, isError } = useTaskQuery(taskId!)
 	const startMutation = useStartTaskMutation()
 	const completeMutation = useCompleteTaskMutation()
 	const deleteMutation = useDeleteTaskMutation()
@@ -52,7 +52,7 @@ export default function TaskDetailScreen() {
 	const queryClient = useQueryClient()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
+	const notificationBlockMode = useUiStore(s => s.taskNotificationModes[taskId!] ?? 0)
 	const hasRated = useUiStore(s => s.hasRated)
 	const setHasRated = useUiStore(s => s.setHasRated)
 	const [apiError, setApiError] = useState('')
@@ -63,10 +63,15 @@ export default function TaskDetailScreen() {
 	const canComplete = isActive && now >= eligibleAt
 	const remainingMs = eligibleAt - now
 
+	// On every focus, discard the cached task and reload from scratch so the
+	// screen shows a loading state and then the current server state — never a
+	// silently-retained stale copy if a background refetch is slow or fails
+	// (TanStack Query keeps the last data and stays "success" on a failed
+	// refetch). Success renders the task; failure falls through to the error view.
 	useFocusEffect(
 		useCallback(() => {
-			refetch()
-		}, [refetch]),
+			queryClient.resetQueries({ queryKey: ['tasks', taskId], exact: true })
+		}, [queryClient, taskId]),
 	)
 
 	useEffect(() => {

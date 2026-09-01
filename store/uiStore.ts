@@ -31,8 +31,11 @@ interface UiState {
   selectedApps: string[];
   toggleApp: (packageName: string) => void;
   isAppSelected: (packageName: string) => boolean;
-  notificationBlockMode: number;
-  setNotificationBlockMode: (mode: number) => void;
+  // Per-task notification blocking mode, chosen at task creation and keyed by
+  // task id. 0 = off, 1 = blocked apps only, 2 = all. Read when a task starts
+  // blocking. (Schedules carry their own mode natively, per schedule.)
+  taskNotificationModes: Record<string, number>;
+  setTaskNotificationMode: (taskId: string, mode: number) => void;
   // Timestamp (ms) the user confirmed they padlocked BrainClean in the recents
   // view on an aggressive-OEM device (XOS/MIUI/etc). Null = not confirmed yet.
   // Used to hide the padlock-tutorial card once the user has done it.
@@ -87,10 +90,12 @@ export const useUiStore = create<UiState>()(
         return get().selectedApps.includes(packageName);
       },
 
-      notificationBlockMode: 0,
+      taskNotificationModes: {},
 
-      setNotificationBlockMode: (mode: number) => {
-        set({ notificationBlockMode: mode });
+      setTaskNotificationMode: (taskId: string, mode: number) => {
+        set((state) => ({
+          taskNotificationModes: { ...state.taskNotificationModes, [taskId]: mode },
+        }));
       },
 
       padlockConfirmedAt: null,

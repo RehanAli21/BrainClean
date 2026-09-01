@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "BrainClean",
 		"slug": "brainclean",
-		"version": "1.5.0",
+		"version": "1.7.0",
 		"orientation": "default",
 		"icon": "./assets/images/logo_in_white_color.png",
 		"scheme": "brainclean",
@@ -38,9 +38,9 @@
 					"image": "./assets/images/logo_in_white_color.png",
 					"imageWidth": 180,
 					"resizeMode": "contain",
-					"backgroundColor": "#2563EB",
+					"backgroundColor": "#12121A",
 					"dark": {
-						"backgroundColor": "#2563EB"
+						"backgroundColor": "#12121A"
 					}
 				}
 			],

@@ -1,9 +1,11 @@
+import { NotificationModeSelector } from '@/components/NotificationModeSelector'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { useTheme } from '@/hooks/useTheme'
 import { API_BASE_URL } from '@/constants/config'
 import { useAuth } from '@/context/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { addSchedule, canScheduleExactAlarms, syncScheduleConfig } from '@/modules/blocker'
+import { analytics } from '@/services/analytics'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
@@ -174,7 +176,6 @@ export default function NewScheduleScreen() {
 	const { token } = useAuth()
 	const { allGranted, isLoading: permsLoading } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
 
 	const [hour12, setHour12] = useState(9)
 	const [minute, setMinute] = useState(0)
@@ -183,6 +184,7 @@ export default function NewScheduleScreen() {
 	const [durationMinutes, setDurationMinutes] = useState(0)
 	const [repeatDays, setRepeatDays] = useState<Set<number>>(new Set())
 	const [label, setLabel] = useState('')
+	const [notifMode, setNotifMode] = useState(0)
 	const [error, setError] = useState('')
 	const [busy, setBusy] = useState(false)
 
@@ -239,7 +241,7 @@ export default function NewScheduleScreen() {
 
 		setBusy(true)
 		try {
-			syncScheduleConfig(token, API_BASE_URL, selectedApps, notificationBlockMode)
+			syncScheduleConfig(token, API_BASE_URL, selectedApps)
 			addSchedule(
 				hour24,
 				minute,
@@ -247,7 +249,12 @@ export default function NewScheduleScreen() {
 				durationMinutes,
 				Array.from(repeatDays),
 				label.trim(),
+				notifMode,
 			)
+			analytics.track('schedule_created', {
+				repeatDayCount: repeatDays.size,
+				notificationBlockMode: notifMode,
+			})
 			router.back()
 		} catch {
 			setError(t('common.somethingWentWrong'))
@@ -344,6 +351,10 @@ export default function NewScheduleScreen() {
 					autoCapitalize='sentences'
 				/>
 				<Text style={[styles.hintText, { color: theme.icon }]}>{t('schedules.labelHint')}</Text>
+
+				<View style={{ marginTop: 16 }}>
+					<NotificationModeSelector value={notifMode} onChange={setNotifMode} />
+				</View>
 
 				<View style={{ marginTop: 8, marginBottom: 40 }}>
 					<PrimaryButton

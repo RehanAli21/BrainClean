@@ -1,4 +1,5 @@
 import { taskService } from '@/services/api/tasks';
+import { analytics } from '@/services/analytics';
 import type { CreateTaskRequest } from '@/types/task';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -30,7 +31,12 @@ export function useCreateTaskMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateTaskRequest) => taskService.create(data),
-    onSuccess: () => {
+    onSuccess: (task) => {
+      analytics.track('task_created', {
+        taskId: task.id,
+        scope: task.scope,
+        hasMaxDuration: task.maximumDurationSeconds != null,
+      });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
@@ -41,6 +47,7 @@ export function useDeleteTaskMutation() {
   return useMutation({
     mutationFn: (id: string) => taskService.delete(id),
     onSuccess: (_data, id) => {
+      analytics.track('task_deleted', { taskId: id });
       queryClient.removeQueries({ queryKey: ['tasks', id] });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
@@ -52,6 +59,7 @@ export function useStartTaskMutation() {
   return useMutation({
     mutationFn: (id: string) => taskService.start(id),
     onSuccess: (_data, id) => {
+      analytics.track('task_started', { taskId: id });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', id] });
     },
@@ -63,6 +71,7 @@ export function useCompleteTaskMutation() {
   return useMutation({
     mutationFn: (id: string) => taskService.complete(id),
     onSuccess: (_data, id) => {
+      analytics.track('task_completed', { taskId: id });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', id] });
     },

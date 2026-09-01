@@ -16,13 +16,12 @@ import { AppState } from 'react-native';
 export function useNativeSync() {
   const { token } = useAuth();
   const selectedApps = useUiStore(s => s.selectedApps);
-  const notificationBlockMode = useUiStore(s => s.notificationBlockMode);
   const { t, i18n } = useTranslation();
 
   const sync = useCallback(() => {
     try {
       if (token) {
-        syncScheduleConfig(token, API_BASE_URL, selectedApps, notificationBlockMode);
+        syncScheduleConfig(token, API_BASE_URL, selectedApps);
       }
       syncLocalizedStrings({
         'blocker.notifText': t('native.blockerNotifText'),
@@ -44,7 +43,7 @@ export function useNativeSync() {
       });
     } catch {}
     // i18n.language ensures a re-sync when the user switches languages
-  }, [token, selectedApps, notificationBlockMode, t, i18n.language]);
+  }, [token, selectedApps, t, i18n.language]);
 
   useEffect(() => {
     sync();

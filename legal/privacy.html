@@ -5,10 +5,47 @@
 		<meta
 			name="viewport"
 			content="width=device-width, initial-scale=1" />
-		<title>Privacy Policy — BrainClean</title>
+		<title>Privacy Policy — BrainClean Android App</title>
 		<meta
 			name="description"
-			content="Privacy Policy for the BrainClean Android app." />
+			content="How BrainClean collects, uses, and stores your data. We store only what's needed to run the service — no ad trackers, no data resale." />
+		<meta
+			name="robots"
+			content="index, follow" />
+		<link
+			rel="canonical"
+			href="https://brainclean.app/legal/privacy" />
+		<meta
+			property="og:type"
+			content="article" />
+		<meta
+			property="og:site_name"
+			content="BrainClean" />
+		<meta
+			property="og:title"
+			content="Privacy Policy — BrainClean" />
+		<meta
+			property="og:description"
+			content="How BrainClean collects, uses, and stores your data." />
+		<meta
+			property="og:url"
+			content="https://brainclean.app/legal/privacy" />
+		<meta
+			property="og:image"
+			content="https://brainclean.app/logo.png" />
+		<meta
+			name="twitter:card"
+			content="summary" />
+		<meta
+			name="twitter:title"
+			content="Privacy Policy — BrainClean" />
+		<meta
+			name="twitter:description"
+			content="How BrainClean collects, uses, and stores your data." />
+		<link
+			rel="icon"
+			href="/favicon.ico"
+			sizes="any" />
 		<style>
 			:root {
 				--text: #1a1a1a;
@@ -194,15 +231,16 @@
 	<body>
 		<main>
 			<h1>Privacy Policy</h1>
-			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 18 July 2026</p>
+			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 1 September 2026</p>
 
 			<div class="summary">
 				<p>
 					<strong>Short version.</strong> BrainClean is an Android app that helps you block distracting apps until you complete a focus
 					task, and offers optional scheduling, eye-care and screen-time features. We collect the minimum data needed to operate the
-					service: your email and password (or a Google Sign-In, if you choose that) to sign you in, your tasks, and any feedback you
-					choose to send us. The apps you choose to block, your schedules, and everything the app observes about your app usage stay on
-					your device. We do not use analytics, advertising, or tracking SDKs. You can delete your account at any time from inside the app.
+					service: your email and password (or a Google Sign-In, if you choose that) to sign you in, your tasks, and any feedback you choose
+					to send us. The apps you choose to block, your schedules, and everything the app observes about your app usage stay on your
+					device. We do not use third-party analytics, advertising, or attribution SDKs. We do run our own first-party product analytics on
+					our own backend (anonymous on the website, described in section 8). You can delete your account at any time from inside the app.
 				</p>
 			</div>
 
@@ -218,6 +256,7 @@
 					<li><a href="#storage">How we store and protect your data</a></li>
 					<li><a href="#notifications">Notifications</a></li>
 					<li><a href="#third-parties">Third parties</a></li>
+					<li><a href="#analytics">Product analytics</a></li>
 					<li><a href="#retention">Data retention</a></li>
 					<li><a href="#rights">Your rights and account deletion</a></li>
 					<li><a href="#children">Children&rsquo;s privacy</a></li>
@@ -258,7 +297,10 @@
 				chooser and, once you pick an account, returns a signed Google ID token to the App. The App sends that token to our server, which
 				verifies it with Google and uses it to create or sign you in to your BrainClean account.
 			</p>
-			<p>From that token we receive and store your <strong>email address</strong>, your <strong>name as set on your Google account</strong>, and your <strong>Google account identifier</strong>. We use these only to identify your account and sign you in.</p>
+			<p>
+				From that token we receive and store your <strong>email address</strong>, your <strong>name as set on your Google account</strong>,
+				and your <strong>Google account identifier</strong>. We use these only to identify your account and sign you in.
+			</p>
 			<p>
 				We do <strong>not</strong> receive your Google password, and we are not granted access to your Gmail, Drive, Contacts, Calendar, or
 				any other Google service. If you sign in with Google, no BrainClean password exists for your account.
@@ -305,9 +347,9 @@
 			</p>
 			<p>
 				When a schedule fires, the App creates and starts a focus task on our servers on your behalf, exactly as if you had created it
-				yourself, and the task information in section&nbsp;2.3 is stored. <strong>The label you give a schedule becomes that task&rsquo;s
-				name and is therefore sent to our servers</strong> when the schedule runs. If you leave the label empty, the App uses the time and
-				date instead. This happens even if the App is closed at the time.
+				yourself, and the task information in section&nbsp;2.3 is stored.
+				<strong>The label you give a schedule becomes that task&rsquo;s name and is therefore sent to our servers</strong> when the schedule
+				runs. If you leave the label empty, the App uses the time and date instead. This happens even if the App is closed at the time.
 			</p>
 
 			<h3>2.7 Feedback you send us</h3>
@@ -326,8 +368,8 @@
 			</p>
 			<div class="callout">
 				<p>
-					<strong>Please note:</strong> the message box is free text, and we store whatever you type in it. Please do not include
-					passwords, financial details, or other sensitive personal information in your feedback.
+					<strong>Please note:</strong> the message box is free text, and we store whatever you type in it. Please do not include passwords,
+					financial details, or other sensitive personal information in your feedback.
 				</p>
 			</div>
 			<p>We use feedback only to understand problems and improve the App. We do not publish it or use it for marketing.</p>
@@ -373,16 +415,16 @@
 
 			<h3>3.2 Foreground app detection</h3>
 			<p>
-				The App uses Android&rsquo;s <code>UsageStatsManager</code> to detect which app is currently in the foreground, and checks it
-				locally against the apps you selected. This runs while a focus task is active, and also while either of the optional wellness
-				features described in section&nbsp;3.4 is switched on. It does not run otherwise.
+				The App uses Android&rsquo;s <code>UsageStatsManager</code> to detect which app is currently in the foreground, and checks it locally
+				against the apps you selected. This runs while a focus task is active, and also while either of the optional wellness features
+				described in section&nbsp;3.4 is switched on. It does not run otherwise.
 				<strong>Foreground app information is never logged or transmitted off your device.</strong>
 			</p>
 
 			<h3>3.3 Notification listener (optional)</h3>
 			<p>
-				In Settings you can choose how notifications are handled while a focus task is running. There are three options, and the default is
-				<strong>Off</strong>:
+				When you create a focus task or a schedule, you choose how notifications are handled while that session is running. There are three
+				options, and the default is <strong>Off</strong>:
 			</p>
 			<ul>
 				<li><strong>Off</strong> &mdash; the App does not touch your notifications at all.</li>
@@ -394,8 +436,8 @@
 			</ul>
 			<p>
 				The last two options require you to grant Notification Access in Android Settings. Granting it means Android delivers every posted
-				notification to the App so it can decide whether to dismiss it &mdash; this is how Android&rsquo;s notification listener works, and
-				it applies to the &ldquo;Selected Apps&rdquo; option too, not only &ldquo;All Apps&rdquo;.
+				notification to the App so it can decide whether to dismiss it &mdash; this is how Android&rsquo;s notification listener works, and it
+				applies to the &ldquo;Selected Apps&rdquo; option too, not only &ldquo;All Apps&rdquo;.
 			</p>
 			<p>
 				<strong
@@ -411,13 +453,13 @@
 					<a href="terms.html">Terms &amp; Conditions</a> before turning it on, and do not use it if you may need to be reachable.
 				</p>
 			</div>
-			<p>You can change this setting or revoke Notification Access at any time.</p>
+			<p>You make this choice for each focus task and each schedule when you create it, and you can revoke Notification Access in Android Settings at any time.</p>
 
 			<h3>3.4 Wellness features (optional)</h3>
 			<p>
-				The App includes two optional wellness features. Both are <strong>switched off by default</strong>, both run only while you have
-				them switched on, and both work entirely on your device. When either is on, the App runs a second foreground service (with its own
-				ongoing notification &mdash; see section&nbsp;6) so Android does not stop it.
+				The App includes two optional wellness features. Both are <strong>switched off by default</strong>, both run only while you have them
+				switched on, and both work entirely on your device. When either is on, the App runs a second foreground service (with its own ongoing
+				notification &mdash; see section&nbsp;6) so Android does not stop it.
 			</p>
 			<ul>
 				<li>
@@ -432,8 +474,8 @@
 			</ul>
 			<p>
 				<strong
-					>The usage timings behind these features exist only in memory on your device while the feature is running. They are not written
-					to a history, not built into a profile, and never transmitted to our servers.</strong
+					>The usage timings behind these features exist only in memory on your device while the feature is running. They are not written to
+					a history, not built into a profile, and never transmitted to our servers.</strong
 				>
 				What is saved is only your settings for the features: whether each is on, your chosen interval, limit, and duration, and which apps
 				Doom Scroll Breaker watches. Turning a feature off in Settings stops the monitoring immediately.
@@ -543,8 +585,8 @@
 				<li>
 					<strong>Encrypted storage</strong> &mdash; your authentication token and email are stored using <code>expo-secure-store</code>,
 					which uses Android&rsquo;s platform-provided encrypted storage. Your app preferences are kept here too: which apps you selected,
-					your chosen language, your wellness-feature settings, your &ldquo;Block Notifications&rdquo; choice, and a cached copy of your
-					subscription status so the App knows what to show before it can reach our server.
+					your chosen language, your wellness-feature settings, the notification-handling choice you pick for each focus task, and a cached
+					copy of your subscription status so the App knows what to show before it can reach our server.
 				</li>
 				<li>
 					<strong>App-private storage</strong> &mdash; blocking session state (such as the package names you chose to block, session
@@ -555,8 +597,8 @@
 				<li>
 					<strong>A copy of your authentication token</strong> is also kept in that app-private area, because the blocking engine has to
 					reach our server without the rest of the App running &mdash; to check whether your task is complete, and to create and start the
-					task when a schedule fires. It is kept while a focus task is active, and for as long as you have any schedule saved. It is
-					cleared when you sign out or delete the App.
+					task when a schedule fires. It is kept while a focus task is active, and for as long as you have any schedule saved. It is cleared
+					when you sign out or delete the App.
 				</li>
 			</ul>
 
@@ -601,7 +643,8 @@
 			<h2 id="third-parties">7. Third parties</h2>
 			<p>
 				BrainClean does <strong>not</strong> use any third-party analytics, advertising, attribution, or crash-reporting SDKs. We do
-				<strong>not</strong> sell, rent, or share your personal data with third parties for advertising or marketing.
+				<strong>not</strong> sell, rent, or share your personal data with third parties for advertising or marketing. (Our own first-party
+				product analytics &mdash; kept entirely on our own backend &mdash; is described separately in section 8.)
 			</p>
 			<p>
 				The only third party involved in running the App is <strong>Google</strong>, and only through the Google services listed below. Each
@@ -648,24 +691,74 @@
 				date before the new version is published.
 			</p>
 
-			<h2 id="retention">8. Data retention</h2>
+			<h2 id="analytics">8. Product analytics</h2>
+			<p>
+				To understand how the App and this website are used and to improve them, we collect anonymous product-usage events. This is a
+				<strong>first-party</strong> system that we built and operate ourselves &mdash; all analytics data is stored on
+				<strong>our own backend</strong>. It is never sent to Google Analytics, Mixpanel, PostHog, Amplitude, or any other third-party
+				analytics vendor.
+			</p>
+			<p>
+				<strong>Web (this site).</strong> Analytics events sent from the website are <strong>always anonymous</strong>. Even if you are signed
+				in to your BrainClean account, web events are never linked to your user ID. Each event includes:
+			</p>
+			<ul>
+				<li>
+					<strong>What happened</strong> &mdash; an event name (for example, <code>page_viewed</code>, <code>login_succeeded</code>,
+					<code>play_store_cta_clicked</code>) and a small set of non-identifying properties (for example, which page you were on).
+				</li>
+				<li>
+					<strong>Session ID</strong> &mdash; a random identifier stored in your browser tab (<code>sessionStorage</code>) that lets us
+					group your actions into a single visit. It is discarded when you close the tab.
+				</li>
+				<li><strong>Client context</strong> &mdash; browser name and version, screen size, language, and timezone.</li>
+				<li>
+					<strong>Network context recorded by the server</strong> &mdash; IP address, User-Agent, Referer, Accept-Language, and country
+					(inferred from IP). Under GDPR, an IP address may be considered personal data.
+				</li>
+			</ul>
+			<p>
+				<strong>Mobile app.</strong> Analytics events from the mobile app are linked to your user ID when you are signed in &mdash; events
+				sent before you sign in are anonymous &mdash; so we can, for example, distinguish an action that follows a task completion from one
+				that does not. Besides the event name and a small set of non-identifying properties (such as a task or subscription identifier), each
+				event includes device context: the app version, device model, operating-system name and version, screen size, language, and timezone,
+				plus the network context recorded by the server listed above. The App does <strong>not</strong> include the names of apps you block,
+				your app-usage timings, or your notification content in analytics &mdash; those never leave your device (see sections&nbsp;2.8
+				and&nbsp;3).
+			</p>
+			<p>
+				<strong>What we do not do:</strong> we do not use cookies for analytics, we do not build advertising profiles, we do not sell this
+				data, and we do not share it with third-party analytics vendors.
+			</p>
+			<p>
+				<strong>Retention.</strong> Analytics events are kept for as long as they are useful for improving the product. IP addresses on
+				analytics rows are truncated after 30 days so that the historical record cannot be linked back to a specific network. If you delete
+				your account, we also delete or anonymize analytics events associated with your user ID.
+			</p>
+			<p>
+				<strong>Opt-out.</strong> A user-facing analytics opt-out is on our roadmap. In the meantime, you can prevent web analytics by
+				blocking requests to <code>/api/analytics/events</code> in your browser (for example, with uBlock Origin), and prevent all analytics
+				by uninstalling the App and deleting your account.
+			</p>
+
+			<h2 id="retention">9. Data retention</h2>
 			<p>
 				We keep your account information and tasks for as long as your account is active. If you delete your account, we permanently delete
 				your account record and associated tasks instantly. Some information may persist in encrypted backups for a short period, after which
 				it is also deleted.
 			</p>
 			<p>
-				Locally stored data (your authentication token, email, selected apps, schedules, wellness settings, and other preferences described
-				in section&nbsp;5.1) is removed from your device when you sign out, delete your account, or uninstall the App.
+				Locally stored data (your authentication token, email, selected apps, schedules, wellness settings, and other preferences described in
+				section&nbsp;5.1) is removed from your device when you sign out, delete your account, or uninstall the App.
 			</p>
 			<p>
 				<strong>Feedback</strong> is kept separately from your account, because it can be sent without being signed in and we need it to fix
 				the problems it reports. Deleting your account removes the link between your feedback and your account, but does not automatically
-				delete the feedback text itself. If you want feedback you sent deleted as well, email us at support@brainclean.app and we will
-				remove it.
+				delete the feedback text itself. If you want feedback you sent deleted as well, email us at support@brainclean.app and we will remove
+				it.
 			</p>
 
-			<h2 id="rights">9. Your rights and account deletion</h2>
+			<h2 id="rights">10. Your rights and account deletion</h2>
 			<p>You can:</p>
 			<ul>
 				<li>
@@ -694,8 +787,8 @@
 					further sessions start automatically.
 				</li>
 				<li>
-					<strong>Change notification blocking</strong> at any time in Settings, including setting it back to &ldquo;Off&rdquo;, and revoke
-					Notification Access in Android Settings.
+					<strong>Choose notification blocking</strong> for each focus task or schedule when you create it, including leaving it
+					&ldquo;Off&rdquo;, and revoke Notification Access in Android Settings at any time.
 				</li>
 			</ul>
 			<p>
@@ -703,13 +796,13 @@
 				associated with your account and we will process your request.
 			</p>
 
-			<h2 id="children">10. Children&rsquo;s privacy</h2>
+			<h2 id="children">11. Children&rsquo;s privacy</h2>
 			<p>
 				BrainClean is not directed at children under the age of 13. We do not knowingly collect personal information from anyone under 13. If
 				you believe a child under 13 has created an account, contact us at support@brainclean.app and we will delete the account.
 			</p>
 
-			<h2 id="international">11. International users</h2>
+			<h2 id="international">12. International users</h2>
 			<p>
 				The App is operated from Pakistan, and data is processed on servers in the region where our backend is hosted. By using the App, you
 				consent to your information being transferred to and processed in that region. If you are located in a jurisdiction with specific
@@ -717,21 +810,21 @@
 				&mdash; you can exercise them by contacting us at support@brainclean.app.
 			</p>
 
-			<h2 id="security">12. Security</h2>
+			<h2 id="security">13. Security</h2>
 			<p>
 				We use HTTPS for all network traffic, encrypted on-device storage for sensitive values, and one-way password hashing on the server. No
 				method of transmission or storage is perfectly secure, however. If you become aware of a security issue affecting the App, please
 				report it to support@brainclean.app.
 			</p>
 
-			<h2 id="changes">13. Changes to this policy</h2>
+			<h2 id="changes">14. Changes to this policy</h2>
 			<p>
 				We may update this policy from time to time. When we do, we will update the &ldquo;Effective date&rdquo; and &ldquo;Last
 				updated&rdquo; values at the top of this page. For material changes, we will also surface a notice in the App. Your continued use of
 				the App after a change means you accept the updated policy.
 			</p>
 
-			<h2 id="contact">14. Contact us</h2>
+			<h2 id="contact">15. Contact us</h2>
 			<p>If you have any questions, requests, or concerns about this policy or your data, contact us at:</p>
 			<p><strong>Email:</strong> support@brainclean.app</p>
 			<p><strong>Operator:</strong> BrainClean, Pakistan</p>

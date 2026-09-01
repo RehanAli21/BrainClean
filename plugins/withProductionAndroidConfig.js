@@ -23,10 +23,9 @@ ${KEEP_RULES_MARKER}
 # AndroidManifest.xml, looked up by name by the Android system.
 -keep class expo.modules.blocker.BlockerService { *; }
 -keep class expo.modules.blocker.BootReceiver { *; }
--keep class expo.modules.blocker.BlockerWatchdogReceiver { *; }
 -keep class expo.modules.blocker.NotificationBlockerService { *; }
 -keep class expo.modules.blocker.WellnessService { *; }
--keep class expo.modules.blocker.WellnessWatchdogReceiver { *; }
+-keep class expo.modules.blocker.ServiceGuardReceiver { *; }
 -keep class expo.modules.blocker.ScheduleAlarmReceiver { *; }
 
 # Kotlin coroutines (used by BlockerService)

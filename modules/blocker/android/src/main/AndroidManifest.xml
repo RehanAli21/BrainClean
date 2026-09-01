@@ -34,11 +34,6 @@
       </intent-filter>
     </receiver>
 
-    <receiver
-        android:name="expo.modules.blocker.BlockerWatchdogReceiver"
-        android:exported="false"
-        android:enabled="true" />
-
     <service
         android:name="expo.modules.blocker.WellnessService"
         android:exported="false"
@@ -47,11 +42,6 @@
           android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
           android:value="Eye care reminders and app usage monitoring for digital wellness" />
     </service>
-
-    <receiver
-        android:name="expo.modules.blocker.WellnessWatchdogReceiver"
-        android:exported="false"
-        android:enabled="true" />
 
     <receiver
         android:name="expo.modules.blocker.ServiceGuardReceiver"

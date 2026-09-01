@@ -9,10 +9,22 @@ import { useCallback, useEffect, useState } from 'react'
 import { AppState, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View, type AppStateStatus } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { isBlocking as nativeIsBlocking } from '@/modules/blocker'
+import { analytics } from '@/services/analytics'
 import { useUiStore } from '@/store/uiStore'
 import { AuthProvider } from '../context/AuthContext'
 
 SplashScreen.preventAutoHideAsync()
+
+function useAnalytics() {
+	useEffect(() => {
+		analytics.init()
+		analytics.track('app_opened')
+		const sub = AppState.addEventListener('change', (status: AppStateStatus) => {
+			if (status === 'active') analytics.track('app_opened')
+		})
+		return () => sub.remove()
+	}, [])
+}
 
 function useAppStateFocusManager() {
 	useEffect(() => {
@@ -156,6 +168,7 @@ export default function RootLayout() {
 
 	useAppStateFocusManager()
 	useSyncLanguage()
+	useAnalytics()
 	const resolvedTheme = useThemeMode()
 	const { updateRequired, retry } = useForceUpdate()
 

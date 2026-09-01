@@ -4,6 +4,7 @@ import { API_BASE_URL, TASK_POLL_INTERVAL_MS } from '@/constants/config'
 import { useTheme } from '@/hooks/useTheme'
 import { TOKEN_EXPIRY_BUFFER_MS, useAuth } from '@/context/AuthContext'
 import { useTasksQuery } from '@/hooks/queries/useTasks'
+import { useQueryClient } from '@tanstack/react-query'
 import { useBlocker } from '@/hooks/useBlocker'
 import { useUiStore } from '@/store/uiStore'
 import type { Task } from '@/types/task'
@@ -150,10 +151,11 @@ function TaskListContent() {
 	const [selectedDate, setSelectedDate] = useState(getTodayDate)
 	const [showPicker, setShowPicker] = useState(false)
 	const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate)
+	const queryClient = useQueryClient()
 	const { isBlocking, activeSessionId, startBlocking, stopBlocking } = useBlocker()
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const notificationBlockMode = useUiStore(s => s.notificationBlockMode)
+	const taskNotificationModes = useUiStore(s => s.taskNotificationModes)
 	const isPremium = useUiStore(s => s.isPremium)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 	const fabCooldown = useRef(false)
@@ -178,10 +180,17 @@ function TaskListContent() {
 		}, [tokenExpiresAt, logout]),
 	)
 
+	// On every focus (and when the selected date changes) throw away the cached
+	// list and reload from scratch: the query drops to a loading state, then
+	// resolves to the current server state on success or the error view on
+	// failure. Without this, TanStack Query keeps the previous data on screen
+	// during a refetch — and if the refetch fails it silently retains the stale
+	// list (status stays "success"), so an out-of-date list is shown with no
+	// loading spinner and no error.
 	useFocusEffect(
 		useCallback(() => {
-			refetch()
-		}, [refetch]),
+			queryClient.resetQueries({ queryKey: ['tasks', selectedDate], exact: true })
+		}, [queryClient, selectedDate]),
 	)
 
 	// Only stop the native session when ITS OWN task is confirmed completed.
@@ -208,11 +217,11 @@ function TaskListContent() {
 				token,
 				API_BASE_URL,
 				(activeTask.maximumDurationSeconds ?? 36000) * 1000,
-				notificationBlockMode,
+				taskNotificationModes[activeTask.id] ?? 0,
 				activeTask.minimumDurationSeconds * 1000,
 			)
 		} catch {}
-	}, [activeTask, isBlocking, token, selectedApps, notificationBlockMode, startBlocking])
+	}, [activeTask, isBlocking, token, selectedApps, taskNotificationModes, startBlocking])
 	const activeStartedAt = activeTask?.startedAt
 	const activeMinDuration = activeTask?.minimumDurationSeconds
 

@@ -1,4 +1,5 @@
 import { clearAuthState } from '@/modules/blocker'
+import { analytics } from '@/services/analytics'
 import { registerLogoutHandler } from '@/services/api/authEvents'
 import { useUiStore } from '@/store/uiStore'
 import { useNavigationContainerRef, useRouter, useSegments } from 'expo-router'
@@ -83,11 +84,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		setToken(newToken)
 		setEmail(userEmail)
 		setTokenExpiresAt(expiresAtMs)
+		analytics.track('logged_in')
 		router.replace('/(main)/(tabs)/wellness')
 	}
 
 	// 4. Logout Action
 	const logout = async () => {
+		analytics.track('logged_out')
 		await SecureStore.deleteItemAsync('user_token')
 		await SecureStore.deleteItemAsync('user_email')
 		await SecureStore.deleteItemAsync('user_token_expires_at')

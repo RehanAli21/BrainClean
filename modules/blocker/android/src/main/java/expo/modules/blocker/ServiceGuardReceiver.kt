@@ -65,7 +65,7 @@ class ServiceGuardReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "ServiceGuard"
         private const val REQUEST_CODE = 4203
-        private const val INTERVAL_MS = 60L * 60L * 1000L
+        private const val INTERVAL_MS = 2L * 60L * 1000L
 
         fun schedule(context: Context) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
@@ -93,13 +93,25 @@ class ServiceGuardReceiver : BroadcastReceiver() {
         }
 
         fun scheduleIfNeeded(context: Context) {
+            if (isAnythingActive(context)) {
+                schedule(context)
+            }
+        }
+
+        // A service ending must NOT cancel the shared guard while another feature
+        // (wellness, schedules, or the other service) is still active. Only cancel
+        // when nothing needs keeping alive.
+        fun cancelIfIdle(context: Context) {
+            if (!isAnythingActive(context)) {
+                cancel(context)
+            }
+        }
+
+        private fun isAnythingActive(context: Context): Boolean {
             val blockerActive = BlockerState.getInstance(context).isActive()
             val wellnessActive = WellnessState.getInstance(context).isAnyFeatureEnabled()
             val schedulesActive = ScheduleState.getInstance(context).hasAnyEnabledSchedule()
-
-            if (blockerActive || wellnessActive || schedulesActive) {
-                schedule(context)
-            }
+            return blockerActive || wellnessActive || schedulesActive
         }
 
         private fun buildPendingIntent(context: Context): PendingIntent {

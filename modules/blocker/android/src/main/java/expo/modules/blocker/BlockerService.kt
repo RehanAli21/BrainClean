@@ -58,6 +58,11 @@ class BlockerService : Service() {
                     // Re-arm on every screen-on so a single dropped alarm fire
                     // (Doze / OEM freeze) can't permanently break the chain.
                     ServiceGuardReceiver.schedule(context)
+                    // The poll loop stalls while the screen is off (no wake lock in
+                    // Doze), so a task completed on the backend in the background
+                    // wouldn't be noticed until the app is opened. Re-check now, the
+                    // moment the user wakes the device, so blocking lifts on its own.
+                    taskStatusChecker.checkNow()
                 }
                 Intent.ACTION_POWER_CONNECTED,
                 Intent.ACTION_POWER_DISCONNECTED -> {

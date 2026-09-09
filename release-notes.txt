@@ -1,0 +1,60 @@
+<en-US>
+• Notification blocking is now set per task — choose whether to silence notifications each time you start a session
+• Bug fixes and performance improvements
+</en-US>
+<ar>
+• أصبح حظر الإشعارات يُضبط لكل مهمة — اختر ما إذا كنت تريد كتم الإشعارات في كل مرة تبدأ فيها جلسة
+• إصلاحات أخطاء وتحسينات في الأداء
+</ar>
+<ur>
+• نوٹیفیکیشن بلاکنگ اب ہر ٹاسک کے لیے الگ سیٹ ہوتی ہے — ہر بار سیشن شروع کرتے وقت طے کریں کہ نوٹیفیکیشنز خاموش کرنی ہیں یا نہیں
+• بگ فکسز اور کارکردگی میں بہتری
+</ur>
+<hi-IN>
+• नोटिफिकेशन ब्लॉकिंग अब हर टास्क के लिए सेट होती है — हर बार सेशन शुरू करते समय चुनें कि नोटिफिकेशन साइलेंट करने हैं या नहीं
+• बग फिक्स और प्रदर्शन सुधार
+</hi-IN>
+<es-ES>
+• El bloqueo de notificaciones ahora se configura por tarea — elige si silenciar las notificaciones cada vez que inicias una sesión
+• Corrección de errores y mejoras de rendimiento
+</es-ES>
+<fr-FR>
+• Le blocage des notifications se règle désormais par tâche — choisissez de couper les notifications à chaque démarrage de session
+• Corrections de bugs et améliorations des performances
+</fr-FR>
+<de-DE>
+• Die Benachrichtigungssperre wird jetzt pro Aufgabe festgelegt — entscheiden Sie bei jedem Sitzungsstart, ob Benachrichtigungen stummgeschaltet werden
+• Fehlerbehebungen und Leistungsverbesserungen
+</de-DE>
+<pt-BR>
+• O bloqueio de notificações agora é definido por tarefa — escolha se deseja silenciar as notificações sempre que iniciar uma sessão
+• Correções de bugs e melhorias de desempenho
+</pt-BR>
+<zh-CN>
+• 通知拦截现在可按任务设置 — 每次开始专注时选择是否静音通知
+• 问题修复和性能改进
+</zh-CN>
+<ko-KR>
+• 이제 작업별로 알림 차단을 설정할 수 있습니다 — 세션을 시작할 때마다 알림 음소거 여부를 선택하세요
+• 버그 수정 및 성능 개선
+</ko-KR>
+<ja-JP>
+• 通知のブロックがタスクごとに設定できるようになりました — セッション開始のたびに通知を消音するか選べます
+• バグ修正とパフォーマンスの向上
+</ja-JP>
+<id>
+• Pemblokiran notifikasi kini diatur per tugas — pilih apakah ingin membisukan notifikasi setiap kali memulai sesi
+• Perbaikan bug dan peningkatan performa
+</id>
+<ms>
+• Sekatan notifikasi kini ditetapkan bagi setiap tugas — pilih sama ada mahu senyapkan notifikasi setiap kali memulakan sesi
+• Pembaikan pepijat dan peningkatan prestasi
+</ms>
+<ru-RU>
+• Блокировка уведомлений теперь настраивается для каждой задачи — выбирайте, отключать ли уведомления при каждом запуске сессии
+• Исправления ошибок и улучшения производительности
+</ru-RU>
+<tr-TR>
+• Bildirim engelleme artık her görev için ayrı ayarlanıyor — her oturum başlattığınızda bildirimleri susturup susturmayacağınızı seçin
+• Hata düzeltmeleri ve performans iyileştirmeleri
+</tr-TR>

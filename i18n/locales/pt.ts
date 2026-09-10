@@ -153,6 +153,15 @@ export default {
     notifPermMessage: 'O BrainClean precisa de acesso às notificações para bloquear notificações dos apps selecionados.',
     openSettings: 'Abrir configurações',
   },
+  customMessages: {
+    label: 'Mensagem de bloqueio personalizada',
+    hint: 'Exibida na tela de bloqueio. Deixe em branco para o padrão.',
+    placeholder: 'Sua mensagem…',
+    defaultBlock: 'Volte ao BrainClean para verificar sua sessão.',
+    defaultEye: 'Olhe para algo a 6 m (20 pés) de distância',
+    defaultAppMonitor: 'Faça uma pausa da rolagem.',
+  },
+
   tasks: {
     title: 'Tarefas',
     today: 'Hoje',
@@ -318,6 +327,9 @@ export default {
     title: 'Agendamentos',
     noSchedules: 'Nenhum agendamento ainda.\nToque em + para criar um.',
     createSchedule: 'Criar agendamento',
+    editTitle: 'Editar agendamento',
+    saveSchedule: 'Salvar alterações',
+    edit: 'Editar',
     time: 'Horário de início',
     duration: 'Duração do bloqueio',
     repeat: 'Repetir',

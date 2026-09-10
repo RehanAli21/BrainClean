@@ -8,7 +8,9 @@ class BlockerState private constructor(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long) {
+    // customMessage: the per-session message shown on the block overlay (the
+    // task's or schedule's own message). Empty falls back to the default.
+    fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long, customMessage: String = "") {
         prefs.edit()
             .putBoolean(KEY_IS_ACTIVE, true)
             .putStringSet(KEY_BLOCKED_PACKAGES, packages.toSet())
@@ -20,6 +22,7 @@ class BlockerState private constructor(context: Context) {
             .putLong(KEY_MAX_BLOCK_TIME_MS, maxBlockTimeMs)
             .putInt(KEY_NOTIFICATION_BLOCK_MODE, notificationBlockMode)
             .putLong(KEY_MIN_DURATION_MS, minimumDurationMs)
+            .putString(KEY_CUSTOM_MESSAGE, customMessage)
             .apply()
     }
 
@@ -35,6 +38,7 @@ class BlockerState private constructor(context: Context) {
             .putLong(KEY_MAX_BLOCK_TIME_MS, 0L)
             .putInt(KEY_NOTIFICATION_BLOCK_MODE, 0)
             .putLong(KEY_MIN_DURATION_MS, 0L)
+            .putString(KEY_CUSTOM_MESSAGE, "")
             .apply()
     }
 
@@ -75,6 +79,8 @@ class BlockerState private constructor(context: Context) {
 
     fun getMinimumDurationMs(): Long = prefs.getLong(KEY_MIN_DURATION_MS, 0L)
 
+    fun getCustomMessage(): String = prefs.getString(KEY_CUSTOM_MESSAGE, "") ?: ""
+
     companion object {
         private const val PREFS_NAME = "brainclean_blocker_state"
         private const val KEY_IS_ACTIVE = "is_active"
@@ -87,6 +93,7 @@ class BlockerState private constructor(context: Context) {
         private const val KEY_MAX_BLOCK_TIME_MS = "max_block_time_ms"
         private const val KEY_NOTIFICATION_BLOCK_MODE = "notification_block_mode"
         private const val KEY_MIN_DURATION_MS = "min_duration_ms"
+        private const val KEY_CUSTOM_MESSAGE = "custom_message"
 
         @Volatile
         private var instance: BlockerState? = null

@@ -153,6 +153,15 @@ export default {
     notifPermMessage: 'BrainClean کو سیشنز کے دوران منتخب ایپس کی نوٹیفکیشنز بلاک کرنے کے لیے نوٹیفکیشن رسائی درکار ہے۔',
     openSettings: 'سیٹنگز کھولیں',
   },
+  customMessages: {
+    label: 'حسب ضرورت بلاک پیغام',
+    hint: 'بلاک اسکرین پر دکھایا جاتا ہے۔ ڈیفالٹ کے لیے خالی چھوڑ دیں۔',
+    placeholder: 'آپ کا پیغام…',
+    defaultBlock: 'اپنا سیشن دیکھنے کے لیے BrainClean پر واپس جائیں۔',
+    defaultEye: '20 فٹ (6 میٹر) دور کسی چیز کو دیکھیں',
+    defaultAppMonitor: 'اسکرول کرنے سے وقفہ لیں۔',
+  },
+
   tasks: {
     title: 'ٹاسکس',
     today: 'آج',
@@ -318,6 +327,9 @@ export default {
     title: 'شیڈولز',
     noSchedules: 'ابھی کوئی شیڈول نہیں ہے۔\nایک بنانے کے لیے + دبائیں۔',
     createSchedule: 'شیڈول بنائیں',
+    editTitle: 'شیڈول میں ترمیم کریں',
+    saveSchedule: 'تبدیلیاں محفوظ کریں',
+    edit: 'ترمیم',
     time: 'شروع کا وقت',
     duration: 'بلاک کی مدت',
     repeat: 'دہرائیں',

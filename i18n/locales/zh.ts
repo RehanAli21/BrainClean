@@ -153,6 +153,15 @@ export default {
     notifPermMessage: 'BrainClean 需要通知访问权限来屏蔽所选应用的通知。',
     openSettings: '打开设置',
   },
+  customMessages: {
+    label: '自定义拦截消息',
+    hint: '显示在拦截屏幕上。留空则使用默认值。',
+    placeholder: '你的消息…',
+    defaultBlock: '返回 BrainClean 查看你的会话。',
+    defaultEye: '看向 20 英尺（6 米）外的地方',
+    defaultAppMonitor: '休息一下，别再刷了。',
+  },
+
   tasks: {
     title: '任务',
     today: '今天',
@@ -318,6 +327,9 @@ export default {
     title: '定时计划',
     noSchedules: '暂无计划。\n点击 + 创建一个。',
     createSchedule: '创建计划',
+    editTitle: '编辑计划',
+    saveSchedule: '保存更改',
+    edit: '编辑',
     time: '开始时间',
     duration: '锁定时长',
     repeat: '重复',

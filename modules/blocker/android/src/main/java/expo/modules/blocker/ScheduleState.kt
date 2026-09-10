@@ -15,7 +15,9 @@ data class ScheduleData(
     val label: String,
     val enabled: Boolean,
     // Per-schedule notification blocking: 0 = off, 1 = blocked apps only, 2 = all.
-    val notificationBlockMode: Int = 0
+    val notificationBlockMode: Int = 0,
+    // Per-schedule custom block-screen message. Empty = built-in default.
+    val customMessage: String = ""
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("id", id)
@@ -27,6 +29,7 @@ data class ScheduleData(
         put("label", label)
         put("enabled", enabled)
         put("notificationBlockMode", notificationBlockMode)
+        put("customMessage", customMessage)
     }
 
     companion object {
@@ -46,7 +49,8 @@ data class ScheduleData(
                 label = json.optString("label", ""),
                 enabled = json.getBoolean("enabled"),
                 // Older schedules persisted before this field default to off.
-                notificationBlockMode = json.optInt("notificationBlockMode", 0)
+                notificationBlockMode = json.optInt("notificationBlockMode", 0),
+                customMessage = json.optString("customMessage", "")
             )
         }
     }

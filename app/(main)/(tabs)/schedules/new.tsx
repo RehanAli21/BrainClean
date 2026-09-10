@@ -1,15 +1,16 @@
+import { CustomMessageField } from '@/components/CustomMessageField'
 import { NotificationModeSelector } from '@/components/NotificationModeSelector'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { useTheme } from '@/hooks/useTheme'
 import { API_BASE_URL } from '@/constants/config'
 import { useAuth } from '@/context/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
-import { addSchedule, canScheduleExactAlarms, syncScheduleConfig } from '@/modules/blocker'
+import { addSchedule, canScheduleExactAlarms, getSchedules, removeSchedule, syncScheduleConfig } from '@/modules/blocker'
 import { analytics } from '@/services/analytics'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { useRouter } from 'expo-router'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
 	NativeScrollEvent,
@@ -177,14 +178,33 @@ export default function NewScheduleScreen() {
 	const { allGranted, isLoading: permsLoading } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
 
-	const [hour12, setHour12] = useState(9)
-	const [minute, setMinute] = useState(0)
-	const [ampm, setAmpm] = useState(0)
-	const [durationHours, setDurationHours] = useState(1)
-	const [durationMinutes, setDurationMinutes] = useState(0)
-	const [repeatDays, setRepeatDays] = useState<Set<number>>(new Set())
-	const [label, setLabel] = useState('')
-	const [notifMode, setNotifMode] = useState(0)
+	// When an `id` is passed the screen edits that schedule instead of creating
+	// one. The existing values are read synchronously so the pickers mount at the
+	// right position (they only scroll to their initial index once).
+	const { id } = useLocalSearchParams<{ id?: string }>()
+	const isEditing = !!id
+	const initial = useMemo(() => {
+		if (!id) return null
+		try {
+			return getSchedules().find(s => s.id === id) ?? null
+		} catch {
+			return null
+		}
+	}, [id])
+
+	const [hour12, setHour12] = useState(() => {
+		if (!initial) return 9
+		const h = initial.hour % 12
+		return h === 0 ? 12 : h
+	})
+	const [minute, setMinute] = useState(() => initial?.minute ?? 0)
+	const [ampm, setAmpm] = useState(() => (initial ? (initial.hour < 12 ? 0 : 1) : 0))
+	const [durationHours, setDurationHours] = useState(() => initial?.durationHours ?? 1)
+	const [durationMinutes, setDurationMinutes] = useState(() => initial?.durationMinutes ?? 0)
+	const [repeatDays, setRepeatDays] = useState<Set<number>>(() => new Set(initial?.repeatDays ?? []))
+	const [label, setLabel] = useState(() => initial?.label ?? '')
+	const [notifMode, setNotifMode] = useState(() => initial?.notificationBlockMode ?? 0)
+	const [customMessage, setCustomMessage] = useState(() => (initial?.customMessage ? initial.customMessage : t('customMessages.defaultBlock')))
 	const [error, setError] = useState('')
 	const [busy, setBusy] = useState(false)
 
@@ -242,6 +262,10 @@ export default function NewScheduleScreen() {
 		setBusy(true)
 		try {
 			syncScheduleConfig(token, API_BASE_URL, selectedApps)
+			// No native "update" — editing replaces the old schedule with a new one.
+			if (isEditing && id) {
+				removeSchedule(id)
+			}
 			addSchedule(
 				hour24,
 				minute,
@@ -250,8 +274,9 @@ export default function NewScheduleScreen() {
 				Array.from(repeatDays),
 				label.trim(),
 				notifMode,
+				customMessage.trim(),
 			)
-			analytics.track('schedule_created', {
+			analytics.track(isEditing ? 'schedule_edited' : 'schedule_created', {
 				repeatDayCount: repeatDays.size,
 				notificationBlockMode: notifMode,
 			})
@@ -269,7 +294,7 @@ export default function NewScheduleScreen() {
 				<TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
 					<Ionicons name='arrow-back' size={24} color={theme.text} />
 				</TouchableOpacity>
-				<Text style={[styles.title, { color: theme.text }]}>{t('schedules.createSchedule')}</Text>
+				<Text style={[styles.title, { color: theme.text }]}>{isEditing ? t('schedules.editTitle') : t('schedules.createSchedule')}</Text>
 				<View style={{ width: 24 }} />
 			</View>
 
@@ -356,9 +381,13 @@ export default function NewScheduleScreen() {
 					<NotificationModeSelector value={notifMode} onChange={setNotifMode} />
 				</View>
 
+				<View style={{ marginTop: 16 }}>
+					<CustomMessageField value={customMessage} onChangeText={setCustomMessage} />
+				</View>
+
 				<View style={{ marginTop: 8, marginBottom: 40 }}>
 					<PrimaryButton
-						title={t('schedules.createSchedule')}
+						title={isEditing ? t('schedules.saveSchedule') : t('schedules.createSchedule')}
 						onPress={handleCreate}
 						isLoading={busy}
 						disabled={busy}

@@ -64,8 +64,9 @@ class BlockerOverlay {
             setPadding(0, 32, 0, 16)
         }
 
+        val customMessage = BlockerState.getInstance(context).getCustomMessage()
         val subtitle = TextView(context).apply {
-            text = LocalizedStrings.get(context, "blocker.overlaySubtitle")
+            text = if (customMessage.isNotBlank()) customMessage else LocalizedStrings.get(context, "blocker.overlaySubtitle")
             setTextColor(Color.parseColor("#A1A1AA"))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             gravity = Gravity.CENTER

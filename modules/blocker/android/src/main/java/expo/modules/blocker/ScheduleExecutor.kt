@@ -91,7 +91,8 @@ object ScheduleExecutor {
             baseUrl,
             maxDurationSeconds * 1000L,
             schedule.notificationBlockMode,
-            minDurationSeconds * 1000L
+            minDurationSeconds * 1000L,
+            schedule.customMessage
         )
         showStartedNotification(context, taskName, schedule)
         return true

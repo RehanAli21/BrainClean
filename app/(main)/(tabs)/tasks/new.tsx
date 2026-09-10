@@ -1,3 +1,4 @@
+import { CustomMessageField } from '@/components/CustomMessageField'
 import { NotificationModeSelector } from '@/components/NotificationModeSelector'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { isWalkthroughActive, registerRef, unregisterRef } from '@/components/walkthroughRegistry'
@@ -122,6 +123,7 @@ export default function NewTaskScreen() {
 	const createMutation = useCreateTaskMutation()
 	const { isLoading: permsLoading, allGranted } = usePermissions()
 	const setTaskNotificationMode = useUiStore(s => s.setTaskNotificationMode)
+	const setTaskCustomMessage = useUiStore(s => s.setTaskCustomMessage)
 
 	const [name, setName] = useState('')
 	const [hours, setHours] = useState(1)
@@ -130,6 +132,7 @@ export default function NewTaskScreen() {
 	const [maxHours, setMaxHours] = useState(10)
 	const [maxMinutes, setMaxMinutes] = useState(0)
 	const [notifMode, setNotifMode] = useState(0)
+	const [customMessage, setCustomMessage] = useState(() => t('customMessages.defaultBlock'))
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [apiError, setApiError] = useState('')
 	const nameRef = useRef<View | null>(null)
@@ -198,6 +201,7 @@ export default function NewTaskScreen() {
 			{
 				onSuccess: task => {
 					setTaskNotificationMode(task.id, notifMode)
+					setTaskCustomMessage(task.id, customMessage)
 					router.replace({
 						pathname: '/(main)/(tabs)/tasks/[taskId]',
 						params: { taskId: task.id },
@@ -241,6 +245,7 @@ export default function NewTaskScreen() {
 							const created = tasks.find(t => t.name === result.data.name)
 							if (created) {
 								setTaskNotificationMode(created.id, notifMode)
+							setTaskCustomMessage(created.id, customMessage)
 								router.replace({
 									pathname: '/(main)/(tabs)/tasks/[taskId]',
 									params: { taskId: created.id },
@@ -303,7 +308,11 @@ export default function NewTaskScreen() {
 					</View>
 				</View>
 			) : (
-				<View style={styles.form}>
+				<ScrollView
+					style={styles.form}
+					contentContainerStyle={styles.formContent}
+					showsVerticalScrollIndicator={false}
+					keyboardShouldPersistTaps='handled'>
 					{apiError ? (
 						<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
 							<Text style={[styles.errorBannerText, { color: theme.accent }]}>{apiError}</Text>
@@ -382,6 +391,8 @@ export default function NewTaskScreen() {
 
 					<NotificationModeSelector ref={notifRef} value={notifMode} onChange={setNotifMode} />
 
+					<CustomMessageField value={customMessage} onChangeText={setCustomMessage} />
+
 					<View
 						ref={createRef}
 						style={{ marginTop: 8 }}>
@@ -391,7 +402,7 @@ export default function NewTaskScreen() {
 							isLoading={createMutation.isPending}
 						/>
 					</View>
-				</View>
+				</ScrollView>
 			)}
 		</View>
 	)
@@ -409,6 +420,7 @@ const styles = StyleSheet.create({
 	backButton: { padding: 4 },
 	title: { fontSize: 20, fontWeight: '700' },
 	form: { width: '100%' },
+	formContent: { paddingBottom: 48 },
 	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
 	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
 	inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginLeft: 4 },

@@ -28,7 +28,8 @@ class EyeBlinkerTimer {
                 val config = CountdownOverlayConfig(
                     icon = "👁️",
                     title = LocalizedStrings.get(context, "wellness.eyeTitle"),
-                    subtitle = LocalizedStrings.get(context, "wellness.eyeSubtitle"),
+                    subtitle = LocalizedStrings.get(context, "custom.eye")
+                        .ifBlank { LocalizedStrings.get(context, "wellness.eyeSubtitle") },
                     durationSeconds = durationSeconds,
                     accentColor = Color.parseColor("#06B6D4"),
                     animateIcon = true

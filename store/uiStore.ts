@@ -70,6 +70,16 @@ interface UiState {
   setSubscriptionExpiresAt: (expiresAt: string | null) => void;
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
+  // Global custom messages for the two wellness overlays. Empty = built-in
+  // default. Pushed to the Kotlin overlays via useNativeSync.
+  customMessageEye: string;
+  setCustomMessageEye: (message: string) => void;
+  customMessageAppMonitor: string;
+  setCustomMessageAppMonitor: (message: string) => void;
+  // Per-task custom block-screen message, keyed by task id and chosen at task
+  // creation. Passed to the native session when the task starts blocking.
+  taskCustomMessages: Record<string, string>;
+  setTaskCustomMessage: (taskId: string, message: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -170,6 +180,22 @@ export const useUiStore = create<UiState>()(
       themeMode: 'system' as ThemeMode,
       setThemeMode: (mode: ThemeMode) => {
         set({ themeMode: mode });
+      },
+
+      customMessageEye: '',
+      setCustomMessageEye: (message: string) => {
+        set({ customMessageEye: message });
+      },
+      customMessageAppMonitor: '',
+      setCustomMessageAppMonitor: (message: string) => {
+        set({ customMessageAppMonitor: message });
+      },
+
+      taskCustomMessages: {},
+      setTaskCustomMessage: (taskId: string, message: string) => {
+        set((state) => ({
+          taskCustomMessages: { ...state.taskCustomMessages, [taskId]: message },
+        }));
       },
     }),
     {

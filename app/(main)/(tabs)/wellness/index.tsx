@@ -1,10 +1,12 @@
+import { CustomMessageField } from '@/components/CustomMessageField'
 import { useTheme } from '@/hooks/useTheme'
 import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useWellness } from '@/hooks/useWellness'
+import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
 import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
@@ -73,6 +75,13 @@ export default function WellnessScreen() {
 	const router = useRouter()
 	const { isBlocking } = useBlocker()
 	const { allGranted } = usePermissions()
+	const customMessageEye = useUiStore(s => s.customMessageEye)
+	const setCustomMessageEye = useUiStore(s => s.setCustomMessageEye)
+	const customMessageAppMonitor = useUiStore(s => s.customMessageAppMonitor)
+	const setCustomMessageAppMonitor = useUiStore(s => s.setCustomMessageAppMonitor)
+	// Seed the field with the saved message, or the previous default when unset.
+	const [eyeMsg, setEyeMsg] = useState(() => customMessageEye || t('customMessages.defaultEye'))
+	const [appMsg, setAppMsg] = useState(() => customMessageAppMonitor || t('customMessages.defaultAppMonitor'))
 	const {
 		eyeBlinkerEnabled,
 		eyeBlinkerIntervalMinutes,
@@ -194,6 +203,16 @@ export default function WellnessScreen() {
 							duration: eyeBlinkerDurationSeconds,
 						})}
 					</Text>
+
+					<View style={styles.messageField}>
+						<CustomMessageField
+							value={eyeMsg}
+							onChangeText={v => {
+								setEyeMsg(v)
+								setCustomMessageEye(v)
+							}}
+						/>
+					</View>
 				</View>
 			</View>
 
@@ -266,6 +285,16 @@ export default function WellnessScreen() {
 							duration: autoBlockDurationSeconds,
 						})}
 					</Text>
+
+					<View style={styles.messageField}>
+						<CustomMessageField
+							value={appMsg}
+							onChangeText={v => {
+								setAppMsg(v)
+								setCustomMessageAppMonitor(v)
+							}}
+						/>
+					</View>
 				</View>
 			</View>
 		</ScrollView>
@@ -373,6 +402,12 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		marginTop: 12,
 		lineHeight: 18,
+	},
+	messageField: {
+		marginTop: 16,
+		paddingTop: 16,
+		borderTopWidth: 1,
+		borderTopColor: '#272735',
 	},
 	stepperContainer: {
 		flexDirection: 'row',

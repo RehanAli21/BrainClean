@@ -159,6 +159,15 @@ export default {
     openSettings: 'Open Settings',
   },
 
+  customMessages: {
+    label: 'Custom block message',
+    hint: 'Shown on the block screen. Leave blank for the default.',
+    placeholder: 'Your message…',
+    defaultBlock: 'Return to BrainClean to check your session.',
+    defaultEye: 'Look at something 20 feet (6 m) away',
+    defaultAppMonitor: 'Take a break from scrolling.',
+  },
+
   tasks: {
     title: 'Tasks',
     today: 'Today',
@@ -353,6 +362,9 @@ export default {
     title: 'Schedules',
     noSchedules: 'No schedules yet.\nTap + to create one.',
     createSchedule: 'Create Schedule',
+    editTitle: 'Edit Schedule',
+    saveSchedule: 'Save Changes',
+    edit: 'Edit',
     time: 'Start Time',
     duration: 'Block Duration',
     repeat: 'Repeat',

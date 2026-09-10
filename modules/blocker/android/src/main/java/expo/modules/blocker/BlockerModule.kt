@@ -64,10 +64,10 @@ class BlockerModule : Module() {
                 .sortedBy { (it["appName"] as? String)?.lowercase() }
         }
 
-        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long ->
+        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long, customMessage: String ->
             val context = appContext.reactContext ?: return@Function Unit
             val state = BlockerState.getInstance(context)
-            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs)
+            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage)
             BlockerService.start(context)
             ServiceGuardReceiver.scheduleIfNeeded(context)
         }
@@ -308,7 +308,7 @@ class BlockerModule : Module() {
             }
         }
 
-        Function("addSchedule") { hour: Int, minute: Int, durationHours: Int, durationMinutes: Int, repeatDays: List<Int>, label: String, notificationBlockMode: Int ->
+        Function("addSchedule") { hour: Int, minute: Int, durationHours: Int, durationMinutes: Int, repeatDays: List<Int>, label: String, notificationBlockMode: Int, customMessage: String ->
             val context = appContext.reactContext ?: return@Function ""
             val state = ScheduleState.getInstance(context)
             val id = java.util.UUID.randomUUID().toString()
@@ -321,11 +321,13 @@ class BlockerModule : Module() {
                 repeatDays = repeatDays.toSet(),
                 label = label,
                 enabled = true,
-                notificationBlockMode = notificationBlockMode
+                notificationBlockMode = notificationBlockMode,
+                customMessage = customMessage
             )
             state.addSchedule(schedule)
             ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
             ServiceGuardReceiver.scheduleIfNeeded(context)
+            ScheduleNotification.show(context)
             Log.i("BlockerModule", "Schedule added: id=$id, time=$hour:$minute")
             id
         }
@@ -345,6 +347,7 @@ class BlockerModule : Module() {
             if (enabled) {
                 val schedule = state.getSchedule(id)
                 if (schedule != null) ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
+                ScheduleNotification.show(context)
             } else {
                 ScheduleAlarmReceiver.cancelAlarm(context, id)
             }
@@ -365,7 +368,8 @@ class BlockerModule : Module() {
                     "repeatDays" to schedule.repeatDays.toList(),
                     "label" to schedule.label,
                     "enabled" to schedule.enabled,
-                    "notificationBlockMode" to schedule.notificationBlockMode
+                    "notificationBlockMode" to schedule.notificationBlockMode,
+                    "customMessage" to schedule.customMessage
                 )
             }
         }

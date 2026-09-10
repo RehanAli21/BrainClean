@@ -153,6 +153,15 @@ export default {
     notifPermMessage: 'يحتاج BrainClean إذن الإشعارات لحظر إشعارات التطبيقات المحددة أثناء الجلسات. سيتم نقلك إلى الإعدادات لمنح هذا الإذن.',
     openSettings: 'فتح الإعدادات',
   },
+  customMessages: {
+    label: 'رسالة حظر مخصصة',
+    hint: 'تظهر على شاشة الحظر. اتركها فارغة للإعداد الافتراضي.',
+    placeholder: 'رسالتك…',
+    defaultBlock: 'ارجع إلى BrainClean للتحقق من جلستك.',
+    defaultEye: 'انظر إلى شيء يبعد 20 قدمًا (6 أمتار)',
+    defaultAppMonitor: 'خذ استراحة من التمرير.',
+  },
+
   tasks: {
     title: 'المهام',
     today: 'اليوم',
@@ -318,6 +327,9 @@ export default {
     title: 'الجداول',
     noSchedules: 'لا توجد جداول بعد.\nاضغط + لإنشاء واحد.',
     createSchedule: 'إنشاء جدول',
+    editTitle: 'تعديل الجدول',
+    saveSchedule: 'حفظ التغييرات',
+    edit: 'تعديل',
     time: 'وقت البدء',
     duration: 'مدة الحظر',
     repeat: 'تكرار',

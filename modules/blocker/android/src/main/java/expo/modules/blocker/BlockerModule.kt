@@ -326,6 +326,7 @@ class BlockerModule : Module() {
             state.addSchedule(schedule)
             ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
             ServiceGuardReceiver.scheduleIfNeeded(context)
+            ScheduleNotification.show(context)
             Log.i("BlockerModule", "Schedule added: id=$id, time=$hour:$minute")
             id
         }
@@ -345,6 +346,7 @@ class BlockerModule : Module() {
             if (enabled) {
                 val schedule = state.getSchedule(id)
                 if (schedule != null) ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
+                ScheduleNotification.show(context)
             } else {
                 ScheduleAlarmReceiver.cancelAlarm(context, id)
             }

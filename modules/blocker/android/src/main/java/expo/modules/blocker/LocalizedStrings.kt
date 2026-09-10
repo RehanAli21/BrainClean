@@ -24,6 +24,7 @@ object LocalizedStrings {
         "wellness.eyeSubtitle" to "Look at something 20 feet away",
         "wellness.breakTitle" to "Take a Break",
         "wellness.breakSubtitle" to "You've been scrolling for {minutes} minutes",
+        "schedule.activeText" to "A blocking schedule is active.",
         "schedule.startedTitle" to "Scheduled task started",
         "schedule.startedText" to "{name} — blocking for {duration}",
         "schedule.failedTitle" to "Scheduled block failed",

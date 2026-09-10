@@ -27,10 +27,12 @@ function formatDuration(hours: number, minutes: number, t: (key: string, opts?: 
 function ScheduleCard({
 	schedule,
 	onToggle,
+	onEdit,
 	onDelete,
 }: {
 	schedule: ScheduleInfo
 	onToggle: (enabled: boolean) => void
+	onEdit: () => void
 	onDelete: () => void
 }) {
 	const theme = useTheme()
@@ -83,12 +85,16 @@ function ScheduleCard({
 				<Text style={[styles.oneTimeLabel, { color: theme.icon }]}>{t('schedules.oneTime')}</Text>
 			)}
 
-			<TouchableOpacity
-				style={styles.deleteBtn}
-				onPress={onDelete}
-				hitSlop={12}>
-				<Ionicons name='trash-outline' size={18} color={theme.accent} />
-			</TouchableOpacity>
+			<View style={[styles.footerRow, { borderTopColor: theme.border }]}>
+				<TouchableOpacity style={styles.actionBtn} onPress={onEdit} activeOpacity={0.7} hitSlop={8}>
+					<Ionicons name='create-outline' size={18} color={theme.primary} />
+					<Text style={[styles.actionText, { color: theme.primary }]}>{t('schedules.edit')}</Text>
+				</TouchableOpacity>
+				<TouchableOpacity style={styles.actionBtn} onPress={onDelete} activeOpacity={0.7} hitSlop={8}>
+					<Ionicons name='trash-outline' size={18} color={theme.accent} />
+					<Text style={[styles.actionText, { color: theme.accent }]}>{t('common.delete')}</Text>
+				</TouchableOpacity>
+			</View>
 		</View>
 	)
 }
@@ -181,6 +187,10 @@ function ScheduleListContent() {
 		} catch {}
 	}
 
+	const handleEdit = (id: string) => {
+		router.push({ pathname: '/(main)/(tabs)/schedules/new', params: { id } })
+	}
+
 	const handleDelete = (id: string) => {
 		Alert.alert(t('schedules.deleteTitle'), t('schedules.deleteConfirm'), [
 			{ text: t('common.cancel'), style: 'cancel' },
@@ -201,6 +211,7 @@ function ScheduleListContent() {
 		<ScheduleCard
 			schedule={item}
 			onToggle={enabled => handleToggle(item.id, enabled)}
+			onEdit={() => handleEdit(item.id)}
 			onDelete={() => handleDelete(item.id)}
 		/>
 	)
@@ -289,11 +300,17 @@ const styles = StyleSheet.create({
 	},
 	dayText: { fontSize: 13, fontWeight: '600' },
 	oneTimeLabel: { fontSize: 12, marginTop: 4 },
-	deleteBtn: {
-		position: 'absolute',
-		bottom: 16,
-		right: 16,
+	footerRow: {
+		flexDirection: 'row',
+		justifyContent: 'flex-end',
+		alignItems: 'center',
+		gap: 20,
+		marginTop: 14,
+		paddingTop: 12,
+		borderTopWidth: 1,
 	},
+	actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+	actionText: { fontSize: 13, fontWeight: '600' },
 	fab: {
 		position: 'absolute',
 		bottom: 24,

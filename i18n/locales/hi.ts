@@ -153,6 +153,15 @@ export default {
     notifPermMessage: 'BrainClean को सत्रों के दौरान चयनित ऐप्स की सूचनाएं ब्लॉक करने के लिए सूचना पहुंच की आवश्यकता है।',
     openSettings: 'सेटिंग्स खोलें',
   },
+  customMessages: {
+    label: 'कस्टम ब्लॉक संदेश',
+    hint: 'ब्लॉक स्क्रीन पर दिखाया जाता है। डिफ़ॉल्ट के लिए खाली छोड़ें।',
+    placeholder: 'आपका संदेश…',
+    defaultBlock: 'अपना सत्र जांचने के लिए BrainClean पर लौटें।',
+    defaultEye: '20 फीट (6 मीटर) दूर किसी चीज़ को देखें',
+    defaultAppMonitor: 'स्क्रॉल करने से ब्रेक लें।',
+  },
+
   tasks: {
     title: 'कार्य',
     today: 'आज',

@@ -156,6 +156,7 @@ function TaskListContent() {
 	const { token, tokenExpiresAt, logout } = useAuth()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const taskNotificationModes = useUiStore(s => s.taskNotificationModes)
+	const taskCustomMessages = useUiStore(s => s.taskCustomMessages)
 	const isPremium = useUiStore(s => s.isPremium)
 	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
 	const fabCooldown = useRef(false)
@@ -219,9 +220,10 @@ function TaskListContent() {
 				(activeTask.maximumDurationSeconds ?? 36000) * 1000,
 				taskNotificationModes[activeTask.id] ?? 0,
 				activeTask.minimumDurationSeconds * 1000,
+				taskCustomMessages[activeTask.id] ?? '',
 			)
 		} catch {}
-	}, [activeTask, isBlocking, token, selectedApps, taskNotificationModes, startBlocking])
+	}, [activeTask, isBlocking, token, selectedApps, taskNotificationModes, taskCustomMessages, startBlocking])
 	const activeStartedAt = activeTask?.startedAt
 	const activeMinDuration = activeTask?.minimumDurationSeconds
 

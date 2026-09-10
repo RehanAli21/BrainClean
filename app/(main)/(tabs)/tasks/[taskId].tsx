@@ -53,6 +53,7 @@ export default function TaskDetailScreen() {
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
 	const notificationBlockMode = useUiStore(s => s.taskNotificationModes[taskId!] ?? 0)
+	const customMessage = useUiStore(s => s.taskCustomMessages[taskId!] ?? '')
 	const hasRated = useUiStore(s => s.hasRated)
 	const setHasRated = useUiStore(s => s.setHasRated)
 	const [apiError, setApiError] = useState('')
@@ -85,9 +86,10 @@ export default function TaskDetailScreen() {
 				(task.maximumDurationSeconds ?? 36000) * 1000,
 				notificationBlockMode,
 				task.minimumDurationSeconds * 1000,
+				customMessage,
 			)
 		} catch {}
-	}, [isActive, isBlocking, task, token, selectedApps, notificationBlockMode, startBlocking])
+	}, [isActive, isBlocking, task, token, selectedApps, notificationBlockMode, customMessage, startBlocking])
 
 	useEffect(() => {
 		if (!isActive || canComplete) return
@@ -139,6 +141,7 @@ export default function TaskDetailScreen() {
 						(task!.maximumDurationSeconds ?? 36000) * 1000,
 						notificationBlockMode,
 						task!.minimumDurationSeconds * 1000,
+						customMessage,
 					)
 				} catch {
 					setApiError(t('taskDetail.blockingFailed'))

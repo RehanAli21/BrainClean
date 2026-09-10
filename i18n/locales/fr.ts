@@ -153,6 +153,15 @@ export default {
     notifPermMessage: "BrainClean a besoin de l'accès aux notifications pour bloquer celles des apps sélectionnées pendant les sessions.",
     openSettings: 'Ouvrir les paramètres',
   },
+  customMessages: {
+    label: 'Message de blocage personnalisé',
+    hint: 'Affiché sur l\'écran de blocage. Laissez vide pour la valeur par défaut.',
+    placeholder: 'Votre message…',
+    defaultBlock: 'Revenez à BrainClean pour vérifier votre session.',
+    defaultEye: 'Regardez quelque chose à 6 m (20 pieds)',
+    defaultAppMonitor: 'Faites une pause dans le défilement.',
+  },
+
   tasks: {
     title: 'Tâches',
     today: "Aujourd'hui",

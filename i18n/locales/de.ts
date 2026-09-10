@@ -153,6 +153,15 @@ export default {
     notifPermMessage: 'BrainClean benötigt Benachrichtigungszugriff, um Benachrichtigungen ausgewählter Apps zu blockieren.',
     openSettings: 'Einstellungen öffnen',
   },
+  customMessages: {
+    label: 'Eigene Blockiernachricht',
+    hint: 'Wird auf dem Sperrbildschirm angezeigt. Leer lassen für Standard.',
+    placeholder: 'Deine Nachricht…',
+    defaultBlock: 'Kehre zu BrainClean zurück, um deine Sitzung zu prüfen.',
+    defaultEye: 'Schau auf etwas in 6 m (20 Fuß) Entfernung',
+    defaultAppMonitor: 'Mach eine Pause vom Scrollen.',
+  },
+
   tasks: {
     title: 'Aufgaben',
     today: 'Heute',

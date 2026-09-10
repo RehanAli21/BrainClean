@@ -16,8 +16,9 @@ export function startBlocking(
   maxBlockTimeMs: number,
   notificationBlockMode: number,
   minimumDurationMs: number,
+  customMessage: string,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs);
+  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage);
 }
 
 export function stopBlocking(): void {
@@ -120,6 +121,7 @@ export interface ScheduleInfo {
   label: string;
   enabled: boolean;
   notificationBlockMode: number;
+  customMessage: string;
 }
 
 export function addSchedule(
@@ -130,8 +132,9 @@ export function addSchedule(
   repeatDays: number[],
   label: string,
   notificationBlockMode: number,
+  customMessage: string,
 ): string {
-  return BlockerModule.addSchedule(hour, minute, durationHours, durationMinutes, repeatDays, label, notificationBlockMode);
+  return BlockerModule.addSchedule(hour, minute, durationHours, durationMinutes, repeatDays, label, notificationBlockMode, customMessage);
 }
 
 export function removeSchedule(id: string): void {

@@ -31,6 +31,10 @@ object LocalizedStrings {
         "schedule.failedAuth" to "Couldn't start your scheduled block. Open BrainClean and sign in again.",
         "schedule.failedSubscription" to "Couldn't start your scheduled block. An active subscription is required.",
         "schedule.failedGeneric" to "Couldn't start your scheduled block. Open BrainClean to try again.",
+        // Global wellness custom overlay messages. Empty by default so the
+        // overlays fall back to the built-in subtitle. Synced from RN.
+        "custom.eye" to "",
+        "custom.appMonitor" to "",
     )
 
     fun sync(context: Context, strings: Map<String, String>) {

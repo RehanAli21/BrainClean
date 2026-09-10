@@ -1,3 +1,4 @@
+import { CustomMessageField } from '@/components/CustomMessageField'
 import { NotificationModeSelector } from '@/components/NotificationModeSelector'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { useTheme } from '@/hooks/useTheme'
@@ -203,6 +204,7 @@ export default function NewScheduleScreen() {
 	const [repeatDays, setRepeatDays] = useState<Set<number>>(() => new Set(initial?.repeatDays ?? []))
 	const [label, setLabel] = useState(() => initial?.label ?? '')
 	const [notifMode, setNotifMode] = useState(() => initial?.notificationBlockMode ?? 0)
+	const [customMessage, setCustomMessage] = useState(() => (initial?.customMessage ? initial.customMessage : t('customMessages.defaultBlock')))
 	const [error, setError] = useState('')
 	const [busy, setBusy] = useState(false)
 
@@ -272,6 +274,7 @@ export default function NewScheduleScreen() {
 				Array.from(repeatDays),
 				label.trim(),
 				notifMode,
+				customMessage.trim(),
 			)
 			analytics.track(isEditing ? 'schedule_edited' : 'schedule_created', {
 				repeatDayCount: repeatDays.size,
@@ -376,6 +379,10 @@ export default function NewScheduleScreen() {
 
 				<View style={{ marginTop: 16 }}>
 					<NotificationModeSelector value={notifMode} onChange={setNotifMode} />
+				</View>
+
+				<View style={{ marginTop: 16 }}>
+					<CustomMessageField value={customMessage} onChangeText={setCustomMessage} />
 				</View>
 
 				<View style={{ marginTop: 8, marginBottom: 40 }}>

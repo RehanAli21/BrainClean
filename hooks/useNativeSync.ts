@@ -16,6 +16,8 @@ import { AppState } from 'react-native';
 export function useNativeSync() {
   const { token } = useAuth();
   const selectedApps = useUiStore(s => s.selectedApps);
+  const customMessageEye = useUiStore(s => s.customMessageEye);
+  const customMessageAppMonitor = useUiStore(s => s.customMessageAppMonitor);
   const { t, i18n } = useTranslation();
 
   const sync = useCallback(() => {
@@ -40,10 +42,13 @@ export function useNativeSync() {
         'schedule.failedAuth': t('native.scheduleFailedAuth'),
         'schedule.failedSubscription': t('native.scheduleFailedSubscription'),
         'schedule.failedGeneric': t('native.scheduleFailedGeneric'),
+        // Global wellness custom messages (empty string = native default).
+        'custom.eye': customMessageEye,
+        'custom.appMonitor': customMessageAppMonitor,
       });
     } catch {}
     // i18n.language ensures a re-sync when the user switches languages
-  }, [token, selectedApps, t, i18n.language]);
+  }, [token, selectedApps, customMessageEye, customMessageAppMonitor, t, i18n.language]);
 
   useEffect(() => {
     sync();

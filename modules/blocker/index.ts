@@ -11,18 +11,18 @@ export async function getInstalledApps(): Promise<AppInfo[]> {
 export function startBlocking(
   packageNames: string[],
   sessionId: string,
-  authToken: string,
-  baseUrl: string,
   maxBlockTimeMs: number,
   notificationBlockMode: number,
   minimumDurationMs: number,
   customMessage: string,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage);
+  BlockerModule.startBlocking(packageNames, sessionId, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage);
 }
 
-export function stopBlocking(): void {
-  BlockerModule.stopBlocking();
+// Returns false (session keeps running) if its minimum duration hasn't
+// elapsed yet — Kotlin enforces this on the monotonic clock.
+export function stopBlocking(): boolean {
+  return BlockerModule.stopBlocking();
 }
 
 export function isBlocking(): boolean {

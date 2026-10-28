@@ -10,15 +10,15 @@ class BlockerState private constructor(context: Context) {
 
     // customMessage: the per-session message shown on the block overlay (the
     // task's own message). Empty falls back to the default.
-    fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long, customMessage: String = "") {
+    fun startSession(packages: List<String>, sessionId: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long, customMessage: String = "") {
         prefs.edit()
             .putBoolean(KEY_IS_ACTIVE, true)
             .putStringSet(KEY_BLOCKED_PACKAGES, packages.toSet())
             .putString(KEY_SESSION_ID, sessionId)
             .putLong(KEY_STARTED_AT, System.currentTimeMillis())
             .putLong(KEY_ELAPSED_REALTIME_AT_START, SystemClock.elapsedRealtime())
-            .putString(KEY_AUTH_TOKEN, authToken)
-            .putString(KEY_BASE_URL, baseUrl)
+            .remove(LEGACY_KEY_AUTH_TOKEN)
+            .remove(LEGACY_KEY_BASE_URL)
             .putLong(KEY_MAX_BLOCK_TIME_MS, maxBlockTimeMs)
             .putInt(KEY_NOTIFICATION_BLOCK_MODE, notificationBlockMode)
             .putLong(KEY_MIN_DURATION_MS, minimumDurationMs)
@@ -33,8 +33,8 @@ class BlockerState private constructor(context: Context) {
             .putString(KEY_SESSION_ID, "")
             .putLong(KEY_STARTED_AT, 0L)
             .putLong(KEY_ELAPSED_REALTIME_AT_START, 0L)
-            .putString(KEY_AUTH_TOKEN, "")
-            .putString(KEY_BASE_URL, "")
+            .remove(LEGACY_KEY_AUTH_TOKEN)
+            .remove(LEGACY_KEY_BASE_URL)
             .putLong(KEY_MAX_BLOCK_TIME_MS, 0L)
             .putInt(KEY_NOTIFICATION_BLOCK_MODE, 0)
             .putLong(KEY_MIN_DURATION_MS, 0L)
@@ -69,10 +69,6 @@ class BlockerState private constructor(context: Context) {
         return 0L
     }
 
-    fun getAuthToken(): String = prefs.getString(KEY_AUTH_TOKEN, "") ?: ""
-
-    fun getBaseUrl(): String = prefs.getString(KEY_BASE_URL, "") ?: ""
-
     fun getMaxBlockTimeMs(): Long = prefs.getLong(KEY_MAX_BLOCK_TIME_MS, 0L)
 
     fun getNotificationBlockMode(): Int = prefs.getInt(KEY_NOTIFICATION_BLOCK_MODE, 0)
@@ -81,6 +77,19 @@ class BlockerState private constructor(context: Context) {
 
     fun getCustomMessage(): String = prefs.getString(KEY_CUSTOM_MESSAGE, "") ?: ""
 
+    /**
+     * True once the session has run for its minimum duration, measured on the
+     * monotonic clock so changing the device time can't end a session early.
+     * Tasks live only on the device now, so this is the sole enforcement.
+     */
+    fun hasMetMinimumDuration(): Boolean =
+        !isActive() || getElapsedSinceStart() >= getMinimumDurationMs()
+
+    /** Strips the backend token a pre-local-tasks version left in a running session. */
+    fun clearLegacyAuth() {
+        prefs.edit().remove(LEGACY_KEY_AUTH_TOKEN).remove(LEGACY_KEY_BASE_URL).apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "brainclean_blocker_state"
         private const val KEY_IS_ACTIVE = "is_active"
@@ -88,8 +97,9 @@ class BlockerState private constructor(context: Context) {
         private const val KEY_SESSION_ID = "session_id"
         private const val KEY_STARTED_AT = "started_at"
         private const val KEY_ELAPSED_REALTIME_AT_START = "elapsed_realtime_at_start"
-        private const val KEY_AUTH_TOKEN = "auth_token"
-        private const val KEY_BASE_URL = "base_url"
+        // Written by versions that polled the backend; only ever removed now.
+        private const val LEGACY_KEY_AUTH_TOKEN = "auth_token"
+        private const val LEGACY_KEY_BASE_URL = "base_url"
         private const val KEY_MAX_BLOCK_TIME_MS = "max_block_time_ms"
         private const val KEY_NOTIFICATION_BLOCK_MODE = "notification_block_mode"
         private const val KEY_MIN_DURATION_MS = "min_duration_ms"

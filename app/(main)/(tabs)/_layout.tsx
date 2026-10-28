@@ -3,8 +3,6 @@ import { TutorialOverlay } from '@/components/TutorialOverlay'
 import { WalkthroughOverlay } from '@/components/WalkthroughOverlay'
 import { onShowWalkthrough } from '@/components/walkthroughRegistry'
 import { useTheme } from '@/hooks/useTheme'
-import { useSubscriptionStatusQuery } from '@/hooks/queries/useSubscription'
-import { useAuth } from '@/context/AuthContext'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs } from 'expo-router'
@@ -19,11 +17,6 @@ export default function TabsLayout() {
 	const [showLanguagePicker, setShowLanguagePicker] = useState(selectedLanguage === null)
 	const [showTutorial, setShowTutorial] = useState(false)
 	const [showWalkthrough, setShowWalkthrough] = useState(false)
-
-	const { token } = useAuth()
-	const isLoggedIn = !!token
-
-	useSubscriptionStatusQuery(isLoggedIn)
 
 	useEffect(() => {
 		onShowWalkthrough(() => setShowWalkthrough(true))

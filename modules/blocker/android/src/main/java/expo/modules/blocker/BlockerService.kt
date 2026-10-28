@@ -20,7 +20,6 @@ import androidx.core.content.ContextCompat
 class BlockerService : Service() {
     private val appMonitor = AppMonitor()
     private val overlay = BlockerOverlay()
-    private val taskStatusChecker = TaskStatusChecker()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var maxTimeRunnable: Runnable? = null
     private var wakeLock: PowerManager.WakeLock? = null
@@ -46,17 +45,21 @@ class BlockerService : Service() {
                     releaseWakeLock()
                 }
                 Intent.ACTION_SCREEN_ON -> {
+                    // The max-time runnable is a Handler delay, which doesn't
+                    // advance in deep sleep. Check against the monotonic clock
+                    // the moment the device wakes so an expired session lifts.
+                    val maxBlockTimeMs = state.getMaxBlockTimeMs()
+                    if (maxBlockTimeMs > 0 && state.getElapsedSinceStart() >= maxBlockTimeMs) {
+                        Log.i(TAG, "Screen on — max block time already reached, stopping blocker")
+                        endSession(state)
+                        return
+                    }
                     Log.i(TAG, "Screen on — resuming app monitor")
                     appMonitor.resume()
                     acquireWakeLock(remainingSessionMs(state))
                     // Re-arm on every screen-on so a single dropped alarm fire
                     // (Doze / OEM freeze) can't permanently break the chain.
                     ServiceGuardReceiver.schedule(context)
-                    // The poll loop stalls while the screen is off (no wake lock in
-                    // Doze), so a task completed on the backend in the background
-                    // wouldn't be noticed until the app is opened. Re-check now, the
-                    // moment the user wakes the device, so blocking lifts on its own.
-                    taskStatusChecker.checkNow()
                 }
                 Intent.ACTION_POWER_CONNECTED,
                 Intent.ACTION_POWER_DISCONNECTED -> {
@@ -129,29 +132,6 @@ class BlockerService : Service() {
             }
         )
 
-        // Poll backend to detect task completion — delay until 1 min before min duration
-        val authToken = state.getAuthToken()
-        val baseUrl = state.getBaseUrl()
-        if (authToken.isNotEmpty() && baseUrl.isNotEmpty()) {
-            val minDurationMs = state.getMinimumDurationMs()
-            val elapsed = state.getElapsedSinceStart()
-            val pollDelay = maxOf(0L, minDurationMs - 60_000L - elapsed)
-
-            taskStatusChecker.start(
-                baseUrl = baseUrl,
-                authToken = authToken,
-                initialDelayMs = pollDelay,
-                onNoActiveTasks = {
-                    Log.i(TAG, "Backend reports no active tasks, stopping blocker")
-                    state.stopSession()
-                    mainHandler.post {
-                        overlay.hide()
-                        stopSelf()
-                    }
-                }
-            )
-        }
-
         // Enforce max block time
         val maxBlockTimeMs = state.getMaxBlockTimeMs()
         if (maxBlockTimeMs > 0) {
@@ -159,9 +139,7 @@ class BlockerService : Service() {
             val remaining = maxBlockTimeMs - elapsed
             if (remaining <= 0) {
                 Log.i(TAG, "Max block time already exceeded, stopping blocker")
-                state.stopSession()
-                overlay.hide()
-                stopSelf()
+                endSession(state)
                 return
             }
             // onStartCommand can run more than once per instance (watchdog,
@@ -169,18 +147,21 @@ class BlockerService : Service() {
             maxTimeRunnable?.let { mainHandler.removeCallbacks(it) }
             maxTimeRunnable = Runnable {
                 Log.i(TAG, "Max block time reached, stopping blocker")
-                state.stopSession()
-                overlay.hide()
-                stopSelf()
+                endSession(state)
             }
             mainHandler.postDelayed(maxTimeRunnable!!, remaining)
         }
     }
 
+    private fun endSession(state: BlockerState) {
+        state.stopSession()
+        overlay.hide()
+        stopSelf()
+    }
+
     override fun onDestroy() {
         Log.i(TAG, "BlockerService destroyed")
         appMonitor.stop()
-        taskStatusChecker.stop()
         maxTimeRunnable?.let { mainHandler.removeCallbacks(it) }
         overlay.hide()
         releaseWakeLock()

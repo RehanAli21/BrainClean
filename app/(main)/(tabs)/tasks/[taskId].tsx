@@ -1,17 +1,15 @@
 import { PrimaryButton } from '@/components/PrimaryButton'
-import { API_BASE_URL } from '@/constants/config'
 import { useTheme } from '@/hooks/useTheme'
-import { useAuth } from '@/context/AuthContext'
-import { subscriptionQueryKey } from '@/hooks/queries/useSubscription'
-import { useCompleteTaskMutation, useDeleteTaskMutation, useStartTaskMutation, useTaskQuery } from '@/hooks/queries/useTasks'
 import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
-import { subscriptionService } from '@/services/api/subscriptions'
+import { reconcileTasks, useTasksHydrated } from '@/hooks/useTasks'
+import { isBlocking as nativeIsBlocking } from '@/modules/blocker'
+import { analytics } from '@/services/analytics'
+import { isTaskActive, maxBlockTimeMs, useTaskStore } from '@/store/taskStore'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { useQueryClient } from '@tanstack/react-query'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
@@ -43,53 +41,31 @@ export default function TaskDetailScreen() {
 	const formatDuration = useFormatDuration()
 	const router = useRouter()
 	const { taskId, finishFirst } = useLocalSearchParams<{ taskId: string; finishFirst?: string }>()
-	const { data: task, isLoading, isError } = useTaskQuery(taskId!)
-	const startMutation = useStartTaskMutation()
-	const completeMutation = useCompleteTaskMutation()
-	const deleteMutation = useDeleteTaskMutation()
-	const { isBlocking, startBlocking, stopBlocking } = useBlocker()
-	const { token } = useAuth()
-	const queryClient = useQueryClient()
+	const hydrated = useTasksHydrated()
+	const task = useTaskStore(s => s.tasks.find(item => item.id === taskId))
+	const markStarted = useTaskStore(s => s.markStarted)
+	const markCompleted = useTaskStore(s => s.markCompleted)
+	const deleteTask = useTaskStore(s => s.deleteTask)
+	const { startBlocking, stopBlocking } = useBlocker()
 	const { allGranted } = usePermissions()
 	const selectedApps = useUiStore(s => s.selectedApps)
-	const notificationBlockMode = useUiStore(s => s.taskNotificationModes[taskId!] ?? 0)
-	const customMessage = useUiStore(s => s.taskCustomMessages[taskId!] ?? '')
 	const hasRated = useUiStore(s => s.hasRated)
 	const setHasRated = useUiStore(s => s.setHasRated)
-	const [apiError, setApiError] = useState('')
+	const [actionError, setActionError] = useState('')
 	const [now, setNow] = useState(Date.now)
+	const deleteCooldown = useRef(false)
 
-	const isActive = task?.started && !task?.completed
+	const isActive = task ? isTaskActive(task) : false
 	const eligibleAt = task?.startedAt ? new Date(task.startedAt).getTime() + task.minimumDurationSeconds * 1000 : 0
 	const canComplete = isActive && now >= eligibleAt
 	const remainingMs = eligibleAt - now
 
-	// On every focus, discard the cached task and reload from scratch so the
-	// screen shows a loading state and then the current server state — never a
-	// silently-retained stale copy if a background refetch is slow or fails
-	// (TanStack Query keeps the last data and stays "success" on a failed
-	// refetch). Success renders the task; failure falls through to the error view.
+	// Pick up a session that ended (max time reached) while this screen was away.
 	useFocusEffect(
 		useCallback(() => {
-			queryClient.resetQueries({ queryKey: ['tasks', taskId], exact: true })
-		}, [queryClient, taskId]),
+			if (hydrated) reconcileTasks()
+		}, [hydrated]),
 	)
-
-	useEffect(() => {
-		if (!isActive || isBlocking || !task || !token || selectedApps.length === 0) return
-		try {
-			startBlocking(
-				selectedApps,
-				task.id,
-				token,
-				API_BASE_URL,
-				(task.maximumDurationSeconds ?? 36000) * 1000,
-				notificationBlockMode,
-				task.minimumDurationSeconds * 1000,
-				customMessage,
-			)
-		} catch {}
-	}, [isActive, isBlocking, task, token, selectedApps, notificationBlockMode, customMessage, startBlocking])
 
 	useEffect(() => {
 		if (!isActive || canComplete) return
@@ -98,120 +74,77 @@ export default function TaskDetailScreen() {
 	}, [isActive, canComplete])
 
 	const handleComplete = () => {
-		setApiError('')
-		completeMutation.mutate(taskId!, {
-			onSuccess: () => {
-				stopBlocking()
-			},
-			onError: (err: any) => {
-				const code = err.response?.data?.error
-				if (code === 'TASK_NOT_ELIGIBLE') {
-					setApiError(t('taskDetail.notEligible'))
-				} else if (code === 'TASK_ALREADY_COMPLETED') {
-					setApiError(t('taskDetail.alreadyCompleted'))
-				} else if (!err.response) {
-					setApiError(t('common.networkError'))
-				} else {
-					setApiError(err.response?.data?.message || t('taskDetail.completeFailed'))
-				}
-			},
-		})
+		if (!task) return
+		setActionError('')
+		// Kotlin refuses to stop before the minimum duration (monotonic clock),
+		// so a changed device clock can't end the session early.
+		if (!stopBlocking()) {
+			setActionError(t('taskDetail.notEligible'))
+			return
+		}
+		markCompleted(task.id)
+		analytics.track('task_completed', { taskId: task.id })
 	}
 
 	const handleStart = () => {
+		if (!task) return
 		if (!allGranted) {
-			setApiError(t('taskDetail.permsNotGranted'))
+			setActionError(t('taskDetail.permsNotGranted'))
 			return
 		}
 
 		if (selectedApps.length === 0) {
-			setApiError(t('taskDetail.noApps'))
+			setActionError(t('taskDetail.noApps'))
 			return
 		}
 
-		setApiError('')
-		startMutation.mutate(taskId!, {
-			onSuccess: () => {
-				try {
-					startBlocking(
-						selectedApps,
-						taskId!,
-						token!,
-						API_BASE_URL,
-						(task!.maximumDurationSeconds ?? 36000) * 1000,
-						notificationBlockMode,
-						task!.minimumDurationSeconds * 1000,
-						customMessage,
-					)
-				} catch {
-					setApiError(t('taskDetail.blockingFailed'))
-				}
-			},
-			onError: async (err: any) => {
-				if (err.response?.status === 402) {
-					await queryClient.invalidateQueries({ queryKey: subscriptionQueryKey });
-					try {
-						const fresh = await subscriptionService.getStatus();
-						if (!fresh.hasAccess) {
-							router.push('/(main)/paywall');
-						}
-					} catch {}
-					return;
-				}
-				const code = err.response?.data?.error
-				if (code === 'ACTIVE_TASK_EXISTS') {
-					const details = err.response?.data?.details
-					if (details?.name && details?.startedAt) {
-						setApiError(t('taskDetail.activeNamed', { name: details.name, date: formatDate(details.startedAt) }))
-					} else {
-						setApiError(t('taskDetail.anotherActive'))
-					}
-				} else if (code === 'TASK_ALREADY_STARTED') {
-					setApiError(t('taskDetail.alreadyStarted'))
-				} else if (code === 'TASK_ALREADY_COMPLETED') {
-					setApiError(t('taskDetail.alreadyCompleted'))
-				} else if (!err.response) {
-					setApiError(t('common.networkError'))
-				} else {
-					setApiError(err.response?.data?.message || t('taskDetail.startFailed'))
-				}
-			},
-		})
+		const otherActive = useTaskStore.getState().tasks.find(item => item.id !== task.id && isTaskActive(item))
+		if (otherActive?.startedAt) {
+			setActionError(t('taskDetail.activeNamed', { name: otherActive.name, date: formatDate(otherActive.startedAt) }))
+			return
+		}
+		if (nativeIsBlocking()) {
+			setActionError(t('taskDetail.anotherActive'))
+			return
+		}
+
+		setActionError('')
+		try {
+			startBlocking(
+				selectedApps,
+				task.id,
+				maxBlockTimeMs(task),
+				task.notificationBlockMode,
+				task.minimumDurationSeconds * 1000,
+				task.customMessage,
+			)
+		} catch {
+			setActionError(t('taskDetail.blockingFailed'))
+			return
+		}
+		markStarted(task.id)
+		analytics.track('task_started', { taskId: task.id })
 	}
 
 	const handleDelete = () => {
+		if (deleteCooldown.current) return
+		deleteCooldown.current = true
+		setTimeout(() => { deleteCooldown.current = false }, 1000)
 		Alert.alert(t('taskDetail.deleteTask'), t('taskDetail.deleteConfirm'), [
 			{ text: t('common.cancel'), style: 'cancel' },
 			{
 				text: t('common.delete'),
 				style: 'destructive',
 				onPress: () => {
-					deleteMutation.mutate(taskId!, {
-						onSuccess: () => {
-							router.replace('/(main)/(tabs)/tasks')
-						},
-						onError: (err: any) => {
-							const code = err.response?.data?.error
-							if (code === 'ACTIVE_TASK_EXISTS') {
-								const details = err.response?.data?.details
-								if (details?.name && details?.startedAt) {
-									setApiError(t('taskDetail.cannotDeleteNamed', { name: details.name, date: formatDate(details.startedAt) }))
-								} else {
-									setApiError(t('taskDetail.cannotDelete'))
-								}
-							} else if (!err.response) {
-								setApiError(t('common.networkError'))
-							} else {
-								setApiError(err.response?.data?.message || t('taskDetail.deleteFailed'))
-							}
-						},
-					})
+					deleteTask(taskId!)
+					analytics.track('task_deleted', { taskId })
+					router.replace('/(main)/(tabs)/tasks')
 				},
 			},
 		])
 	}
 
-	if (isLoading) {
+	if (!hydrated) {
 		return (
 			<View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
 				<ActivityIndicator
@@ -222,7 +155,7 @@ export default function TaskDetailScreen() {
 		)
 	}
 
-	if (isError || !task) {
+	if (!task) {
 		return (
 			<View style={[styles.container, { backgroundColor: theme.background }]}>
 				<View style={styles.header}>
@@ -272,9 +205,9 @@ export default function TaskDetailScreen() {
 				</View>
 			) : null}
 
-			{apiError ? (
+			{actionError ? (
 				<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
-					<Text style={[styles.errorBannerText, { color: theme.accent }]}>{apiError}</Text>
+					<Text style={[styles.errorBannerText, { color: theme.accent }]}>{actionError}</Text>
 				</View>
 			) : null}
 
@@ -357,7 +290,6 @@ export default function TaskDetailScreen() {
 					<PrimaryButton
 						title={t('taskDetail.startTask')}
 						onPress={handleStart}
-						isLoading={startMutation.isPending}
 					/>
 				) : null}
 
@@ -365,7 +297,6 @@ export default function TaskDetailScreen() {
 					<PrimaryButton
 						title={t('taskDetail.finishTask')}
 						onPress={handleComplete}
-						isLoading={completeMutation.isPending}
 					/>
 				) : null}
 
@@ -386,16 +317,8 @@ export default function TaskDetailScreen() {
 					<TouchableOpacity
 						style={[styles.deleteButton, { borderColor: theme.accent }]}
 						onPress={handleDelete}
-						activeOpacity={0.7}
-						disabled={deleteMutation.isPending}>
-						{deleteMutation.isPending ? (
-							<ActivityIndicator
-								size='small'
-								color={theme.accent}
-							/>
-						) : (
-							<Text style={[styles.deleteButtonText, { color: theme.accent }]}>{t('taskDetail.deleteTask')}</Text>
-						)}
+						activeOpacity={0.7}>
+						<Text style={[styles.deleteButtonText, { color: theme.accent }]}>{t('taskDetail.deleteTask')}</Text>
 					</TouchableOpacity>
 				) : null}
 

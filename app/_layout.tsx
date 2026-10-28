@@ -1,9 +1,9 @@
 import i18n from '@/i18n'
 import { useTheme, useThemeMode } from '@/hooks/useTheme'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as ExpoInAppUpdates from 'expo-in-app-updates'
 import { Stack } from 'expo-router'
+import * as SecureStore from 'expo-secure-store'
 import * as SplashScreen from 'expo-splash-screen'
 import { useCallback, useEffect, useState } from 'react'
 import { AppState, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View, type AppStateStatus } from 'react-native'
@@ -11,7 +11,6 @@ import { useTranslation } from 'react-i18next'
 import { isBlocking as nativeIsBlocking } from '@/modules/blocker'
 import { analytics } from '@/services/analytics'
 import { useUiStore } from '@/store/uiStore'
-import { AuthProvider } from '../context/AuthContext'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -26,12 +25,13 @@ function useAnalytics() {
 	}, [])
 }
 
-function useAppStateFocusManager() {
+// Accounts were removed. Wipe the sign-in token and email that versions with
+// login left in SecureStore. Deleting a missing key is a no-op.
+function useClearLegacyAuth() {
 	useEffect(() => {
-		const subscription = AppState.addEventListener('change', (status: AppStateStatus) => {
-			focusManager.setFocused(status === 'active')
-		})
-		return () => subscription.remove()
+		for (const key of ['user_token', 'user_email', 'user_token_expires_at']) {
+			SecureStore.deleteItemAsync(key).catch(() => {})
+		}
 	}, [])
 }
 
@@ -155,18 +155,7 @@ function useSyncLanguage() {
 }
 
 export default function RootLayout() {
-	const [queryClient] = useState(
-		() =>
-			new QueryClient({
-				defaultOptions: {
-					queries: {
-						refetchOnWindowFocus: true,
-					},
-				},
-			}),
-	)
-
-	useAppStateFocusManager()
+	useClearLegacyAuth()
 	useSyncLanguage()
 	useAnalytics()
 	const resolvedTheme = useThemeMode()
@@ -177,20 +166,17 @@ export default function RootLayout() {
 	}
 
 	return (
-		<QueryClientProvider client={queryClient}>
-			<AuthProvider>
-				<StatusBar
-					barStyle={resolvedTheme === 'dark' ? 'light-content' : 'dark-content'}
-					backgroundColor='transparent'
-					translucent
-				/>
-				<Stack screenOptions={{ headerShown: false }}>
-					<Stack.Screen name='index' />
-					<Stack.Screen name='auth/login' />
-					<Stack.Screen name='(setup)' />
-					<Stack.Screen name='(main)' />
-				</Stack>
-			</AuthProvider>
-		</QueryClientProvider>
+		<>
+			<StatusBar
+				barStyle={resolvedTheme === 'dark' ? 'light-content' : 'dark-content'}
+				backgroundColor='transparent'
+				translucent
+			/>
+			<Stack screenOptions={{ headerShown: false }}>
+				<Stack.Screen name='index' />
+				<Stack.Screen name='(setup)' />
+				<Stack.Screen name='(main)' />
+			</Stack>
+		</>
 	)
 }

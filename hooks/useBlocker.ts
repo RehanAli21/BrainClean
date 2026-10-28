@@ -18,8 +18,8 @@ export function useBlocker() {
   );
 
   const startBlocking = useCallback(
-    (packageNames: string[], sessionId: string, authToken: string, baseUrl: string, maxBlockTimeMs: number, notificationBlockMode: number, minimumDurationMs: number, customMessage: string) => {
-      nativeStartBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage);
+    (packageNames: string[], sessionId: string, maxBlockTimeMs: number, notificationBlockMode: number, minimumDurationMs: number, customMessage: string) => {
+      nativeStartBlocking(packageNames, sessionId, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage);
       setBlocking(true);
       setBlockedApps(packageNames);
       setActiveSessionId(sessionId);
@@ -27,11 +27,13 @@ export function useBlocker() {
     [],
   );
 
-  const stopBlocking = useCallback(() => {
-    nativeStopBlocking();
+  /** Returns false if the native side refused (minimum duration not reached). */
+  const stopBlocking = useCallback((): boolean => {
+    if (!nativeStopBlocking()) return false;
     setBlocking(false);
     setBlockedApps([]);
     setActiveSessionId(null);
+    return true;
   }, []);
 
   useFocusEffect(

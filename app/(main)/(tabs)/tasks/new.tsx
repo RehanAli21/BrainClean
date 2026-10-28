@@ -3,14 +3,10 @@ import { NotificationModeSelector } from '@/components/NotificationModeSelector'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { isWalkthroughActive, registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { useTheme } from '@/hooks/useTheme'
-import { subscriptionQueryKey } from '@/hooks/queries/useSubscription'
-import { useCreateTaskMutation } from '@/hooks/queries/useTasks'
 import { usePermissions } from '@/hooks/usePermissions'
-import { useUiStore } from '@/store/uiStore'
-import { subscriptionService } from '@/services/api/subscriptions'
-import { taskService } from '@/services/api/tasks'
+import { analytics } from '@/services/analytics'
+import { isTaskActive, useTaskStore } from '@/store/taskStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -27,11 +23,6 @@ import {
 	View,
 } from 'react-native'
 import { z } from 'zod'
-
-function getTodayDate(): string {
-	const now = new Date()
-	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-}
 
 const ITEM_HEIGHT = 32
 const VISIBLE_ITEMS = 3
@@ -119,11 +110,8 @@ export default function NewTaskScreen() {
 	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
-	const queryClient = useQueryClient()
-	const createMutation = useCreateTaskMutation()
+	const addTask = useTaskStore(s => s.addTask)
 	const { isLoading: permsLoading, allGranted } = usePermissions()
-	const setTaskNotificationMode = useUiStore(s => s.setTaskNotificationMode)
-	const setTaskCustomMessage = useUiStore(s => s.setTaskCustomMessage)
 
 	const [name, setName] = useState('')
 	const [hours, setHours] = useState(1)
@@ -134,7 +122,6 @@ export default function NewTaskScreen() {
 	const [notifMode, setNotifMode] = useState(0)
 	const [customMessage, setCustomMessage] = useState(() => t('customMessages.defaultBlock'))
 	const [errors, setErrors] = useState<Record<string, string>>({})
-	const [apiError, setApiError] = useState('')
 	const nameRef = useRef<View | null>(null)
 	const durationRef = useRef<View | null>(null)
 	const notifRef = useRef<View | null>(null)
@@ -160,7 +147,16 @@ export default function NewTaskScreen() {
 
 	const handleCreate = () => {
 		setErrors({})
-		setApiError('')
+
+		// One task at a time: send the user to the running one instead.
+		const active = useTaskStore.getState().tasks.find(isTaskActive)
+		if (active) {
+			router.replace({
+				pathname: '/(main)/(tabs)/tasks/[taskId]',
+				params: { taskId: active.id, finishFirst: '1' },
+			})
+			return
+		}
 
 		const totalMinutes = hours * 60 + minutes
 
@@ -192,74 +188,21 @@ export default function NewTaskScreen() {
 			maxSeconds = totalMaxMinutes * 60
 		}
 
-		createMutation.mutate(
-			{
-				name: result.data.name,
-				minimumDurationSeconds: durationSeconds,
-				maximumDurationSeconds: maxSeconds,
-			},
-			{
-				onSuccess: task => {
-					setTaskNotificationMode(task.id, notifMode)
-					setTaskCustomMessage(task.id, customMessage)
-					router.replace({
-						pathname: '/(main)/(tabs)/tasks/[taskId]',
-						params: { taskId: task.id },
-					})
-				},
-				onError: async (err: any) => {
-					if (__DEV__) {
-						console.error('[NewTask] Create failed:', err.response?.status, err.response?.data ?? err.message)
-					}
-					if (err.response?.status === 402) {
-						await queryClient.invalidateQueries({ queryKey: subscriptionQueryKey });
-						try {
-							const fresh = await subscriptionService.getStatus();
-							if (!fresh.hasAccess) {
-								router.push('/(main)/paywall');
-							}
-						} catch {}
-						return;
-					}
-					const code = err.response?.data?.error
-					if (code === 'VALIDATION_ERROR') {
-						setApiError(err.response?.data?.message || t('common.invalidInput'))
-					} else if (code === 'INVALID_DURATION') {
-						setApiError(t('newTask.invalidDuration'))
-					} else if (code === 'ACTIVE_TASK_EXISTS') {
-						const details = err.response?.data?.details
-						if (details?.id) {
-							router.replace({
-								pathname: '/(main)/(tabs)/tasks/[taskId]',
-								params: { taskId: details.id, finishFirst: '1' },
-							})
-						} else {
-							setApiError(t('newTask.activeExists'))
-						}
-					} else if (!err.response) {
-						try {
-							const tasks = await queryClient.fetchQuery({
-								queryKey: ['tasks', getTodayDate()],
-								queryFn: () => taskService.getByDate(getTodayDate()),
-							})
-							const created = tasks.find(t => t.name === result.data.name)
-							if (created) {
-								setTaskNotificationMode(created.id, notifMode)
-							setTaskCustomMessage(created.id, customMessage)
-								router.replace({
-									pathname: '/(main)/(tabs)/tasks/[taskId]',
-									params: { taskId: created.id },
-								})
-								return
-							}
-						} catch {}
-						setApiError(t('common.networkError'))
-					} else {
-						setApiError(err.response?.data?.message || t('common.somethingWentWrong'))
-					}
-				},
-			},
-		)
+		const task = addTask({
+			name: result.data.name,
+			minimumDurationSeconds: durationSeconds,
+			maximumDurationSeconds: maxSeconds,
+			notificationBlockMode: notifMode,
+			customMessage,
+		})
+		analytics.track('task_created', {
+			taskId: task.id,
+			hasMaxDuration: task.maximumDurationSeconds != null,
+		})
+		router.replace({
+			pathname: '/(main)/(tabs)/tasks/[taskId]',
+			params: { taskId: task.id },
+		})
 	}
 
 	return (
@@ -313,12 +256,6 @@ export default function NewTaskScreen() {
 					contentContainerStyle={styles.formContent}
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps='handled'>
-					{apiError ? (
-						<View style={[styles.errorBanner, { backgroundColor: theme.accent + '1A' }]}>
-							<Text style={[styles.errorBannerText, { color: theme.accent }]}>{apiError}</Text>
-						</View>
-					) : null}
-
 					<View ref={nameRef}>
 						<Text style={[styles.inputLabel, { color: theme.icon }]}>{t('newTask.taskName')}</Text>
 						<TextInput
@@ -399,7 +336,6 @@ export default function NewTaskScreen() {
 						<PrimaryButton
 							title={t('newTask.createTask')}
 							onPress={handleCreate}
-							isLoading={createMutation.isPending}
 						/>
 					</View>
 				</ScrollView>
@@ -421,8 +357,6 @@ const styles = StyleSheet.create({
 	title: { fontSize: 20, fontWeight: '700' },
 	form: { width: '100%' },
 	formContent: { paddingBottom: 48 },
-	errorBanner: { padding: 12, borderRadius: 8, marginBottom: 16 },
-	errorBannerText: { fontSize: 14, fontWeight: '500', textAlign: 'center' },
 	inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginLeft: 4 },
 	textInput: {
 		borderWidth: 1,

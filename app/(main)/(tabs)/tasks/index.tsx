@@ -1,12 +1,9 @@
 import { FeedbackModal } from '@/components/FeedbackModal'
 import { registerRef, triggerWalkthrough, unregisterRef } from '@/components/walkthroughRegistry'
-import { API_BASE_URL, TASK_POLL_INTERVAL_MS } from '@/constants/config'
 import { useTheme } from '@/hooks/useTheme'
-import { TOKEN_EXPIRY_BUFFER_MS, useAuth } from '@/context/AuthContext'
-import { useTasksQuery } from '@/hooks/queries/useTasks'
-import { useQueryClient } from '@tanstack/react-query'
 import { useBlocker } from '@/hooks/useBlocker'
-import { useUiStore } from '@/store/uiStore'
+import { reconcileTasks, useTasksHydrated } from '@/hooks/useTasks'
+import { isTaskActive, useTaskStore } from '@/store/taskStore'
 import type { Task } from '@/types/task'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -93,72 +90,20 @@ function TaskCard({ task, onPress }: { task: Task; onPress: () => void }) {
 	)
 }
 
-function LoginRequiredView() {
-	const theme = useTheme()
-	const { t } = useTranslation()
-	const router = useRouter()
-	const cooldown = useRef(false)
-
-	return (
-		<View style={[styles.container, { backgroundColor: theme.background }]}>
-			<View style={styles.header}>
-				<Text style={[styles.title, { color: theme.text }]}>{t('tasks.title')}</Text>
-			</View>
-			<View style={styles.centered}>
-				<Ionicons name='lock-closed-outline' size={56} color={theme.border} />
-				<Text style={[styles.loginTitle, { color: theme.text }]}>{t('loginRequired.title')}</Text>
-				<Text style={[styles.loginSubtitle, { color: theme.icon }]}>{t('loginRequired.tasksMessage')}</Text>
-				<TouchableOpacity
-					style={[styles.loginButton, { backgroundColor: theme.primary }]}
-					onPress={() => {
-						if (cooldown.current) return
-						cooldown.current = true
-						router.push('/auth/login')
-						setTimeout(() => { cooldown.current = false }, 1000)
-					}}
-					activeOpacity={0.8}>
-					<Ionicons name='log-in-outline' size={20} color='#FFFFFF' />
-					<Text style={styles.loginButtonText}>{t('loginRequired.loginButton')}</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					onPress={() => {
-						if (cooldown.current) return
-						cooldown.current = true
-						router.push('/auth/signup')
-						setTimeout(() => { cooldown.current = false }, 1000)
-					}}
-					activeOpacity={0.7}>
-					<Text style={[styles.signupLink, { color: theme.primary }]}>{t('loginRequired.signupLink')}</Text>
-				</TouchableOpacity>
-			</View>
-		</View>
-	)
-}
-
 export default function TaskListScreen() {
-	const { token } = useAuth()
-
-	if (!token) return <LoginRequiredView />
-
-	return <TaskListContent />
-}
-
-function TaskListContent() {
 	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
 	const formatDateLabel = useFormatDateLabel()
 	const [selectedDate, setSelectedDate] = useState(getTodayDate)
 	const [showPicker, setShowPicker] = useState(false)
-	const { data: tasks, isLoading, isError, refetch } = useTasksQuery(selectedDate)
-	const queryClient = useQueryClient()
-	const { isBlocking, activeSessionId, startBlocking, stopBlocking } = useBlocker()
-	const { token, tokenExpiresAt, logout } = useAuth()
-	const selectedApps = useUiStore(s => s.selectedApps)
-	const taskNotificationModes = useUiStore(s => s.taskNotificationModes)
-	const taskCustomMessages = useUiStore(s => s.taskCustomMessages)
-	const isPremium = useUiStore(s => s.isPremium)
-	const hasActiveTask = tasks?.some(t => t.started && !t.completed) ?? false
+	const hydrated = useTasksHydrated()
+	const allTasks = useTaskStore(s => s.tasks)
+	const tasks = allTasks.filter(task => toDateString(new Date(task.createdAt)) === selectedDate)
+	const { isBlocking } = useBlocker()
+	// A running native session with no matching task (e.g. one started by an
+	// older version) still counts: only one session can run at a time.
+	const hasActiveTask = allTasks.some(isTaskActive) || isBlocking
 	const fabCooldown = useRef(false)
 	const feedbackCooldown = useRef(false)
 	const [feedbackVisible, setFeedbackVisible] = useState(false)
@@ -173,79 +118,12 @@ function TaskListContent() {
 		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date'); unregisterRef('tasks-feedback') }
 	}, [])
 
+	// Pick up sessions that ended (max time reached) while this screen was away.
 	useFocusEffect(
 		useCallback(() => {
-			if (tokenExpiresAt != null && Date.now() >= tokenExpiresAt - TOKEN_EXPIRY_BUFFER_MS) {
-				logout()
-			}
-		}, [tokenExpiresAt, logout]),
+			if (hydrated) reconcileTasks()
+		}, [hydrated]),
 	)
-
-	// On every focus (and when the selected date changes) throw away the cached
-	// list and reload from scratch: the query drops to a loading state, then
-	// resolves to the current server state on success or the error view on
-	// failure. Without this, TanStack Query keeps the previous data on screen
-	// during a refetch — and if the refetch fails it silently retains the stale
-	// list (status stays "success"), so an out-of-date list is shown with no
-	// loading spinner and no error.
-	useFocusEffect(
-		useCallback(() => {
-			queryClient.resetQueries({ queryKey: ['tasks', selectedDate], exact: true })
-		}, [queryClient, selectedDate]),
-	)
-
-	// Only stop the native session when ITS OWN task is confirmed completed.
-	// `tasks` is filtered by the user-selected date — inferring "no active
-	// task" from it would let a date change kill an active blocking session.
-	// If the session task isn't in this list, the Kotlin TaskStatusChecker
-	// remains the authority for unblocking.
-	useEffect(() => {
-		if (!isBlocking || !activeSessionId || !tasks) return
-		const sessionTask = tasks.find(t => t.id === activeSessionId)
-		if (sessionTask?.completed) {
-			stopBlocking()
-		}
-	}, [tasks, isBlocking, activeSessionId, stopBlocking])
-
-	const activeTask = tasks?.find(t => t.started && !t.completed)
-
-	useEffect(() => {
-		if (!activeTask || isBlocking || !token || selectedApps.length === 0) return
-		try {
-			startBlocking(
-				selectedApps,
-				activeTask.id,
-				token,
-				API_BASE_URL,
-				(activeTask.maximumDurationSeconds ?? 36000) * 1000,
-				taskNotificationModes[activeTask.id] ?? 0,
-				activeTask.minimumDurationSeconds * 1000,
-				taskCustomMessages[activeTask.id] ?? '',
-			)
-		} catch {}
-	}, [activeTask, isBlocking, token, selectedApps, taskNotificationModes, taskCustomMessages, startBlocking])
-	const activeStartedAt = activeTask?.startedAt
-	const activeMinDuration = activeTask?.minimumDurationSeconds
-
-	useEffect(() => {
-		if (!isBlocking || !activeStartedAt || !activeMinDuration) return
-
-		const eligibleAt = new Date(activeStartedAt).getTime() + activeMinDuration * 1000
-		const pollStartAt = eligibleAt - 60_000
-		const delayMs = Math.max(0, pollStartAt - Date.now())
-
-		let intervalId: ReturnType<typeof setInterval> | undefined
-
-		const timeoutId = setTimeout(() => {
-			refetch()
-			intervalId = setInterval(refetch, TASK_POLL_INTERVAL_MS)
-		}, delayMs)
-
-		return () => {
-			clearTimeout(timeoutId)
-			if (intervalId) clearInterval(intervalId)
-		}
-	}, [isBlocking, activeStartedAt, activeMinDuration, refetch])
 
 	const renderItem = ({ item }: { item: Task }) => (
 		<TaskCard
@@ -292,23 +170,14 @@ function TaskListContent() {
 				/>
 			) : null}
 
-			{isLoading ? (
+			{!hydrated ? (
 				<View style={styles.centered}>
 					<ActivityIndicator
 						size='large'
 						color={theme.primary}
 					/>
 				</View>
-			) : isError ? (
-				<View style={styles.centered}>
-					<Text style={[styles.emptyText, { color: theme.icon }]}>{t('tasks.failedToLoad')}</Text>
-					<TouchableOpacity
-						onPress={() => refetch()}
-						style={{ marginTop: 12 }}>
-						<Text style={{ color: theme.primary, fontWeight: '600' }}>{t('common.retry')}</Text>
-					</TouchableOpacity>
-				</View>
-			) : !tasks || tasks.length === 0 ? (
+			) : tasks.length === 0 ? (
 				<View style={styles.centered}>
 					<Ionicons
 						name='clipboard-outline'
@@ -348,7 +217,7 @@ function TaskListContent() {
 					onPress={() => {
 						if (fabCooldown.current) return
 						fabCooldown.current = true
-						router.push(isPremium ? '/(main)/(tabs)/tasks/new' : '/(main)/paywall')
+						router.push('/(main)/(tabs)/tasks/new')
 						setTimeout(() => {
 							fabCooldown.current = false
 						}, 1000)
@@ -439,37 +308,5 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.3,
 		shadowRadius: 8,
 		elevation: 6,
-	},
-	loginTitle: {
-		fontSize: 22,
-		fontWeight: '700',
-		marginTop: 20,
-		marginBottom: 8,
-	},
-	loginSubtitle: {
-		fontSize: 15,
-		textAlign: 'center',
-		lineHeight: 22,
-		marginBottom: 28,
-		paddingHorizontal: 20,
-	},
-	loginButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 8,
-		height: 52,
-		borderRadius: 12,
-		paddingHorizontal: 32,
-		marginBottom: 16,
-	},
-	loginButtonText: {
-		color: '#FFFFFF',
-		fontSize: 16,
-		fontWeight: '600',
-	},
-	signupLink: {
-		fontSize: 14,
-		fontWeight: '600',
 	},
 })

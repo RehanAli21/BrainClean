@@ -4,27 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BrainClean is a productivity and digital wellness app that blocks selected mobile apps until the user completes a task. Users create a task, start it, and selected apps are blocked until the task is marked complete on the backend. The mobile app is the enforcement layer.
+BrainClean is a productivity and digital wellness app that blocks selected mobile apps until the user completes a task. Users create a task, start it, and selected apps are blocked until the task's minimum duration has passed and the user finishes it (or the maximum duration runs out). The mobile app is the enforcement layer.
 
-The mobile app has two runtime layers: React Native/Expo (UI + API) and Kotlin (blocking enforcement). The Kotlin layer MUST survive the React Native app being killed. These are architecturally independent — React Native is a remote control, Kotlin is the engine.
+**There are no user accounts and no login.** Tasks live only on the device. The app is free: there is no paywall, subscription or in-app purchase. The only backend calls are user-submitted feedback and anonymous analytics events.
+
+The mobile app has two runtime layers: React Native/Expo (UI + local state) and Kotlin (blocking enforcement). The Kotlin layer MUST survive the React Native app being killed. These are architecturally independent — React Native is a remote control, Kotlin is the engine.
 
 **Android only. iOS is not in scope.** iOS and Web targets exist in Expo config but blocking features are Android-only.
 
 Built with Expo (SDK 54) and React Native 0.81 using React 19 with the experimental React Compiler enabled. Uses custom dev client (`expo-dev-client`) — Expo Go is NOT supported due to native Kotlin modules.
 
-## API Documentation
-
-Backend API docs are in `docs/API.md`. All auth endpoints, request/response shapes, error codes, and validation rules are documented there. Refer to it when implementing or modifying API service functions.
-
 ## Common Commands
 
 - `npm start` — Start Expo dev server
 - `npm run android` — Run on Android (custom dev client)
-- `npm run ios` — Run on iOS
-- `npm run web` — Run on web
 - `npx expo lint` — Run ESLint
+- `npx tsc --noEmit` — Type-check
 - `npx expo prebuild` — Generate native android/ directory for Kotlin module development
-- `node ./scripts/reset-project.js` — Reset project state
 
 ## Architecture
 
@@ -33,77 +29,72 @@ Backend API docs are in `docs/API.md`. All auth endpoints, request/response shap
 This is the most important rule in the entire project. When the user force-closes the app, React Native is destroyed. Blocking MUST continue.
 
 - The Kotlin `BlockerService` is a foreground service. Android keeps it alive independently.
-- All blocking state is persisted in SharedPreferences on the Kotlin side. NOT in React Native state, NOT in AsyncStorage, NOT in Zustand, NOT in expo-secure-store.
+- All blocking state is persisted in SharedPreferences on the Kotlin side (`BlockerState`). NOT in React Native state, NOT in AsyncStorage, NOT in Zustand.
 - When RN calls `startBlocking()`, Kotlin writes the config to SharedPreferences and starts the foreground service. From that point, the service is self-sufficient.
 - On device reboot, `BootReceiver` checks SharedPreferences for an active session and restarts `BlockerService` automatically. No React Native involvement.
 - React Native is a remote control. Kotlin is the engine. Never reverse this relationship.
 
+### Enforcement: Kotlin Is the Only Judge
+
+There is no backend to confirm task completion. Kotlin enforces the duration rules itself, using `SystemClock.elapsedRealtime` (monotonic, immune to the user changing the wall clock):
+
+- **Minimum duration**: `stopBlocking()` returns `false` and keeps blocking if `BlockerState.hasMetMinimumDuration()` is false. RN must treat `false` as "not eligible yet" and show `taskDetail.notEligible`.
+- **Maximum duration**: `BlockerService` ends the session itself once elapsed time reaches `maxBlockTimeMs` (a delayed runnable posted in `onStartCommand`, re-checked on SCREEN_ON). Tasks without a max use `DEFAULT_MAX_BLOCK_SECONDS` (10h) from `store/taskStore.ts`.
+
+Never move these checks into JS — JS can be killed or bypassed.
+
 ### Two-Layer Architecture
 
-**React Native/Expo layer** — handles all UI, API communication, routing, and state management. Standard Expo app. Dies when force-closed.
+**React Native/Expo layer** — handles all UI, the local task list, routing and preferences. Standard Expo app. Dies when force-closed.
 
-**Kotlin native layer** — handles all Android system API interactions: UsageStatsManager, system overlay windows, foreground service, notification listener. Runs independently. Survives app kill and device reboot. Kotlin MAY make API calls to the backend when needed (e.g., `TaskStatusChecker` polls for task completion while blocking is active). Keep the Kotlin HTTP layer minimal — reuse the same base URL and auth token pattern as the RN side.
+**Kotlin native layer** — handles all Android system API interactions: UsageStatsManager, system overlay windows, foreground services, notification listener, alarms. Runs independently. Survives app kill and device reboot. The Kotlin layer makes no network calls.
 
 These layers communicate through a narrow, explicit bridge. React Native NEVER touches Android system APIs directly.
 
 ### Routing
 
-File-based routing via Expo Router. Routes live in `app/`. The root layout (`app/_layout.tsx`) wraps everything in `QueryClientProvider` and `AuthProvider`, and hides headers globally.
+File-based routing via Expo Router. Routes live in `app/`. The root layout (`app/_layout.tsx`) sets up i18n, theme and the setup redirect, and hides headers globally. It also runs `useClearLegacyAuth()`, which deletes leftover SecureStore keys (`user_token`, `user_email`, `user_token_expires_at`) from older versions that had login.
 
 Route groups:
 
-- `auth/*` — public routes: login, signup, forgot-password, reset-password
-- `(main)/*` — protected routes: tabs (tasks, apps, settings)
-- `(setup)/*` — permission setup flow (shown on first launch)
+- `(setup)/*` — permission setup flow (shown until `setupCompleted` is true in `uiStore`)
+- `(main)/*` — the app: tabs `wellness`, `tasks`, `apps`, `settings`. `(main)/_layout.tsx` runs `useNativeSync()` and `useTaskReconcile()`.
 
-Protected routes redirect unauthenticated users to `auth/login` via the auth context + `useSegments()` pattern. Authenticated users on auth pages are redirected to `(main)/(tabs)/tasks`.
+### Tasks — On-Device Store
 
-### Authentication Flow
+Tasks live in `store/taskStore.ts`: a Zustand store persisted to AsyncStorage (key `brainclean-tasks`). Types are in `types/task.ts` (`Task`, `CreateTaskInput`).
 
-`context/AuthContext.tsx` manages auth state via React Context. Token is stored encrypted in `expo-secure-store` (key: `user_token`), email in `user_email`. Route protection is automatic — `useSegments()` + `useNavigationContainerRef().isReady()` redirects unauthenticated users to auth pages and authenticated users away from them. The `useAuth()` hook exposes `token`, `email`, `isLoading`, `login(token, email)`, and `logout()`.
+- Actions: `addTask`, `deleteTask`, `markStarted`, `markCompleted`, `reconcile(nativeBlocking, nativeSessionId)`.
+- The task `id` is passed to Kotlin as the `sessionId`.
+- `reconcile()` brings the records in line with the native session: a task marked active whose session is no longer running in Kotlin (max time hit, or stopped while the app was dead) is marked `autoCompleted`, with `completedAt = min(now, startedAt + max)`.
+- `hooks/useTasks.ts` exports `reconcileTasks()`, `useTasksHydrated()` and `useTaskReconcile()` (runs on hydrate and whenever the app returns to foreground). Task screens also reconcile on focus.
+- Only one active task at a time. Starting is also refused while `isBlocking()` is true (e.g. a native session with no local task record).
 
-Auth lives in React Context because it integrates with Expo Router's segment-based redirect pattern. This is the ONE exception to the "no React Context for state" rule. All other server state goes through TanStack Query.
-
-### Server State — TanStack Query
-
-ALL data from the backend (except auth token) goes through TanStack Query. No exceptions.
-
-- Query hooks live in `hooks/queries/` and wrap plain API functions from `services/api/`.
-- Mutations MUST invalidate related queries. When a task is created, invalidate the task list. When a task is started, invalidate both the task list and task detail.
-- Query keys follow the pattern: `['tasks', date]`, `['tasks', taskId]`.
-- NEVER duplicate server state into Zustand, AsyncStorage, or component state.
+The task record is history, not enforcement. If the store and Kotlin disagree, Kotlin wins and the store is reconciled.
 
 ### Client State — Zustand
 
-Zustand owns ONLY client-local UI state. Stored in `store/uiStore.ts` with `expo-secure-store` persistence. Current state:
+- `store/taskStore.ts` — tasks (above).
+- `store/uiStore.ts` — preferences, persisted to AsyncStorage: `selectedApps`, `padlockConfirmedAt`, `tutorialSeen`, `setupCompleted`, `hasRated`, `selectedLanguage`, `themeMode`, eye-blinker and auto-block settings, and the custom block messages for the wellness features (`customMessageEye`, `customMessageAppMonitor`).
 
-- `selectedApps` — package names selected for blocking
-- `maxBlockTimeMinutes` — max blocking duration (default 600, range 1-1440)
-
-If data comes from the backend, it goes through TanStack Query, not Zustand.
+Per-task notification mode and custom message are stored on the `Task` itself.
 
 ### API Layer
 
-`services/api/client.ts` exports an Axios instance (`apiClient`) with:
+`services/api/client.ts` exports an Axios instance (`apiClient`) with no auth header (there are no accounts), base URL from `constants/config.ts` (`API_BASE_URL`) and a 10s timeout. It is used only by:
 
-- **Request interceptor**: injects `Authorization: Bearer` header from expo-secure-store
-- **Response interceptor**: catches 401/403 and triggers auto-logout + redirect (skips auth endpoints so login/signup errors are not swallowed)
-- Base URL from `constants/config.ts` (`API_BASE_URL`)
-- 10s timeout
+- `services/api/feedback.ts` — user-submitted feedback (`/feedback`)
+- `services/api/analytics.ts` — anonymous analytics events (`/analytics/events`), no user identifiers
 
-Domain service files (`services/api/tasks.ts`, `services/api/auth.ts`) export plain async functions that return typed data, NOT raw axios responses.
-
-These functions are called by query hooks, NOT by screens/components directly.
+Do not add backend calls for task data. Tasks are on-device by design (and the privacy policy says so).
 
 ### Native Bridge API
 
 The bridge between React Native and Kotlin. Defined in `modules/blocker/` using Expo Modules API. Kotlin side is `BlockerModule.kt`.
 
-Exposes these functions:
-
 ```
-startBlocking(packageNames: string[], sessionId: string, authToken: string, baseUrl: string, maxBlockTimeMs: number, blockNotifications: boolean) → void
-stopBlocking()                                            → void
+startBlocking(packageNames: string[], sessionId: string, maxBlockTimeMs: number, notificationBlockMode: number, minimumDurationMs: number, customMessage: string) → void
+stopBlocking()                                            → boolean   // false = minimum duration not met, still blocking
 isBlocking()                                              → boolean
 getBlockedApps()                                          → string[]
 getActiveSessionId()                                      → string | null
@@ -117,22 +108,33 @@ isNotificationListenerEnabled()                           → boolean
 requestNotificationListenerPermission()                   → void
 getDeviceManufacturer()                                   → string
 openAutoStartSettings()                                   → boolean
+setEyeBlinkerConfig(enabled, intervalMinutes, durationSeconds)            → void
+setAutoBlockConfig(enabled, usageLimitMinutes, durationSeconds, apps)     → void
+getWellnessConfig()                                       → WellnessConfig
+isWellnessServiceRunning()                                → boolean
+syncLocalizedStrings(strings: Record<string, string>)     → void
 ```
 
-Events from Kotlin to RN (via `BlockerModule.addListener`):
+`notificationBlockMode`: 0 = off, 1 = blocked apps only, 2 = all notifications.
+
+Events from Kotlin to RN:
 
 - `onBlockedAppDetected` — fired when a blocked app is opened
 - `onServiceStopped` — fired if the foreground service is killed by the system
 
-The `useBlocker()` hook in `hooks/useBlocker.ts` wraps this bridge for React components.
+The `useBlocker()` hook in `hooks/useBlocker.ts` wraps the blocking functions; `hooks/useWellness.ts` wraps the wellness ones; `hooks/useNativeSync.ts` pushes translated strings to Kotlin.
+
+On module creation `BlockerModule` runs one-time cleanups for older versions: `LegacyScheduleCleanup.run()` (cancels old schedule alarms, deletes their notification channels and `brainclean_schedule_state` prefs) and `BlockerState.clearLegacyAuth()` (removes stored auth token / base URL).
 
 Do NOT expand the bridge without careful consideration. Every method added is cross-language maintenance cost.
 
+### Internationalization
+
+`i18n/locales/*.ts` — 15 locales (en is the source). Every locale must have the same key set. Native UI text (overlays, notifications) comes from `syncLocalizedStrings` → `LocalizedStrings.kt`, with English fallbacks in Kotlin.
+
 ### Theming
 
-The complete color scheme, typography scale, spacing tokens, component tokens, and CSS custom properties for web are documented in `docs/COLOR_SCHEME.md`. This is the single source of truth for design decisions shared between mobile and web.
-
-`constants/theme.ts` implements the mobile side. All components consume `Colors.dark` (dark mode is primary). Key values:
+The color scheme, typography, spacing and component tokens are documented in `docs/COLOR_SCHEME.md`. `constants/theme.ts` implements them; components read the active palette via `hooks/useTheme.ts` (dark is primary; `themeMode` in `uiStore`). Key values:
 
 - **Bases**: Deep Void `#050508` (background), Surface `#12121A` (cards), Border `#272735` (dividers)
 - **Accents**: Electric Blue `#2563EB` (primary), Neon Cyan `#06B6D4` (tint/tab active), Rose Alert `#F43F5E` (error/destructive), Success Teal `#10B981` (success)
@@ -142,167 +144,148 @@ The complete color scheme, typography scale, spacing tokens, component tokens, a
 
 ### Components
 
-Reusable components live in `components/` (flat structure):
-
-- `AuthInput.tsx` — styled text input for auth forms
-- `PrimaryButton.tsx` — primary action button
-- `SocialButton.tsx` — social login button (e.g., Google)
-
-Components receive data via props only.
+Reusable components live in `components/` (flat structure): `PrimaryButton`, `NotificationModeSelector`, `CustomMessageField`, `PadlockProtectionCard`, `FeedbackModal`, `LanguagePicker`, `TutorialOverlay`, `WalkthroughOverlay` (+ `walkthroughRegistry.ts`). Components receive data via props.
 
 ## Project Structure
 
 ```
 app/
-├── _layout.tsx                    # Root layout, providers (QueryClient + AuthProvider)
+├── _layout.tsx                    # Root layout: i18n, theme, setup redirect, legacy auth cleanup
 ├── index.tsx                      # Entry redirect
-├── auth/
-│   ├── login.tsx
-│   ├── signup.tsx
-│   ├── forgot-password.tsx
-│   └── reset-password.tsx
 ├── (setup)/
 │   ├── _layout.tsx
 │   └── permissions.tsx            # Permission setup wizard
-├── (main)/
-│   ├── _layout.tsx
-│   ├── (tabs)/
-│   │   ├── _layout.tsx            # Bottom tab navigation
-│   │   ├── tasks/
-│   │   │   ├── _layout.tsx
-│   │   │   ├── index.tsx          # Task list (filterable by date)
-│   │   │   ├── new.tsx            # Create task
-│   │   │   └── [taskId].tsx       # Task detail
-│   │   ├── apps/
-│   │   │   ├── _layout.tsx
-│   │   │   └── index.tsx          # Installed apps with selection toggles
-│   │   └── settings.tsx           # Profile, max block time, logout
-components/
-├── AuthInput.tsx
-├── PrimaryButton.tsx
-└── SocialButton.tsx
+└── (main)/
+    ├── _layout.tsx                # useNativeSync + useTaskReconcile
+    └── (tabs)/
+        ├── _layout.tsx            # Bottom tabs: wellness, tasks, apps, settings
+        ├── wellness/index.tsx     # Eye blinker + auto-block
+        ├── tasks/
+        │   ├── index.tsx          # Task list
+        │   ├── new.tsx            # Create task
+        │   └── [taskId].tsx       # Task detail: start / finish / delete
+        ├── apps/index.tsx         # Installed apps with selection toggles
+        └── settings.tsx           # Language, theme, permissions, tutorial
+components/                        # See Components above
 constants/
-├── config.ts                      # API_BASE_URL, TASK_POLL_INTERVAL_MS
-└── theme.ts                       # Colors.dark, full theme tokens
-context/
-└── AuthContext.tsx                 # Auth state + Expo Router integration
+├── config.ts                      # API_BASE_URL
+└── theme.ts
 hooks/
-├── queries/
-│   └── useTasks.ts                # useTasksQuery, useTaskQuery, mutations
-├── useBlocker.ts                  # Native bridge hook
-└── usePermissions.ts              # Permission status hook
-modules/
-└── blocker/
-    ├── index.ts                   # TS bridge — exports all native functions
-    ├── expo-module.config.json
-    ├── package.json
-    └── android/src/main/java/expo/modules/blocker/
-        ├── BlockerModule.kt       # Expo native module (bridge)
-        ├── BlockerService.kt      # Foreground service — the core runtime
-        ├── AppMonitor.kt          # UsageStatsManager polling loop
-        ├── BlockerOverlay.kt      # TYPE_APPLICATION_OVERLAY window
-        ├── BlockerState.kt        # SharedPreferences read/write
-        ├── NotificationBlockerService.kt   # Cancels notifications from blocked apps
-        ├── TaskStatusChecker.kt   # Polls backend for task completion
-        └── BootReceiver.kt        # Restart blocking on device reboot
-services/
-└── api/
-    ├── client.ts                  # Axios instance, interceptors
-    ├── tasks.ts                   # Task CRUD + start + getByDate
-    └── auth.ts                    # Login, signup, forgot/reset password
+├── useBlocker.ts                  # Blocking bridge hook
+├── useTasks.ts                    # Task hydration + reconcile with native session
+├── useNativeSync.ts               # Pushes translated strings to Kotlin
+├── useWellness.ts
+├── usePermissions.ts
+├── useOemAutoStart.ts
+└── useTheme.ts
+i18n/locales/                      # 15 locale files
+modules/blocker/
+├── index.ts                       # TS bridge
+└── android/src/main/java/expo/modules/blocker/
+    ├── BlockerModule.kt           # Expo native module (bridge)
+    ├── BlockerService.kt          # Foreground service — the core runtime
+    ├── BlockerState.kt            # SharedPreferences read/write (blocking)
+    ├── AppMonitor.kt              # UsageStatsManager polling loop
+    ├── BlockerOverlay.kt          # TYPE_APPLICATION_OVERLAY block screen
+    ├── NotificationBlockerService.kt
+    ├── ServiceGuardReceiver.kt    # Alarm-based keep-alive
+    ├── BootReceiver.kt
+    ├── WellnessService.kt         # Eye blinker + auto-block runtime
+    ├── WellnessState.kt
+    ├── EyeBlinkerTimer.kt
+    ├── AutoBlockTracker.kt
+    ├── CountdownOverlay.kt
+    ├── LocalizedStrings.kt
+    └── LegacyScheduleCleanup.kt   # One-time cleanup of the removed schedule feature
+services/api/
+├── client.ts                      # Axios instance (no auth)
+├── feedback.ts
+└── analytics.ts
 store/
-└── uiStore.ts                     # Zustand — selectedApps, maxBlockTimeMinutes
+├── taskStore.ts                   # Zustand — tasks (on-device)
+└── uiStore.ts                     # Zustand — preferences
 types/
-├── task.ts                        # Task, CreateTaskRequest
+├── task.ts                        # Task, CreateTaskInput
 ├── blocker.ts                     # AppInfo, PermissionStatus
-├── auth.ts                        # AuthUser, AuthResponse, ForgotPasswordResponse, ResetPasswordResponse
-└── api.ts                         # ApiError
+├── feedback.ts
+└── analytics.ts
+legal/                             # privacy.html, terms.html, REVIEW_BASELINE.md
 ```
 
 ## Kotlin Native Layer
 
 ### BlockerService (foreground service)
 
-- Runs as a foreground service with a persistent notification showing "BrainClean is protecting your focus."
-- Starts when RN calls `startBlocking()`. Reads blocked package names, session ID, auth token, base URL, and max block time from SharedPreferences.
-- Contains the main loop: polls UsageStatsManager via AppMonitor every 250ms to detect foreground app.
-- If foreground app is in the blocked list, triggers BlockerOverlay.
-- Stops when: RN calls `stopBlocking()`, `TaskStatusChecker` detects task completion on backend, or max block time is exceeded.
+- Runs as a foreground service with a persistent notification.
+- Starts when RN calls `startBlocking()`. Reads blocked packages, session ID, max/min duration, notification mode and custom message from `BlockerState`.
+- Main loop: polls UsageStatsManager via AppMonitor every 250ms to detect the foreground app. If it is in the blocked list, shows BlockerOverlay.
+- Stops when: RN calls `stopBlocking()` after the minimum duration, or the max block time is exceeded (`endSession()`).
+- Acquires a `PARTIAL_WAKE_LOCK` for the session so polling keeps running in Doze; released in `onDestroy`.
 - Must handle: service killed by system (restart via START_STICKY), low memory, Doze mode.
 
 ### AppMonitor
 
-- Uses UsageStatsManager to query foreground app.
-- Polling interval: 250ms. This is the sole detection mechanism — there is no AccessibilityService fallback.
+- Uses UsageStatsManager to query the foreground app. Polling interval: 250ms (1s while paused, e.g. screen off). This is the sole detection mechanism — there is no AccessibilityService.
 - Requires PACKAGE_USAGE_STATS permission (granted via Settings, not runtime dialog).
 
 ### BlockerOverlay
 
-- Uses TYPE_APPLICATION_OVERLAY to show a full-screen overlay when a blocked app is detected.
-- Overlay displays: "This app is blocked. Return to BrainClean to check your session."
+- TYPE_APPLICATION_OVERLAY full-screen window shown when a blocked app is detected. Shows the task's custom message, or the localized default.
 - Requires SYSTEM_ALERT_WINDOW permission.
-- Overlay must be dismissable only by returning to BrainClean or the home screen. It should NOT have a close button.
+- Dismissable only by leaving the blocked app. It must NOT have a close button.
 
 ### NotificationBlockerService
 
-- NotificationListenerService that cancels notifications posted by blocked apps while a session is active.
-- Opt-in: only runs when the user enables the "Block Notifications" toggle in Settings and grants notification access.
-- Requires BIND_NOTIFICATION_LISTENER_SERVICE (granted via system Notification Access settings).
+- NotificationListenerService that cancels notifications according to the active session's `notificationBlockMode`.
+- Requires notification access (granted via system Notification Access settings). Requested only when the user picks a notification mode other than off.
 
 ### BlockerState
 
-- Wrapper around SharedPreferences for reading/writing blocking state.
-- Stores: `isActive` (boolean), `blockedPackages` (Set<String>), `sessionId` (String), `startedAt` (Long), `authToken` (String), `baseUrl` (String), `maxBlockTimeMs` (Long).
+- Wrapper around SharedPreferences for blocking state. Stores: `is_active`, `blocked_packages`, `session_id`, `started_at`, `elapsed_realtime_at_start`, `max_block_time_ms`, `min_duration_ms`, `notification_block_mode`, `custom_message`.
+- `getElapsedSinceStart()` uses `SystemClock.elapsedRealtime`; `hasMetMinimumDuration()` gates `stopBlocking()`.
 - This is the source of truth for the Kotlin layer. If SharedPreferences says blocking is active, the service blocks. Period.
+- Excluded from Android backup (see `plugins/withProductionAndroidConfig.js`).
 
-### TaskStatusChecker
+### WellnessService
 
-- Polls the backend from Kotlin to detect task completion while blocking is active.
-- Uses the auth token and base URL passed via `startBlocking()`.
-- When the backend reports the task is complete, triggers `stopBlocking()` automatically.
-- Poll interval defined in `constants/config.ts` (`TASK_POLL_INTERVAL_MS`: 20s).
+Separate foreground service for the wellness tab features (eye-blinker breaks and auto-block after a usage limit). State in `WellnessState`; configured via `setEyeBlinkerConfig` / `setAutoBlockConfig`. Independent of task blocking.
 
 ### BootReceiver
 
-- BroadcastReceiver registered for BOOT_COMPLETED.
-- On boot: reads BlockerState. If `isActive` is true, starts BlockerService.
-- Registered in AndroidManifest.xml, not programmatically.
+- BroadcastReceiver registered for BOOT_COMPLETED in AndroidManifest.xml.
+- On boot: if `BlockerState.isActive()`, starts BlockerService (and restarts WellnessService if enabled).
 
-### BlockerWatchdogReceiver
+### ServiceGuardReceiver
 
-- BroadcastReceiver fired by AlarmManager every ~10 minutes while a session is active.
-- Scheduled by `BlockerService` via `setAndAllowWhileIdle` (fires even during Doze).
-- On fire: if `BlockerState.isActive() == true` AND `BlockerService` is NOT in the running services list → calls `BlockerService.start(context)` to relaunch. Then reschedules itself.
-- Purpose: aggressive OEMs (Infinix XOS, Xiaomi MIUI, Oppo ColorOS, Vivo FunTouch) kill foreground services despite Android's documented rules. This watchdog ensures the blocker comes back up.
-- Cancelled in `BlockerService.onDestroy` ONLY when the session ended cleanly (i.e. `BlockerState.isActive() == false`). If the OS killed the service, `isActive` stays true and the watchdog stays armed.
-- Requires battery optimization exemption (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`) for reliable firing during Doze.
-- Caveat: on Transsion XOS (Infinix/TECNO/Itel) the OS freezes the entire package within ~60s of going to background when AutoStart is disabled. In that frozen state the alarm fires but the receiver never runs, so the watchdog cannot save the service. Auto-Start must be enabled in OEM settings — see "OEM AutoStart" below.
+- Alarm-driven keep-alive, fired every ~2 minutes while a session is active, scheduled with `setAndAllowWhileIdle` (fires during Doze).
+- On fire: if `BlockerState.isActive()` and the service is not running, relaunches `BlockerService`; then reschedules itself.
+- Cancelled only when the session ended cleanly. If the OS killed the service, `isActive` stays true and the guard stays armed.
+- Purpose: aggressive OEMs (Infinix XOS, Xiaomi MIUI, Oppo ColorOS, Vivo FunTouch) kill foreground services despite Android's rules. Requires battery optimization exemption for reliable firing.
+- Caveat: on Transsion XOS the OS freezes the whole package ~60s after going to background unless AutoStart/lock is enabled. In that state the alarm fires but the receiver never runs — see "OEM AutoStart" below.
 
 ### OEM AutoStart and the padlock-in-recents flow
 
 Chinese OEM skins (Transsion XOS, MIUI, ColorOS, FunTouch, EMUI/MagicOS) enforce a custom AutoStart whitelist on top of standard Android. Apps not on this whitelist are frozen ~60s after going to background and refused service-rebind with `W/ActivityManager: AutoStart Limit`. There is **no public API** to query or toggle this.
 
-On most XOS/OxygenOS versions the user-facing fix isn't a settings toggle — it's a **menu action in the recent apps view**: open recents → tap the menu icon next to the app name → tap Lock. The locked app is then exempted from the OEM's kill list.
+On most XOS/OxygenOS versions the user-facing fix is a **menu action in the recent apps view**: open recents → tap the menu icon next to the app name → tap Lock. The locked app is exempted from the OEM's kill list.
 
-The `PadlockProtectionCard` (`components/PadlockProtectionCard.tsx`) walks the user through the gesture with a 3-step illustration and a single "I've Locked It" confirm button. On confirm, `padlockConfirmedAt` is set in `uiStore` (persisted to expo-secure-store) and the card replaces itself with a "Locked in Recents" success state. A "Show instructions again" link resets the flag so the user can re-read the steps if blocking ever stops working.
+`PadlockProtectionCard` walks the user through the gesture with a 3-step illustration and an "I've Locked It" button, which sets `padlockConfirmedAt` in `uiStore`. A "Show instructions again" link resets it.
 
-`useOemAutoStart()` exposes the detected brand and a `requiresAutoStart` flag (true for Transsion/Xiaomi/Oppo/Vivo/Huawei/Samsung). The card only renders on those devices. `openAutoStartSettings()` remains available as a fallback deep-link but is not used in the current UX — the recents-menu lock works on every modern XOS version, while the AutoStart settings screen location varies.
+`useOemAutoStart()` exposes the detected brand and a `requiresAutoStart` flag (true for Transsion/Xiaomi/Oppo/Vivo/Huawei/Samsung). The card only renders on those devices. `openAutoStartSettings()` remains as a fallback deep-link but is not used in the current UX.
 
 ## Permissions Setup Flow
 
-The app requires three Android permissions. The first two require navigating to Android Settings; the third is a one-tap system dialog.
+1. **Usage Stats Access** (PACKAGE_USAGE_STATS) — detect the foreground app
+2. **Overlay Permission** (SYSTEM_ALERT_WINDOW) — show the block screen
+3. **Ignore Battery Optimizations** (REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) — keep polling and alarms reliable in Doze. A system Allow/Deny dialog.
 
-1. **Usage Stats Access** (PACKAGE_USAGE_STATS) — needed to detect foreground app
-2. **Overlay Permission** (SYSTEM_ALERT_WINDOW) — needed to show blocking overlay
-3. **Ignore Battery Optimizations** (REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) — needed so the foreground service keeps polling during Doze / when screen is off. Shows as a system Allow/Deny dialog, not a settings page.
+Notification Access is optional and requested only when the user picks a notification block mode. `POST_NOTIFICATIONS` is needed for the foreground-service notifications.
 
-`BlockerService` also acquires a `PARTIAL_WAKE_LOCK` for the duration of an active session, which keeps the CPU awake so the 250ms polling coroutine fires reliably during Doze. The wake lock is released in `onDestroy`.
+`(setup)/permissions.tsx` walks the user through each step. `usePermissions()` re-checks `hasRequiredPermissions()` on app foreground. The task Start action also re-validates permissions and links back to setup if anything is missing.
 
-An optional fourth permission (Notification Access) is requested from Settings only if the user enables the "Block Notifications" toggle — it is not part of the setup wizard.
+## Legal Docs
 
-The `(setup)/permissions.tsx` screen walks the user through each sequentially. It checks status after the user returns from Settings and only allows proceeding when both are granted. The `usePermissions()` hook polls `hasRequiredPermissions()` from the native module (re-checks on app foreground via AppState listener).
-
-This screen MUST be shown on first launch before the user can create any tasks or start blocking.
+`legal/privacy.html` and `legal/terms.html` describe exactly what data leaves the device (feedback + anonymous analytics only). Any change to data flows, permissions, storage or backend calls must be reflected there. Review incrementally from the commit recorded in `legal/REVIEW_BASELINE.md`.
 
 ## Key Conventions
 
@@ -319,49 +302,49 @@ This screen MUST be shown on first launch before the user can create any tasks o
 
 ### TypeScript
 
-- Strict mode enabled. No `any` types except when interfacing with native modules or third-party libraries.
-- Define API response types in `types/`. Never inline response types.
-- Bridge types (AppInfo, PermissionStatus) live in `types/blocker.ts`.
+- Strict mode. No `any` types except when interfacing with native modules or third-party libraries.
+- Define shared types in `types/`. Bridge types (AppInfo, PermissionStatus) live in `types/blocker.ts`; `WellnessConfig` is in `modules/blocker/index.ts`.
 - Prefer `interface` for object shapes, `type` for unions and utility types.
 
 ### Kotlin
 
 - Use Kotlin idioms. No Java patterns in Kotlin code.
-- All SharedPreferences access goes through BlockerState — never read/write directly elsewhere.
-- Use coroutines for async work in the foreground service, not threads.
-- Keep the bridge module thin — translate between RN types and Kotlin types, not business logic.
-- Log important state transitions (service started, blocked app detected, overlay shown) for debugging.
+- All blocking SharedPreferences access goes through BlockerState (wellness through WellnessState) — never read/write directly elsewhere.
+- Use coroutines for async work in the foreground services, not threads.
+- Keep the bridge module thin — translate between RN types and Kotlin types, not business logic. The exception is the minimum-duration gate in `stopBlocking`, which must live in Kotlin.
+- Log important state transitions (service started, blocked app detected, overlay shown, session ended) for debugging.
 
 ### Forms & Validation
 
 - No form libraries. All forms use plain controlled inputs with `useState`.
-- Validate input data with Zod `schema.safeParse(data)` before calling API mutations.
+- Validate input with Zod `schema.safeParse(data)` before saving.
 - Show validation errors inline next to the relevant input field.
 - Keep form state local to the component — do not put form input values in Zustand.
 
 ### Button Behavior
 
-- Every button must be **single-click guarded**: disable on press, stay disabled during API call, re-enable in a `finally` block after a minimum 1-second cooldown.
-- Disable the button BEFORE calling the API, not after.
-- For mutation buttons (PrimaryButton with `isLoading`): pass `disabled={busy}` and set busy state before the mutation call.
-- For non-mutation buttons (TouchableOpacity, FAB): use a `useRef<boolean>(false)` guard or `useState` + `setTimeout(1000)` cooldown.
-- This applies to ALL buttons in the app — auth forms, task actions, navigation actions, toggles that trigger side effects.
+- Every button must be **single-click guarded**: disable on press, stay disabled during async work, re-enable in a `finally` block after a minimum 1-second cooldown.
+- Disable the button BEFORE starting the work, not after.
+- For PrimaryButton with `isLoading`: pass `disabled={busy}` and set busy state before the call.
+- For TouchableOpacity / FAB: use a `useRef<boolean>(false)` guard or `useState` + `setTimeout(1000)` cooldown.
+- This applies to ALL buttons — task actions, navigation actions, toggles that trigger side effects.
 
 ### Error Handling
 
-- API errors caught by axios interceptor for 401/403 (triggers logout via AuthContext, skips auth endpoints).
 - Native module errors (permissions denied, service failed to start) must surface to the user via clear UI messages, not silent failures.
-- If BlockerService is killed by the system, it must restart via START_STICKY and emit `onServiceStopped` event to RN if the app is open.
+- `stopBlocking()` returning `false` is not an error — show the "not eligible yet" message.
+- If BlockerService is killed by the system, it must restart via START_STICKY / ServiceGuardReceiver and emit `onServiceStopped` to RN if the app is open.
 
 ## Do NOT
 
-- Do NOT store blocking state in React Native (AsyncStorage, Zustand, or component state). SharedPreferences on the Kotlin side is the source of truth.
-- Do NOT add an AccessibilityService back to the project. The Play Store flags accessibility-for-blocking as a policy risk and the 250ms UsageStatsManager poll is sufficient for app detection. Notification suppression uses NotificationListenerService, which is a separate, allowed mechanism.
+- Do NOT store blocking state in React Native (AsyncStorage, Zustand, or component state). SharedPreferences on the Kotlin side is the source of truth; the task store is only a record.
+- Do NOT enforce minimum/maximum duration in JS. Kotlin decides.
+- Do NOT add login, accounts, or a backend copy of tasks without updating the legal docs — the privacy policy promises tasks stay on the device.
+- Do NOT add an AccessibilityService. The Play Store flags accessibility-for-blocking as a policy risk and the 250ms UsageStatsManager poll is sufficient. Notification suppression uses NotificationListenerService, which is allowed.
 - Do NOT put a close/dismiss button on the blocking overlay. The user must leave the blocked app.
-- Do NOT install or use any form library (React Hook Form, Formik, etc.). Use plain controlled inputs with useState. Validate with Zod.
-- Do NOT use React Context for state management EXCEPT for auth (AuthContext integrates with Expo Router). All other server state goes through TanStack Query.
-- Do NOT add Redux, MobX, or Jotai. Zustand is the only client state library.
-- Do NOT put API calls directly in screens. They go through the services/api/ → hooks/queries/ chain.
+- Do NOT install or use any form library (React Hook Form, Formik, etc.).
+- Do NOT add Redux, MobX, Jotai, or React Context for state. Zustand is the only state library.
+- Do NOT put API calls directly in screens. They go through `services/api/`.
 - Do NOT expand the native bridge without careful consideration. Every method is cross-language maintenance cost.
 - Do NOT use Expo Go for development. Custom dev client is required for native Kotlin modules.
 - Do NOT hardcode the API base URL. Use `constants/config.ts`.

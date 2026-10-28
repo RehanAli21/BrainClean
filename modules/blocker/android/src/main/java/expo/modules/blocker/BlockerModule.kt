@@ -26,7 +26,10 @@ class BlockerModule : Module() {
         Events("onBlockedAppDetected", "onServiceStopped")
 
         OnCreate {
-            appContext.reactContext?.let { LegacyScheduleCleanup.run(it) }
+            appContext.reactContext?.let {
+                LegacyScheduleCleanup.run(it)
+                BlockerState.getInstance(it).clearLegacyAuth()
+            }
         }
 
         AsyncFunction("getInstalledApps") {
@@ -68,19 +71,26 @@ class BlockerModule : Module() {
                 .sortedBy { (it["appName"] as? String)?.lowercase() }
         }
 
-        Function("startBlocking") { packageNames: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long, customMessage: String ->
+        Function("startBlocking") { packageNames: List<String>, sessionId: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long, customMessage: String ->
             val context = appContext.reactContext ?: return@Function Unit
             val state = BlockerState.getInstance(context)
-            state.startSession(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage)
+            state.startSession(packageNames, sessionId, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage)
             BlockerService.start(context)
             ServiceGuardReceiver.scheduleIfNeeded(context)
         }
 
+        // Returns false (and keeps blocking) if the session's minimum duration
+        // hasn't elapsed yet.
         Function("stopBlocking") {
-            val context = appContext.reactContext ?: return@Function Unit
+            val context = appContext.reactContext ?: return@Function false
             val state = BlockerState.getInstance(context)
+            if (!state.hasMetMinimumDuration()) {
+                Log.w("BlockerModule", "stopBlocking refused: minimum duration not reached")
+                return@Function false
+            }
             state.stopSession()
             BlockerService.stop(context)
+            true
         }
 
         Function("isBlocking") {

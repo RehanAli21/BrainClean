@@ -1,11 +1,10 @@
 import type { ThemeMode } from '@/hooks/useTheme';
-import type { SubscriptionState } from '@/types/subscription';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
-// Nothing in this store is a secret (the auth token lives elsewhere), and
+// Nothing in this store is a secret, and
 // SecureStore is slow and warns above 2048 bytes — which a long selectedApps
 // list exceeds. AsyncStorage is the right home; existing installs migrate
 // their SecureStore blob on first read.
@@ -31,11 +30,6 @@ interface UiState {
   selectedApps: string[];
   toggleApp: (packageName: string) => void;
   isAppSelected: (packageName: string) => boolean;
-  // Per-task notification blocking mode, chosen at task creation and keyed by
-  // task id. 0 = off, 1 = blocked apps only, 2 = all. Read when a task starts
-  // blocking.
-  taskNotificationModes: Record<string, number>;
-  setTaskNotificationMode: (taskId: string, mode: number) => void;
   // Timestamp (ms) the user confirmed they padlocked BrainClean in the recents
   // view on an aggressive-OEM device (XOS/MIUI/etc). Null = not confirmed yet.
   // Used to hide the padlock-tutorial card once the user has done it.
@@ -62,12 +56,6 @@ interface UiState {
   setAutoBlockUsageLimitMinutes: (minutes: number) => void;
   autoBlockDurationSeconds: number;
   setAutoBlockDurationSeconds: (seconds: number) => void;
-  isPremium: boolean;
-  setIsPremium: (premium: boolean) => void;
-  subscriptionState: SubscriptionState;
-  setSubscriptionState: (state: SubscriptionState) => void;
-  subscriptionExpiresAt: string | null;
-  setSubscriptionExpiresAt: (expiresAt: string | null) => void;
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
   // Global custom messages for the two wellness overlays. Empty = built-in
@@ -76,10 +64,6 @@ interface UiState {
   setCustomMessageEye: (message: string) => void;
   customMessageAppMonitor: string;
   setCustomMessageAppMonitor: (message: string) => void;
-  // Per-task custom block-screen message, keyed by task id and chosen at task
-  // creation. Passed to the native session when the task starts blocking.
-  taskCustomMessages: Record<string, string>;
-  setTaskCustomMessage: (taskId: string, message: string) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -98,14 +82,6 @@ export const useUiStore = create<UiState>()(
 
       isAppSelected: (packageName: string) => {
         return get().selectedApps.includes(packageName);
-      },
-
-      taskNotificationModes: {},
-
-      setTaskNotificationMode: (taskId: string, mode: number) => {
-        set((state) => ({
-          taskNotificationModes: { ...state.taskNotificationModes, [taskId]: mode },
-        }));
       },
 
       padlockConfirmedAt: null,
@@ -164,19 +140,6 @@ export const useUiStore = create<UiState>()(
         set({ autoBlockDurationSeconds: seconds });
       },
 
-      isPremium: false,
-      setIsPremium: (premium: boolean) => {
-        set({ isPremium: premium });
-      },
-      subscriptionState: 'NONE' as SubscriptionState,
-      setSubscriptionState: (state: SubscriptionState) => {
-        set({ subscriptionState: state });
-      },
-      subscriptionExpiresAt: null,
-      setSubscriptionExpiresAt: (expiresAt: string | null) => {
-        set({ subscriptionExpiresAt: expiresAt });
-      },
-
       themeMode: 'system' as ThemeMode,
       setThemeMode: (mode: ThemeMode) => {
         set({ themeMode: mode });
@@ -189,13 +152,6 @@ export const useUiStore = create<UiState>()(
       customMessageAppMonitor: '',
       setCustomMessageAppMonitor: (message: string) => {
         set({ customMessageAppMonitor: message });
-      },
-
-      taskCustomMessages: {},
-      setTaskCustomMessage: (taskId: string, message: string) => {
-        set((state) => ({
-          taskCustomMessages: { ...state.taskCustomMessages, [taskId]: message },
-        }));
       },
     }),
     {

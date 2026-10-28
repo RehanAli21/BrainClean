@@ -1,5 +1,5 @@
 export default {
-  common: { cancel: '취소', delete: '삭제', skip: '건너뛰기', next: '다음', back: '뒤로', done: '완료', grant: '허용', granted: '허용됨', somethingWentWrong: '문제가 발생했습니다. 다시 시도해 주세요.', networkError: '인터넷 연결이 없습니다. 네트워크를 확인해 주세요.', rateLimited: '시도 횟수가 너무 많습니다. 1분 후 다시 시도해 주세요.', serverError: '서버 오류입니다. 나중에 다시 시도해 주세요.', invalidInput: '잘못된 입력입니다.', minutes: '{{count}}분', hours: '{{count}}시간', hoursMinutes: '{{hours}}시간 {{minutes}}분' },
+  common: { cancel: '취소', delete: '삭제', skip: '건너뛰기', next: '다음', back: '뒤로', done: '완료', grant: '허용', granted: '허용됨', somethingWentWrong: '문제가 발생했습니다. 다시 시도해 주세요.', rateLimited: '시도 횟수가 너무 많습니다. 1분 후 다시 시도해 주세요.', invalidInput: '잘못된 입력입니다.', minutes: '{{count}}분', hours: '{{count}}시간', hoursMinutes: '{{hours}}시간 {{minutes}}분' },
   validation: { emailInvalid: '유효한 이메일을 입력해 주세요', taskNameRequired: '작업 이름은 필수입니다', taskNameMax: '작업 이름이 너무 깁니다', durationMin: '시간은 최소 1분이어야 합니다', durationMax: '시간은 24시간을 초과할 수 없습니다' },
   permissions: { title: '권한이 필요합니다', subtitle: 'BrainClean이 앱을 차단하고 집중을 보호하려면 이 권한이 필요합니다.', usageAccess: '사용 정보 접근', usageAccessDesc: '포그라운드 앱을 감지하여 차단하기 위해 필요합니다.', overlay: '다른 앱 위에 표시', overlayDesc: '차단된 앱을 열 때 차단 화면을 표시하기 위해 필요합니다.', battery: '백그라운드 제한 없음', batteryDesc: '화면이 꺼져 있을 때도 앱 차단을 유지하기 위해 필요합니다.', grantPermission: '권한 허용', footer: '각 카드에서 허용을 탭하세요. 일부는 Android 설정을 열고, 일부는 빠른 대화상자를 표시합니다.' },
   languageSelector: { title: '언어 선택', subtitle: 'BrainClean의 언어를 선택하세요' },
@@ -17,9 +17,8 @@ export default {
   taskDetail: { title: '작업 상세', notFound: '작업을 찾을 수 없습니다.', finishFirst: '새 작업을 만들려면 먼저 이 작업을 완료하세요.', duration: '시간: {{duration}}', autoComplete: '자동 완료: {{duration}}', autoCompleted: '자동 완료됨', started: '시작 {{date}}', completedAt: '완료 {{date}}', created: '생성 {{date}}', startTask: '작업 시작', finishTask: '작업 완료', remaining: '작업이 활성화되어 있습니다. {{duration}} 남음.', deleteTask: '작업 삭제', deleteConfirm: '이 작업을 삭제하시겠습니까?', permsNotGranted: '필요한 권한이 부여되지 않았습니다. 설정에서 부여하세요.', noApps: '차단할 앱이 선택되지 않았습니다. 먼저 앱 탭에서 선택하세요.', notEligible: '최소 시간이 아직 경과하지 않았습니다.', blockingFailed: '작업이 시작되었지만 앱 차단이 활성화되지 않았습니다.', anotherActive: '다른 작업이 이미 활성화되어 있습니다.', activeNamed: '"{{name}}"이(가) 이미 활성화되어 있습니다 (시작 {{date}}).', enjoyingApp: 'BrainClean이 마음에 드시나요?', rateHint: 'Play 스토어에서 평가해 주세요!', later: '나중에', rateNow: '지금 평가' },
   newTask: { title: '새 작업', permsRequired: '작업을 만들기 전에 모든 권한을 부여해야 합니다.', permsHint: 'BrainClean은 집중 세션 중 앱을 차단하기 위해 사용 정보 접근, 오버레이, 백그라운드 권한이 필요합니다.', grantPerms: '권한 부여', taskName: '작업 이름', taskNamePlaceholder: '예: 10페이지 읽기', duration: '시간', hours: '시간', minutes: '분', blockedHint: '이 기간 동안 앱이 차단됩니다', autoCompleteToggle: '작업 자동 완료', autoCompleteHint: '설정된 시간 후 자동으로 종료', autoCompleteAfter: '자동 완료 시간', autoCompleteDesc: '작업이 자동 완료되고 앱 차단이 해제됩니다', autoCompleteError: '자동 완료 시간은 기간보다 길어야 합니다', createTask: '작업 만들기' },
   apps: { title: '앱', selected: '{{count}}개 선택됨', installed: '{{count}}개 설치됨', locked: '작업이 활성화된 동안 앱 선택이 잠깁니다.', searchPlaceholder: '앱 검색...', loading: '앱 로드 중...', loadError: '설치된 앱을 로드하지 못했습니다. 기기에서 실행 중인지 확인하세요.', noMatch: '검색과 일치하는 앱이 없습니다.', noApps: '앱을 찾을 수 없습니다.' },
-  update: { title: '업데이트 필요', message: 'BrainClean의 새 버전을 사용할 수 있습니다. 앱을 계속 사용하려면 업데이트하세요.', button: '지금 업데이트' },
-  tutorial: { welcome: 'BrainClean에 오신 것을 환영합니다', welcomeDesc: 'BrainClean은 작업을 완료할 때까지 방해가 되는 앱을 차단하여 집중을 유지하도록 도와줍니다.', selectApps: '차단할 앱 선택', selectAppsDesc: '앱 탭으로 이동하여 집중 세션 중 차단하고 싶은 앱을 켜세요.', createTask: '작업 만들기', createTaskDesc: '작업 탭에서 + 버튼을 탭하여 새 작업을 만드세요. 이름과 시간을 설정하세요.', startTask: '작업 시작', startTaskDesc: '작업을 만든 후 시작을 탭하세요. 선택한 앱이 즉시 차단됩니다.', completeTask: '작업 완료', completeTaskDesc: '최소 시간이 지나면 완료 버튼이 나타납니다. 작업을 완료하여 앱 차단을 해제하세요.', notifModes: '알림 차단', notifModesDesc: '설정에서 세션 중 알림 처리 방식을 선택하세요: 끄기, 선택한 앱만 차단, 또는 모든 알림 차단. 알림 접근 권한이 필요합니다.', eyeBlinker: '아이 블링커', eyeBlinkerDesc: '웰니스 탭에서 아이 블링커를 활성화하면 주기적으로 화면에서 눈을 떼라는 알림을 받습니다. 20-20-20 규칙으로 눈을 보호합니다 — 앱을 닫아도 작동합니다.', doomScroll: '둠 스크롤 브레이커', doomScrollDesc: '웰니스 탭에서 둠 스크롤 브레이커도 활성화하면 선택한 앱에서 너무 오래 사용 시 자동으로 휴식을 취합니다. 앱 탭에서 선택한 앱을 모니터링합니다.', feedback: '피드백 보내기', feedbackDesc: '작업 페이지의 피드백 버튼을 탭하여 의견을 공유하세요. 개선할 점을 알려주세요 — 피드백은 팀에 직접 전달됩니다.', ready: '준비 완료!', readyDesc: '이게 전부입니다! 첫 번째 작업을 만들고 집중력을 키우세요. 설정에서 이 튜토리얼을 다시 볼 수 있습니다.', interactive: '대화형 가이드' },
-  walkthrough: { createTask: '작업 만들기', createTaskDesc: '+ 버튼을 탭하여 새로운 집중 작업을 만드세요.', filterDate: '날짜별 필터', filterDateDesc: '캘린더를 사용하여 다른 날의 작업을 탐색하세요.', taskName: '작업 이름', taskNameDesc: '작업 이름을 입력하세요 — 이 집중 세션에서 달성하고 싶은 것.', duration: '시간', durationDesc: '세션 길이를 설정하세요. 이 전체 기간 동안 앱이 차단됩니다.', createButton: '작업 만들기', createButtonDesc: '여기를 탭하여 작업을 만드세요. 시작할 수 있는 상세 페이지가 표시됩니다.', findApps: '앱 찾기 및 선택', findAppsDesc: '앱을 검색하고 켜세요. 선택한 앱은 작업 시작 시 차단됩니다.', eyeBlinker: '아이 블링커', eyeBlinkerDesc: '화면에서 눈을 떼라는 주기적 알림을 받으려면 이것을 켜세요. 20-20-20 규칙으로 눈을 보호합니다.', doomScroll: '둠 스크롤 브레이커', doomScrollDesc: '선택한 앱에서 너무 오래 사용 시 자동으로 휴식을 취하려면 이것을 켜세요.', notifModes: '알림 모드', notifModesDesc: '끄기, 선택한 앱, 또는 모든 앱 중 선택하여 세션 중 어떤 알림을 음소거할지 제어하세요.', grantPerms: '권한 부여', grantPermsDesc: '차단이 작동하려면 모든 권한이 필요합니다.', feedback: '피드백 보내기', feedbackDesc: '여기를 탭하여 의견을 공유하고 BrainClean 개선에 도움을 주세요.' },
+  tutorial: { welcome: 'BrainClean에 오신 것을 환영합니다', welcomeDesc: 'BrainClean은 작업을 완료할 때까지 방해가 되는 앱을 차단하여 집중을 유지하도록 도와줍니다.', selectApps: '차단할 앱 선택', selectAppsDesc: '앱 탭으로 이동하여 집중 세션 중 차단하고 싶은 앱을 켜세요.', createTask: '작업 만들기', createTaskDesc: '작업 탭에서 + 버튼을 탭하여 새 작업을 만드세요. 이름과 시간을 설정하세요.', startTask: '작업 시작', startTaskDesc: '작업을 만든 후 시작을 탭하세요. 선택한 앱이 즉시 차단됩니다.', completeTask: '작업 완료', completeTaskDesc: '최소 시간이 지나면 완료 버튼이 나타납니다. 작업을 완료하여 앱 차단을 해제하세요.', notifModes: '알림 차단', notifModesDesc: '설정에서 세션 중 알림 처리 방식을 선택하세요: 끄기, 선택한 앱만 차단, 또는 모든 알림 차단. 알림 접근 권한이 필요합니다.', eyeBlinker: '아이 블링커', eyeBlinkerDesc: '웰니스 탭에서 아이 블링커를 활성화하면 주기적으로 화면에서 눈을 떼라는 알림을 받습니다. 20-20-20 규칙으로 눈을 보호합니다 — 앱을 닫아도 작동합니다.', doomScroll: '둠 스크롤 브레이커', doomScrollDesc: '웰니스 탭에서 둠 스크롤 브레이커도 활성화하면 선택한 앱에서 너무 오래 사용 시 자동으로 휴식을 취합니다. 앱 탭에서 선택한 앱을 모니터링합니다.', ready: '준비 완료!', readyDesc: '이게 전부입니다! 첫 번째 작업을 만들고 집중력을 키우세요. 설정에서 이 튜토리얼을 다시 볼 수 있습니다.', interactive: '대화형 가이드' },
+  walkthrough: { createTask: '작업 만들기', createTaskDesc: '+ 버튼을 탭하여 새로운 집중 작업을 만드세요.', filterDate: '날짜별 필터', filterDateDesc: '캘린더를 사용하여 다른 날의 작업을 탐색하세요.', taskName: '작업 이름', taskNameDesc: '작업 이름을 입력하세요 — 이 집중 세션에서 달성하고 싶은 것.', duration: '시간', durationDesc: '세션 길이를 설정하세요. 이 전체 기간 동안 앱이 차단됩니다.', createButton: '작업 만들기', createButtonDesc: '여기를 탭하여 작업을 만드세요. 시작할 수 있는 상세 페이지가 표시됩니다.', findApps: '앱 찾기 및 선택', findAppsDesc: '앱을 검색하고 켜세요. 선택한 앱은 작업 시작 시 차단됩니다.', eyeBlinker: '아이 블링커', eyeBlinkerDesc: '화면에서 눈을 떼라는 주기적 알림을 받으려면 이것을 켜세요. 20-20-20 규칙으로 눈을 보호합니다.', doomScroll: '둠 스크롤 브레이커', doomScrollDesc: '선택한 앱에서 너무 오래 사용 시 자동으로 휴식을 취하려면 이것을 켜세요.', notifModes: '알림 모드', notifModesDesc: '끄기, 선택한 앱, 또는 모든 앱 중 선택하여 세션 중 어떤 알림을 음소거할지 제어하세요.', grantPerms: '권한 부여', grantPermsDesc: '차단이 작동하려면 모든 권한이 필요합니다.' },
   padlock: { lockedTitle: '최근 앱에서 잠금됨', lockedDesc: 'BrainClean을 잠금으로 표시했습니다. 차단이 중지되면 아래를 탭하여 다시 수행하세요.', showInstructions: '안내 다시 보기', lockTitle: '최근 앱에서 잠금', lockDesc: '{{brand}}은(는) 약 1분 후 백그라운드 앱을 종료합니다. 이를 방지하려면 최근 앱을 열고 BrainClean 옆의 메뉴 아이콘을 탭한 다음', lock: '잠금', oneTime: '일회성 설정입니다.', confirmed: '잠금했습니다', step1: '최근 앱 열기', step2: 'BrainClean 옆의 메뉴 탭', step3: '잠금 탭' },
   tabs: { tasks: '작업', apps: '앱', wellness: '웰니스', settings: '설정' },
 
@@ -41,24 +40,6 @@ export default {
     monitorsApps: '앱 탭에서 선택한 앱을 모니터링합니다',
     autoBlockDesc: '{{limit}}분 연속 사용 후 앱이 {{duration}}초 동안 차단됩니다',
     appsLockedByAutoBlock: '둠 스크롤 차단기가 활성화된 동안 앱 선택이 잠겨 있습니다. 앱을 변경하려면 비활성화하세요.',
-  },
-
-  feedback: {
-    title: '피드백 보내기',
-    subtitle: 'BrainClean 개선에 도움을 주세요. 여러분의 의견이 중요합니다!',
-    categoryLabel: '카테고리',
-    selectCategory: '카테고리 선택',
-    categoryRequired: '카테고리를 선택해 주세요',
-    messageLabel: '피드백',
-    messagePlaceholder: '의견을 알려주세요...',
-    messageRequired: '피드백을 입력해 주세요',
-    messageTooLong: '피드백은 2000자 미만이어야 합니다',
-    emailLabel: '이메일 (선택사항)',
-    emailPlaceholder: 'your@email.com',
-    submit: '피드백 제출',
-    thankYou: '감사합니다!',
-    submitted: '피드백이 제출되었습니다. 개선에 도움을 주셔서 감사합니다.',
-    categories: { 'hard-to-use': '사용하기 어려움', 'missing-features': '기능 부족', 'too-many-permissions': '권한이 너무 많음', 'not-what-expected': '기대와 다름', 'found-alternative': '대안을 찾음', 'bugs-crashes': '버그 및 충돌', 'privacy-concerns': '개인정보 우려', 'other': '기타' },
   },
 
   native: {

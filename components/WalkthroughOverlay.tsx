@@ -90,13 +90,6 @@ const STEPS: WalkthroughStep[] = [
 		descriptionKey: 'walkthrough.grantPermsDesc',
 		tooltipPosition: 'top',
 	},
-	{
-		key: 'tasks-feedback',
-		route: '/(main)/(tabs)/tasks',
-		titleKey: 'walkthrough.feedback',
-		descriptionKey: 'walkthrough.feedbackDesc',
-		tooltipPosition: 'top',
-	},
 ]
 
 interface TargetRect {

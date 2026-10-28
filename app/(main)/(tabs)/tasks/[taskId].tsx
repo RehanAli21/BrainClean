@@ -4,7 +4,6 @@ import { useBlocker } from '@/hooks/useBlocker'
 import { usePermissions } from '@/hooks/usePermissions'
 import { reconcileTasks, useTasksHydrated } from '@/hooks/useTasks'
 import { isBlocking as nativeIsBlocking } from '@/modules/blocker'
-import { analytics } from '@/services/analytics'
 import { isTaskActive, maxBlockTimeMs, useTaskStore } from '@/store/taskStore'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -83,7 +82,6 @@ export default function TaskDetailScreen() {
 			return
 		}
 		markCompleted(task.id)
-		analytics.track('task_completed', { taskId: task.id })
 	}
 
 	const handleStart = () => {
@@ -123,7 +121,6 @@ export default function TaskDetailScreen() {
 			return
 		}
 		markStarted(task.id)
-		analytics.track('task_started', { taskId: task.id })
 	}
 
 	const handleDelete = () => {
@@ -137,7 +134,6 @@ export default function TaskDetailScreen() {
 				style: 'destructive',
 				onPress: () => {
 					deleteTask(taskId!)
-					analytics.track('task_deleted', { taskId })
 					router.replace('/(main)/(tabs)/tasks')
 				},
 			},

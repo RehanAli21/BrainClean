@@ -237,9 +237,9 @@
 				<p>
 					<strong>Short version.</strong> BrainClean is an Android app that helps you block distracting apps until you complete a focus
 					task, and offers optional eye-care and screen-time features. <strong>There is no account and no sign-in.</strong> Your tasks, the
-					apps you choose to block, and everything the app observes about your app usage stay on your device. The only things that reach our
-					servers are feedback you choose to send us and anonymous product-analytics events that are not linked to any account (section 8).
-					We do not use third-party analytics, advertising, or attribution SDKs, and the App does not sell anything.
+					apps you choose to block, and everything the app observes about your app usage stay on your device. <strong>The App works entirely
+					offline and sends nothing to us or to anyone else.</strong> It has no analytics, advertising, attribution, or crash-reporting
+					tools, and it does not sell anything.
 				</p>
 			</div>
 
@@ -255,7 +255,7 @@
 					<li><a href="#storage">How we store and protect your data</a></li>
 					<li><a href="#notifications">Notifications</a></li>
 					<li><a href="#third-parties">Third parties</a></li>
-					<li><a href="#analytics">Product analytics</a></li>
+					<li><a href="#analytics">No analytics or tracking</a></li>
 					<li><a href="#retention">Data retention</a></li>
 					<li><a href="#rights">Your rights and choices</a></li>
 					<li><a href="#children">Children&rsquo;s privacy</a></li>
@@ -276,8 +276,8 @@
 
 			<h2 id="collect">2. Information we collect</h2>
 			<p>
-				The App does not have accounts. You do not sign up, sign in, or give us your name or email address to use it. We collect only what
-				is described below.
+				The App does not have accounts. You do not sign up, sign in, or give us your name or email address to use it. <strong>We do not
+				collect any information through the App.</strong> The information described below is created and kept on your device only.
 			</p>
 
 			<h3>2.1 Your tasks</h3>
@@ -290,9 +290,7 @@
 				<li>Timestamps for when the task was created, started, and completed</li>
 			</ul>
 			<p>
-				<strong>Tasks are stored only on your device and are never sent to our servers.</strong> Each task is given a random identifier,
-				generated on your device. That identifier, but not the task&rsquo;s name, durations, or message, is included in the anonymous
-				analytics events described in section&nbsp;8.
+				<strong>Tasks are stored only on your device and are never sent to our servers.</strong>
 			</p>
 
 			<h3>2.2 Selected apps to block</h3>
@@ -301,39 +299,21 @@
 				<strong>only on your device</strong> &mdash; it is never sent to or stored on our servers.
 			</p>
 
-			<h3>2.3 Feedback you send us</h3>
-			<p>If you use the &ldquo;Send Feedback&rdquo; form in the App, we receive and store:</p>
-			<ul>
-				<li>The <strong>category</strong> you select (for example &ldquo;Bugs &amp; Crashes&rdquo; or &ldquo;Privacy Concerns&rdquo;).</li>
-				<li>The <strong>message</strong> you write, up to 2,000 characters.</li>
-				<li>
-					An <strong>email address, only if you choose to enter one</strong>. This field is optional and is left blank unless you fill it
-					in. We use it to reply to you about your feedback.
-				</li>
-			</ul>
-			<div class="callout">
-				<p>
-					<strong>Please note:</strong> the message box is free text, and we store whatever you type in it. Please do not include passwords,
-					financial details, or other sensitive personal information in your feedback.
-				</p>
-			</div>
-			<p>We use feedback only to understand problems and improve the App. We do not publish it or use it for marketing.</p>
-
-			<h3>2.4 Accounts from earlier versions</h3>
+			<h3>2.3 Earlier versions</h3>
 			<p>
 				Earlier versions of the App required an account (an email address and password, or Google Sign-In), stored your tasks on our
-				servers, and offered a paid subscription. The current version does none of this. When you update, the App deletes the sign-in token
-				and email address that an earlier version stored on your device.
+				servers, offered a paid subscription, and sent feedback and anonymous usage analytics to our servers. The current version does none
+				of this. When you update, the App deletes the sign-in token and email address, and any analytics events still waiting to be sent,
+				that an earlier version stored on your device.
 			</p>
 			<p>
 				All accounts created with earlier versions, and the tasks and other data stored for them on our servers, have been deleted.
 			</p>
 
-			<h3>2.5 What we do <em>not</em> collect</h3>
+			<h3>2.4 What we do <em>not</em> collect</h3>
 			<ul>
 				<li>
-					We do <strong>not</strong> collect your name, email address (unless you include one in feedback), phone number, address, or any
-					government identifiers.
+					We do <strong>not</strong> collect your name, email address, phone number, address, or any government identifiers.
 				</li>
 				<li>We do <strong>not</strong> collect your location.</li>
 				<li>We do <strong>not</strong> collect your contacts, photos, or files.</li>
@@ -346,12 +326,13 @@
 					blocking is switched on. See section&nbsp;3.3.
 				</li>
 				<li>We do <strong>not</strong> collect any payment information. The App is free and has no in-app purchases.</li>
+				<li>We do <strong>not</strong> collect usage analytics, device identifiers, IP addresses, or crash reports.</li>
 			</ul>
 
 			<h2 id="device">3. Information we read from your device</h2>
 			<p>
-				To make blocking work, the App reads certain information from your device. This information is processed locally and is not
-				transmitted to our servers unless explicitly stated below.
+				To make blocking work, the App reads certain information from your device. This information is processed locally and is never
+				transmitted to our servers or to anyone else.
 			</p>
 
 			<h3>3.1 List of installed apps</h3>
@@ -447,8 +428,8 @@
 					<tr>
 						<td><code>INTERNET</code></td>
 						<td>
-							To send feedback you choose to submit and anonymous analytics events (section&nbsp;8) to our backend, and to check Google
-							Play for app updates. Tasks and blocking work without a connection.
+							Included by default by the framework the App is built with. The App does not use it: it makes no network requests, and
+							everything works without a connection.
 						</td>
 					</tr>
 					<tr>
@@ -523,8 +504,8 @@
 			<ul>
 				<li>
 					<strong>Tasks and preferences</strong> &mdash; your tasks (section&nbsp;2.1), which apps you selected, your chosen language and
-					theme, your wellness-feature settings and the custom messages you set for the wellness reminders, and analytics events waiting
-					to be sent are stored in the App&rsquo;s private storage area, accessible only to the App.
+					theme, and your wellness-feature settings and the custom messages you set for the wellness reminders are stored in the
+					App&rsquo;s private storage area, accessible only to the App.
 				</li>
 				<li>
 					<strong>Blocking engine state</strong> &mdash; while a focus task is active, the blocking engine keeps its own copy of the session
@@ -541,17 +522,8 @@
 				</li>
 			</ul>
 
-			<h3>5.2 In transit</h3>
-			<p>
-				All communication between the App and our backend uses HTTPS (TLS). Our backend is reachable at
-				<code>https://api.brainclean.app/api</code>. The App only contacts it to send feedback and analytics events.
-			</p>
-
-			<h3>5.3 On our servers</h3>
-			<ul>
-				<li>Feedback and analytics events are stored on our own backend and are not shared with third parties.</li>
-				<li>We follow industry-standard practices to protect data, but no system can be guaranteed 100% secure.</li>
-			</ul>
+			<h3>5.2 On our servers</h3>
+			<p>None. The App does not send any data to us, so we receive nothing about you or your use of the App.</p>
 
 			<h2 id="notifications">6. Notifications</h2>
 			<p>
@@ -576,9 +548,8 @@
 
 			<h2 id="third-parties">7. Third parties</h2>
 			<p>
-				BrainClean does <strong>not</strong> use any third-party analytics, advertising, attribution, or crash-reporting SDKs. We do
-				<strong>not</strong> sell, rent, or share your personal data with third parties for advertising or marketing. (Our own first-party
-				product analytics &mdash; kept entirely on our own backend &mdash; is described separately in section 8.)
+				BrainClean does <strong>not</strong> use any third-party analytics, advertising, attribution, or crash-reporting SDKs, and the App
+				does not send your data to any third party.
 			</p>
 			<p>
 				The only third party involved in running the App is <strong>Google</strong>, through Google Play, described under the
@@ -592,63 +563,19 @@
 
 			<h3>7.1 Google Play</h3>
 			<p>
-				The App is distributed through Google Play, which may collect its own diagnostic data. The App also uses Google Play&rsquo;s in-app
-				update mechanism to offer you a newer version when one is available; this exchanges version information with Google Play and does not
-				involve your task data.
+				The App is distributed through Google Play, which may collect its own diagnostic data and handles app updates. The App itself does
+				not contact Google Play. If you tap the optional &ldquo;Rate&rdquo; prompt, the App opens the Google Play listing, and Google&rsquo;s
+				own privacy policy applies there.
 			</p>
 			<p>
 				If we add a service in a future version (for example, an opt-in crash-reporting tool), we will update this policy and the effective
 				date before the new version is published.
 			</p>
 
-			<h2 id="analytics">8. Product analytics</h2>
+			<h2 id="analytics">8. No analytics or tracking</h2>
 			<p>
-				To understand how the App and this website are used and to improve them, we collect anonymous product-usage events. This is a
-				<strong>first-party</strong> system that we built and operate ourselves &mdash; all analytics data is stored on
-				<strong>our own backend</strong>. It is never sent to Google Analytics, Mixpanel, PostHog, Amplitude, or any other third-party
-				analytics vendor.
-			</p>
-			<p>
-				<strong>Web (this site).</strong> Analytics events sent from the website are <strong>always anonymous</strong>. Even if you are signed
-				in to your BrainClean account, web events are never linked to your user ID. Each event includes:
-			</p>
-			<ul>
-				<li>
-					<strong>What happened</strong> &mdash; an event name (for example, <code>page_viewed</code>, <code>login_succeeded</code>,
-					<code>play_store_cta_clicked</code>) and a small set of non-identifying properties (for example, which page you were on).
-				</li>
-				<li>
-					<strong>Session ID</strong> &mdash; a random identifier stored in your browser tab (<code>sessionStorage</code>) that lets us
-					group your actions into a single visit. It is discarded when you close the tab.
-				</li>
-				<li><strong>Client context</strong> &mdash; browser name and version, screen size, language, and timezone.</li>
-				<li>
-					<strong>Network context recorded by the server</strong> &mdash; IP address, User-Agent, Referer, Accept-Language, and country
-					(inferred from IP). Under GDPR, an IP address may be considered personal data.
-				</li>
-			</ul>
-			<p>
-				<strong>Mobile app.</strong> Analytics events from the mobile app are <strong>anonymous</strong>: there is no account, and events
-				are not linked to any user ID. Each event includes the event name (for example, <code>app_opened</code> or
-				<code>task_started</code>), a small set of non-identifying properties (such as a task&rsquo;s random identifier), a random session
-				identifier held in memory that changes after 30 minutes of inactivity, and device context: the app version, device model,
-				operating-system name and version, screen size, language, and timezone, plus the network context recorded by the server listed
-				above. Events are queued on your device and sent in batches; events that could not be sent yet are kept on the device until they can
-				be. The App does <strong>not</strong> include task names, the names of apps you block, your app-usage timings, or your notification
-				content in analytics &mdash; those never leave your device (see sections&nbsp;2.5 and&nbsp;3).
-			</p>
-			<p>
-				<strong>What we do not do:</strong> we do not use cookies for analytics, we do not build advertising profiles, we do not sell this
-				data, and we do not share it with third-party analytics vendors.
-			</p>
-			<p>
-				<strong>Retention.</strong> Analytics events are kept for as long as they are useful for improving the product. IP addresses on
-				analytics rows are truncated after 30 days so that the historical record cannot be linked back to a specific network.
-			</p>
-			<p>
-				<strong>Opt-out.</strong> A user-facing analytics opt-out is on our roadmap. In the meantime, you can prevent web analytics by
-				blocking requests to <code>/api/analytics/events</code> in your browser (for example, with uBlock Origin), and stop mobile analytics
-				by uninstalling the App.
+				The App does not collect analytics. It does not record or send events about how you use it, and it does not use advertising IDs,
+				device fingerprints, or cookies. We have no way to see who uses the App or how.
 			</p>
 
 			<h2 id="retention">9. Data retention</h2>
@@ -657,10 +584,8 @@
 				the App&rsquo;s storage, or uninstall it. We do not hold a copy.
 			</p>
 			<p>
-				<strong>Feedback</strong> is kept for as long as we need it to fix the problems it reports. If you want feedback you sent deleted,
-				email us at support@brainclean.app and we will remove it.
+				If you email us, we keep your message for as long as we need it to answer you. Ask us at support@brainclean.app and we will delete it.
 			</p>
-			<p>Retention of analytics events is described in section&nbsp;8.</p>
 
 			<h2 id="rights">10. Your rights and choices</h2>
 			<p>You can:</p>
@@ -668,9 +593,6 @@
 				<li>
 					<strong>Delete your data on the device</strong> at any time: delete individual pending tasks in the App, or clear the App&rsquo;s
 					storage or uninstall it to remove everything.
-				</li>
-				<li>
-					<strong>Ask us about feedback you sent</strong> &mdash; to access, correct, or delete it, email support@brainclean.app.
 				</li>
 				<li>
 					<strong>Revoke permissions</strong> at any time in Android Settings. Revoking certain permissions (Usage Access, Display over
@@ -689,22 +611,22 @@
 			<h2 id="children">11. Children&rsquo;s privacy</h2>
 			<p>
 				BrainClean is not directed at children under the age of 13. We do not knowingly collect personal information from anyone under 13. If
-				you believe a child under 13 has sent us personal information (for example, in feedback), contact us at support@brainclean.app and
+				you believe a child under 13 has sent us personal information (for example, by email), contact us at support@brainclean.app and
 				we will delete it.
 			</p>
 
 			<h2 id="international">12. International users</h2>
 			<p>
-				The App is operated from Pakistan, and data is processed on servers in the region where our backend is hosted. By using the App, you
-				consent to your information being transferred to and processed in that region. If you are located in a jurisdiction with specific
+				The App is operated from Pakistan. Because the App keeps your data on your device and sends nothing to us, no data is transferred
+				across borders by using it. If you are located in a jurisdiction with specific
 				data-protection rules (such as the EU/UK GDPR, California CCPA, or India DPDP), you may have additional rights under your local law
 				&mdash; you can exercise them by contacting us at support@brainclean.app.
 			</p>
 
 			<h2 id="security">13. Security</h2>
 			<p>
-				We use HTTPS for all network traffic and keep on-device data in the App&rsquo;s private storage, accessible only to the App. No
-				method of transmission or storage is perfectly secure, however. If you become aware of a security issue affecting the App, please
+				The App makes no network requests and keeps its data in the App&rsquo;s private storage, accessible only to the App. No method of
+				storage is perfectly secure, however. If you become aware of a security issue affecting the App, please
 				report it to support@brainclean.app.
 			</p>
 

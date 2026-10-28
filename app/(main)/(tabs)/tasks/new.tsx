@@ -4,7 +4,6 @@ import { PrimaryButton } from '@/components/PrimaryButton'
 import { isWalkthroughActive, registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { useTheme } from '@/hooks/useTheme'
 import { usePermissions } from '@/hooks/usePermissions'
-import { analytics } from '@/services/analytics'
 import { isTaskActive, useTaskStore } from '@/store/taskStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
@@ -194,10 +193,6 @@ export default function NewTaskScreen() {
 			maximumDurationSeconds: maxSeconds,
 			notificationBlockMode: notifMode,
 			customMessage,
-		})
-		analytics.track('task_created', {
-			taskId: task.id,
-			hasMaxDuration: task.maximumDurationSeconds != null,
 		})
 		router.replace({
 			pathname: '/(main)/(tabs)/tasks/[taskId]',

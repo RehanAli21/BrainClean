@@ -9,9 +9,7 @@ export default {
     grant: 'Grant',
     granted: 'Granted',
     somethingWentWrong: 'Something went wrong. Please try again.',
-    networkError: 'No internet connection. Please check your network.',
     rateLimited: 'Too many attempts. Please wait a minute and try again.',
-    serverError: 'Server error. Please try again later.',
     invalidInput: 'Invalid input.',
     minutes: '{{count}} min',
     hours: '{{count}}h',
@@ -151,12 +149,6 @@ export default {
     noApps: 'No apps found.',
   },
 
-  update: {
-    title: 'Update Required',
-    message: 'A new version of BrainClean is available. Please update to continue using the app.',
-    button: 'Update Now',
-  },
-
   tutorial: {
     welcome: 'Welcome to BrainClean',
     welcomeDesc: "BrainClean helps you stay focused by blocking distracting apps until you complete your tasks. Let's walk through how it works.",
@@ -167,15 +159,13 @@ export default {
     startTask: 'Start Your Task',
     startTaskDesc: 'After creating a task, tap Start. Your selected apps will be blocked immediately. A full-screen overlay appears if you try to open them.',
     completeTask: 'Complete Your Task',
-    completeTaskDesc: 'Once the minimum time has passed, the Finish button appears. Complete your task to unblock your apps. You can also scan a QR code from the web dashboard.',
+    completeTaskDesc: 'Once the minimum time has passed, the Finish button appears. Complete your task to unblock your apps.',
     notifModes: 'Notification Blocking',
     notifModesDesc: 'In Settings, choose how notifications are handled during sessions: Off, Block Selected Apps only, or Block All Notifications. Requires notification access permission.',
     eyeBlinker: 'Eye Blinker',
     eyeBlinkerDesc: 'In the Wellness tab, enable Eye Blinker to get periodic reminders to look away from your screen. Protects your eyes with the 20-20-20 rule — works even when the app is closed.',
     doomScroll: 'Doom Scroll Breaker',
     doomScrollDesc: 'Also in the Wellness tab, enable Doom Scroll Breaker to automatically take a break after too much time on selected apps. It monitors the same apps you picked in the Apps tab.',
-    feedback: 'Send Feedback',
-    feedbackDesc: 'Tap the feedback button on the Tasks page to share your thoughts. Help us understand what to improve — your feedback goes directly to the team.',
     ready: "You're Ready!",
     readyDesc: "That's it! Create your first task and start building focus. You can replay this tutorial anytime from Settings.",
     interactive: 'Interactive Walkthrough',
@@ -202,8 +192,6 @@ export default {
     notifModesDesc: 'Choose Off, Selected Apps, or All Apps to control which notifications are silenced during sessions.',
     grantPerms: 'Grant Permissions',
     grantPermsDesc: "All permissions must be granted for blocking to work. Check them here if something isn't working.",
-    feedback: 'Send Feedback',
-    feedbackDesc: 'Tap here to share your thoughts and help us improve BrainClean.',
   },
 
   padlock: {
@@ -248,33 +236,6 @@ export default {
   },
 
 
-
-  feedback: {
-    title: 'Send Feedback',
-    subtitle: 'Help us improve BrainClean. Your feedback matters!',
-    categoryLabel: 'Category',
-    selectCategory: 'Select a category',
-    categoryRequired: 'Please select a category',
-    messageLabel: 'Your Feedback',
-    messagePlaceholder: 'Tell us what you think...',
-    messageRequired: 'Please enter your feedback',
-    messageTooLong: 'Feedback must be under 2000 characters',
-    emailLabel: 'Email (optional)',
-    emailPlaceholder: 'your@email.com',
-    submit: 'Submit Feedback',
-    thankYou: 'Thank You!',
-    submitted: 'Your feedback has been submitted. We appreciate you helping us improve.',
-    categories: {
-      'hard-to-use': 'Hard to Use',
-      'missing-features': 'Missing Features',
-      'too-many-permissions': 'Too Many Permissions',
-      'not-what-expected': 'Not What I Expected',
-      'found-alternative': 'Found an Alternative',
-      'bugs-crashes': 'Bugs & Crashes',
-      'privacy-concerns': 'Privacy Concerns',
-      'other': 'Other',
-    },
-  },
 
   native: {
     blockerNotifText: "BrainClean is protecting your focus.",

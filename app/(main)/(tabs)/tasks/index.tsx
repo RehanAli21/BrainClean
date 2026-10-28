@@ -1,4 +1,3 @@
-import { FeedbackModal } from '@/components/FeedbackModal'
 import { registerRef, triggerWalkthrough, unregisterRef } from '@/components/walkthroughRegistry'
 import { useTheme } from '@/hooks/useTheme'
 import { useBlocker } from '@/hooks/useBlocker'
@@ -105,17 +104,13 @@ export default function TaskListScreen() {
 	// older version) still counts: only one session can run at a time.
 	const hasActiveTask = allTasks.some(isTaskActive) || isBlocking
 	const fabCooldown = useRef(false)
-	const feedbackCooldown = useRef(false)
-	const [feedbackVisible, setFeedbackVisible] = useState(false)
 	const fabRef = useRef<View>(null)
 	const dateRef = useRef<View>(null)
-	const feedbackRef = useRef<View>(null)
 
 	useEffect(() => {
 		registerRef('tasks-fab', fabRef)
 		registerRef('tasks-date', dateRef)
-		registerRef('tasks-feedback', feedbackRef)
-		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date'); unregisterRef('tasks-feedback') }
+		return () => { unregisterRef('tasks-fab'); unregisterRef('tasks-date') }
 	}, [])
 
 	// Pick up sessions that ended (max time reached) while this screen was away.
@@ -196,20 +191,6 @@ export default function TaskListScreen() {
 				/>
 			)}
 
-			<TouchableOpacity
-				ref={feedbackRef}
-				style={[styles.feedbackFab, { backgroundColor: theme.surface, borderColor: theme.border }]}
-				onPress={() => {
-					if (feedbackCooldown.current) return
-					feedbackCooldown.current = true
-					setFeedbackVisible(true)
-					setTimeout(() => { feedbackCooldown.current = false }, 1000)
-				}}
-				activeOpacity={0.8}>
-				<Ionicons name='chatbubble-ellipses-outline' size={18} color={theme.primary} />
-				<Text style={[styles.feedbackFabText, { color: theme.primary }]}>{t('feedback.title')}</Text>
-			</TouchableOpacity>
-
 			{hasActiveTask ? null : (
 				<TouchableOpacity
 					ref={fabRef}
@@ -231,7 +212,6 @@ export default function TaskListScreen() {
 				</TouchableOpacity>
 			)}
 
-			<FeedbackModal visible={feedbackVisible} onClose={() => setFeedbackVisible(false)} />
 		</View>
 	)
 }
@@ -277,23 +257,6 @@ const styles = StyleSheet.create({
 	taskNameCompleted: { textDecorationLine: 'line-through', opacity: 0.6 },
 	taskDuration: { fontSize: 13 },
 	taskHint: { fontSize: 11, marginTop: 2 },
-	feedbackFab: {
-		position: 'absolute',
-		bottom: 24,
-		left: 24,
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 6,
-		borderWidth: 1,
-		borderRadius: 22,
-		paddingHorizontal: 14,
-		paddingVertical: 10,
-		elevation: 4,
-	},
-	feedbackFabText: {
-		fontSize: 13,
-		fontWeight: '600',
-	},
 	fab: {
 		position: 'absolute',
 		bottom: 24,

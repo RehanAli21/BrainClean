@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BrainClean is a productivity and digital wellness app that blocks selected mobile apps until the user completes a task. Users create a task, start it, and selected apps are blocked until the task's minimum duration has passed and the user finishes it (or the maximum duration runs out). The mobile app is the enforcement layer.
 
-**There are no user accounts and no login.** Tasks live only on the device. The app is free: there is no paywall, subscription or in-app purchase. The only backend calls are user-submitted feedback and anonymous analytics events.
+**There are no user accounts and no login.** Tasks live only on the device. The app is free: there is no paywall, subscription or in-app purchase.
+
+**The app is completely local. It makes no network requests** — no backend, no analytics, no feedback upload, no third-party SDKs that phone home (the Play in-app update check was removed too). The privacy policy promises this.
 
 The mobile app has two runtime layers: React Native/Expo (UI + local state) and Kotlin (blocking enforcement). The Kotlin layer MUST survive the React Native app being killed. These are architecturally independent — React Native is a remote control, Kotlin is the engine.
 
@@ -45,7 +47,7 @@ Never move these checks into JS — JS can be killed or bypassed.
 
 ### Two-Layer Architecture
 
-**React Native/Expo layer** — handles all UI, the local task list, routing and preferences. Standard Expo app. Dies when force-closed.
+**React Native/Expo layer** — handles all UI, the local task list, routing and preferences. No network. Standard Expo app. Dies when force-closed.
 
 **Kotlin native layer** — handles all Android system API interactions: UsageStatsManager, system overlay windows, foreground services, notification listener, alarms. Runs independently. Survives app kill and device reboot. The Kotlin layer makes no network calls.
 
@@ -53,7 +55,7 @@ These layers communicate through a narrow, explicit bridge. React Native NEVER t
 
 ### Routing
 
-File-based routing via Expo Router. Routes live in `app/`. The root layout (`app/_layout.tsx`) sets up i18n, theme and the setup redirect, and hides headers globally. It also runs `useClearLegacyAuth()`, which deletes leftover SecureStore keys (`user_token`, `user_email`, `user_token_expires_at`) from older versions that had login.
+File-based routing via Expo Router. Routes live in `app/`. The root layout (`app/_layout.tsx`) sets up i18n, theme and the setup redirect, and hides headers globally. It also runs `useClearLegacyData()`, which deletes leftovers from older versions: SecureStore keys `user_token`, `user_email`, `user_token_expires_at`, and the unsent analytics queue (AsyncStorage `brainclean-analytics-queue`).
 
 Route groups:
 
@@ -79,14 +81,9 @@ The task record is history, not enforcement. If the store and Kotlin disagree, K
 
 Per-task notification mode and custom message are stored on the `Task` itself.
 
-### API Layer
+### No Network
 
-`services/api/client.ts` exports an Axios instance (`apiClient`) with no auth header (there are no accounts), base URL from `constants/config.ts` (`API_BASE_URL`) and a 10s timeout. It is used only by:
-
-- `services/api/feedback.ts` — user-submitted feedback (`/feedback`)
-- `services/api/analytics.ts` — anonymous analytics events (`/analytics/events`), no user identifiers
-
-Do not add backend calls for task data. Tasks are on-device by design (and the privacy policy says so).
+There is no API layer: no `services/`, no axios, no `API_BASE_URL`. Do not add `fetch`, an HTTP client, analytics, crash reporting, or any SDK that sends data, in JS or Kotlin. The only outbound action is the user tapping "Rate" on a completed task, which opens the Play Store listing via `Linking.openURL`.
 
 ### Native Bridge API
 
@@ -144,7 +141,7 @@ The color scheme, typography, spacing and component tokens are documented in `do
 
 ### Components
 
-Reusable components live in `components/` (flat structure): `PrimaryButton`, `NotificationModeSelector`, `CustomMessageField`, `PadlockProtectionCard`, `FeedbackModal`, `LanguagePicker`, `TutorialOverlay`, `WalkthroughOverlay` (+ `walkthroughRegistry.ts`). Components receive data via props.
+Reusable components live in `components/` (flat structure): `PrimaryButton`, `NotificationModeSelector`, `CustomMessageField`, `PadlockProtectionCard`, `LanguagePicker`, `TutorialOverlay`, `WalkthroughOverlay` (+ `walkthroughRegistry.ts`). Components receive data via props.
 
 ## Project Structure
 
@@ -168,7 +165,6 @@ app/
         └── settings.tsx           # Language, theme, permissions, tutorial
 components/                        # See Components above
 constants/
-├── config.ts                      # API_BASE_URL
 └── theme.ts
 hooks/
 ├── useBlocker.ts                  # Blocking bridge hook
@@ -197,18 +193,12 @@ modules/blocker/
     ├── CountdownOverlay.kt
     ├── LocalizedStrings.kt
     └── LegacyScheduleCleanup.kt   # One-time cleanup of the removed schedule feature
-services/api/
-├── client.ts                      # Axios instance (no auth)
-├── feedback.ts
-└── analytics.ts
 store/
 ├── taskStore.ts                   # Zustand — tasks (on-device)
 └── uiStore.ts                     # Zustand — preferences
 types/
 ├── task.ts                        # Task, CreateTaskInput
-├── blocker.ts                     # AppInfo, PermissionStatus
-├── feedback.ts
-└── analytics.ts
+└── blocker.ts                     # AppInfo, PermissionStatus
 legal/                             # privacy.html, terms.html, REVIEW_BASELINE.md
 ```
 
@@ -285,7 +275,7 @@ Notification Access is optional and requested only when the user picks a notific
 
 ## Legal Docs
 
-`legal/privacy.html` and `legal/terms.html` describe exactly what data leaves the device (feedback + anonymous analytics only). Any change to data flows, permissions, storage or backend calls must be reflected there. Review incrementally from the commit recorded in `legal/REVIEW_BASELINE.md`.
+`legal/privacy.html` and `legal/terms.html` state that the app sends nothing off the device. Any change to data flows, permissions or storage — and above all any network call — must be reflected there. Review incrementally from the commit recorded in `legal/REVIEW_BASELINE.md`.
 
 ## Key Conventions
 
@@ -339,12 +329,11 @@ Notification Access is optional and requested only when the user picks a notific
 
 - Do NOT store blocking state in React Native (AsyncStorage, Zustand, or component state). SharedPreferences on the Kotlin side is the source of truth; the task store is only a record.
 - Do NOT enforce minimum/maximum duration in JS. Kotlin decides.
-- Do NOT add login, accounts, or a backend copy of tasks without updating the legal docs — the privacy policy promises tasks stay on the device.
+- Do NOT add any network call (backend, analytics, feedback upload, crash reporting, third-party SDKs that send data). The app is fully local and the privacy policy says so.
+- Do NOT add login, accounts, or a backend copy of tasks.
 - Do NOT add an AccessibilityService. The Play Store flags accessibility-for-blocking as a policy risk and the 250ms UsageStatsManager poll is sufficient. Notification suppression uses NotificationListenerService, which is allowed.
 - Do NOT put a close/dismiss button on the blocking overlay. The user must leave the blocked app.
 - Do NOT install or use any form library (React Hook Form, Formik, etc.).
 - Do NOT add Redux, MobX, Jotai, or React Context for state. Zustand is the only state library.
-- Do NOT put API calls directly in screens. They go through `services/api/`.
 - Do NOT expand the native bridge without careful consideration. Every method is cross-language maintenance cost.
 - Do NOT use Expo Go for development. Custom dev client is required for native Kotlin modules.
-- Do NOT hardcode the API base URL. Use `constants/config.ts`.

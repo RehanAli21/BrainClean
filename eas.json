@@ -9,20 +9,12 @@
 			"distribution": "internal",
 			"android": {
 				"buildType": "apk"
-			},
-			"env": {
-				"EXPO_PUBLIC_API_BASE_URL": "https://api.brainclean.app/api",
-				"GOOGLE_WEB_CLIENT_ID": "492066566680-n051drfsfnnkm5ls4mdogfpfj4ori87c.apps.googleusercontent.com"
 			}
 		},
 		"preview": {
 			"distribution": "internal",
 			"android": {
 				"buildType": "apk"
-			},
-			"env": {
-				"EXPO_PUBLIC_API_BASE_URL": "https://api.brainclean.app/api",
-				"GOOGLE_WEB_CLIENT_ID": "492066566680-n051drfsfnnkm5ls4mdogfpfj4ori87c.apps.googleusercontent.com"
 			}
 		},
 		"production": {
@@ -30,10 +22,6 @@
 			"android": {
 				"buildType": "app-bundle",
 				"credentialsSource": "remote"
-			},
-			"env": {
-				"EXPO_PUBLIC_API_BASE_URL": "https://api.brainclean.app/api",
-				"GOOGLE_WEB_CLIENT_ID": "492066566680-n051drfsfnnkm5ls4mdogfpfj4ori87c.apps.googleusercontent.com"
 			}
 		}
 	},

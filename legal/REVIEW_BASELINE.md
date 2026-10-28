@@ -5,15 +5,16 @@ codebase, so a future review only has to look at what changed since.
 
 | Field                | Value                                      |
 | -------------------- | ------------------------------------------ |
-| **Baseline commit**  | `fe0d517b49c85847077958db4849ba0530b9dd62` + no-login change |
+| **Baseline commit**  | `fe0d517b49c85847077958db4849ba0530b9dd62` + no-login + fully-local changes |
 | Short SHA            | `fe0d517` ("schedule task removed")        |
 | Reviewed on          | 28 October 2026                            |
 | Docs "Last updated"  | 28 October 2026                            |
 
 Both documents describe the app as of the baseline commit above, plus the
-removal of login, accounts, server-side tasks and the subscription (that change
-was uncommitted at review time; replace the SHA above with the commit that
-lands it).
+removal of login, accounts, server-side tasks and the subscription, and then of
+every network call (feedback, analytics, Play in-app updates). Those changes
+were uncommitted at review time; replace the SHA above with the commit that
+lands them.
 
 ## How to do the next review
 
@@ -32,11 +33,10 @@ Things worth checking on every pass, since each has bitten us before:
   permission needs a row in the privacy policy's section 4 table.
 - **New foreground services / notification channels** — privacy section 6 quotes
   the actual notification strings, so they drift when the Kotlin changes.
-- **Anything new that leaves the device** — new files under `services/api/`, or
-  any HTTP call from Kotlin (there are none today). Today only feedback and
-  anonymous analytics reach the server; anything else has to be disclosed in
-  privacy section 2.
-  Data that reaches the server has to be disclosed in section 2.
+- **Anything that leaves the device** — any HTTP client, `fetch`, SDK, or
+  Kotlin network call. Today the App makes **no** network requests at all, and
+  both documents say so (privacy summary, 2, 5.2, 7, 8, 12, 13). Adding any
+  network call reverses those statements.
 - **New on-device state** — `store/uiStore.ts` and any `*State.kt`
   SharedPreferences wrapper feed privacy section 5.1.
 - **Scope changes to an existing feature** — e.g. notification blocking growing
@@ -54,3 +54,4 @@ Things worth checking on every pass, since each has bitten us before:
 | `083bca8` | 1 Sept 2026  | First-party analytics (docs edited in this commit; baseline above was not bumped at the time).                       |
 | `b19fc2d`+ | 28 Oct 2026 | Schedules feature removed (privacy 2.6, alarms row, notification, token retention; terms 6.2). Custom block-screen messages (local only). Fixed 5.1: preferences moved from SecureStore to app-private AsyncStorage on 19 July. |
 | `fe0d517`+ | 28 Oct 2026 | Login, accounts, Google Sign-In, server-side tasks and subscription removed: tasks on-device only, anonymous mobile analytics, legacy accounts already deleted. Privacy 2/4/5/7/8/9/10 and terms 3/6/7/9/10/14/18 rewritten. |
+| `fe0d517`+ | 28 Oct 2026 | Fully local: feedback form, analytics and Play in-app update check removed; no network requests. Privacy summary/2/4/5/7/8/9/10/11/12/13 and terms 1/7/9 updated. |

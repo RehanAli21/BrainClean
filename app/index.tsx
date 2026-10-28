@@ -23,7 +23,7 @@ export default function SplashPage() {
 	}, [router])
 
 	return (
-		<View style={[styles.container, { backgroundColor: '#2563EB' }]}>
+		<View style={[styles.container, { backgroundColor: '#12121a' }]}>
 			<Image
 				source={logo}
 				style={styles.logo}

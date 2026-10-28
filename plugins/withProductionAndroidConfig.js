@@ -26,7 +26,6 @@ ${KEEP_RULES_MARKER}
 -keep class expo.modules.blocker.NotificationBlockerService { *; }
 -keep class expo.modules.blocker.WellnessService { *; }
 -keep class expo.modules.blocker.ServiceGuardReceiver { *; }
--keep class expo.modules.blocker.ScheduleAlarmReceiver { *; }
 
 # Kotlin coroutines (used by BlockerService)
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
@@ -174,13 +173,15 @@ const withEdgeToEdgeStyles = (config) =>
 		},
 	]);
 
-// The blocker/schedule SharedPreferences hold a plaintext auth token; they must
+// The blocker SharedPreferences hold a plaintext auth token; they must
 // never be uploaded via Android Auto Backup or device-to-device transfer.
 // expo-secure-store's default rules only exclude its own prefs, so we replace
 // them with rules that also exclude ours (SecureStore.xml stays excluded).
 const BACKUP_EXCLUDES = [
 	'SecureStore.xml',
 	'brainclean_blocker_state.xml',
+	// Legacy: removed schedules feature. Deleted on first launch after upgrade
+	// (LegacyScheduleCleanup); excluded until then since it holds a token.
 	'brainclean_schedule_state.xml',
 ];
 
@@ -235,40 +236,12 @@ const withBackupRules = (config) => {
 	return config;
 };
 
-const SCHEDULE_RECEIVER_TAG = 'expo.modules.blocker.ScheduleAlarmReceiver';
-
-const withScheduleReceiver = (config) =>
-	withDangerousMod(config, [
-		'android',
-		async (cfg) => {
-			const manifestPath = path.join(
-				cfg.modRequest.platformProjectRoot,
-				'app',
-				'src',
-				'main',
-				'AndroidManifest.xml',
-			);
-			if (!fs.existsSync(manifestPath)) return cfg;
-
-			let contents = fs.readFileSync(manifestPath, 'utf8');
-			if (!contents.includes(SCHEDULE_RECEIVER_TAG)) {
-				contents = contents.replace(
-					'</application>',
-					`    <receiver android:name="${SCHEDULE_RECEIVER_TAG}" android:exported="false"/>\n  </application>`,
-				);
-				fs.writeFileSync(manifestPath, contents);
-			}
-			return cfg;
-		},
-	]);
-
 module.exports = function withProductionAndroidConfig(config) {
 	config = withGradlePropertyFlags(config);
 	config = withHermesCommandFix(config);
 	config = withReleaseSigningConfig(config);
 	config = withProguardKeepRules(config);
 	config = withEdgeToEdgeStyles(config);
-	config = withScheduleReceiver(config);
 	config = withBackupRules(config);
 	return config;
 };

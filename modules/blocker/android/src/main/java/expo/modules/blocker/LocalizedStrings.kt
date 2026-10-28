@@ -24,13 +24,6 @@ object LocalizedStrings {
         "wellness.eyeSubtitle" to "Look at something 20 feet away",
         "wellness.breakTitle" to "Take a Break",
         "wellness.breakSubtitle" to "You've been scrolling for {minutes} minutes",
-        "schedule.activeText" to "A blocking schedule is active.",
-        "schedule.startedTitle" to "Scheduled task started",
-        "schedule.startedText" to "{name} — blocking for {duration}",
-        "schedule.failedTitle" to "Scheduled block failed",
-        "schedule.failedAuth" to "Couldn't start your scheduled block. Open BrainClean and sign in again.",
-        "schedule.failedSubscription" to "Couldn't start your scheduled block. An active subscription is required.",
-        "schedule.failedGeneric" to "Couldn't start your scheduled block. Open BrainClean to try again.",
         // Global wellness custom overlay messages. Empty by default so the
         // overlays fall back to the built-in subtitle. Synced from RN.
         "custom.eye" to "",

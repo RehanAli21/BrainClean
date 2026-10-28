@@ -5,8 +5,8 @@ import React, { forwardRef, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
-// Reusable 3-way notification-blocking selector shown on the task- and
-// schedule-creation screens. 0 = off, 1 = blocked apps only, 2 = all.
+// Reusable 3-way notification-blocking selector shown on the task-creation
+// screen. 0 = off, 1 = blocked apps only, 2 = all.
 // Selecting a blocking mode (>0) requires the NotificationListener grant; if it
 // isn't enabled we prompt for it and only apply the selection once the user
 // returns with it granted — matching the previous Settings behavior.

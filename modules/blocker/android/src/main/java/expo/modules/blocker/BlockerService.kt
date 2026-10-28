@@ -16,18 +16,12 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 
 class BlockerService : Service() {
     private val appMonitor = AppMonitor()
     private val overlay = BlockerOverlay()
     private val taskStatusChecker = TaskStatusChecker()
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var maxTimeRunnable: Runnable? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var systemReceiverRegistered = false
@@ -91,38 +85,14 @@ class BlockerService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val state = BlockerState.getInstance(this)
-        val scheduleState = ScheduleState.getInstance(this)
-        val pendingScheduleId = scheduleState.getPendingScheduleId()
 
-        if (!state.isActive() && pendingScheduleId == null) {
+        if (!state.isActive()) {
             Log.w(TAG, "BlockerState not active, stopping service")
             stopSelf()
             return START_NOT_STICKY
         }
 
-        // Must foreground within 5s of startForegroundService — before any
-        // network work for a pending schedule.
         startForeground(NOTIFICATION_ID, buildNotification())
-
-        if (pendingScheduleId != null) {
-            // Clear before executing so a START_STICKY restart can't re-run it.
-            scheduleState.clearPendingSchedule()
-            if (!state.isActive()) {
-                Log.i(TAG, "Executing pending schedule=$pendingScheduleId")
-                serviceScope.launch {
-                    val started = ScheduleExecutor.execute(this@BlockerService, pendingScheduleId)
-                    mainHandler.post {
-                        if (started) {
-                            beginSession()
-                        } else if (!BlockerState.getInstance(this@BlockerService).isActive()) {
-                            stopSelf()
-                        }
-                    }
-                }
-                return START_STICKY
-            }
-        }
-
         beginSession()
         return START_STICKY
     }
@@ -211,7 +181,6 @@ class BlockerService : Service() {
         Log.i(TAG, "BlockerService destroyed")
         appMonitor.stop()
         taskStatusChecker.stop()
-        serviceScope.cancel()
         maxTimeRunnable?.let { mainHandler.removeCallbacks(it) }
         overlay.hide()
         releaseWakeLock()

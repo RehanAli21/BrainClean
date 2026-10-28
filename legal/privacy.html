@@ -231,14 +231,14 @@
 	<body>
 		<main>
 			<h1>Privacy Policy</h1>
-			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 1 September 2026</p>
+			<p class="effective"><strong>BrainClean</strong> &middot; Effective date: 5 May 2026 &middot; Last updated: 28 October 2026</p>
 
 			<div class="summary">
 				<p>
 					<strong>Short version.</strong> BrainClean is an Android app that helps you block distracting apps until you complete a focus
-					task, and offers optional scheduling, eye-care and screen-time features. We collect the minimum data needed to operate the
+					task, and offers optional eye-care and screen-time features. We collect the minimum data needed to operate the
 					service: your email and password (or a Google Sign-In, if you choose that) to sign you in, your tasks, and any feedback you choose
-					to send us. The apps you choose to block, your schedules, and everything the app observes about your app usage stay on your
+					to send us. The apps you choose to block and everything the app observes about your app usage stay on your
 					device. We do not use third-party analytics, advertising, or attribution SDKs. We do run our own first-party product analytics on
 					our own backend (anonymous on the website, described in section 8). You can delete your account at any time from inside the app.
 				</p>
@@ -340,19 +340,7 @@
 				<code>Authorization</code> header of requests to our backend so the server knows which account is making the request.
 			</p>
 
-			<h3>2.6 Schedules</h3>
-			<p>
-				You can set up schedules that start a blocking session automatically at a time you choose. The schedule itself &mdash; its time,
-				duration, repeat days, and the optional label you give it &mdash; is stored <strong>only on your device</strong>.
-			</p>
-			<p>
-				When a schedule fires, the App creates and starts a focus task on our servers on your behalf, exactly as if you had created it
-				yourself, and the task information in section&nbsp;2.3 is stored.
-				<strong>The label you give a schedule becomes that task&rsquo;s name and is therefore sent to our servers</strong> when the schedule
-				runs. If you leave the label empty, the App uses the time and date instead. This happens even if the App is closed at the time.
-			</p>
-
-			<h3>2.7 Feedback you send us</h3>
+			<h3>2.6 Feedback you send us</h3>
 			<p>If you use the &ldquo;Send Feedback&rdquo; form in the App, we receive and store:</p>
 			<ul>
 				<li>The <strong>category</strong> you select (for example &ldquo;Bugs &amp; Crashes&rdquo; or &ldquo;Privacy Concerns&rdquo;).</li>
@@ -374,7 +362,7 @@
 			</div>
 			<p>We use feedback only to understand problems and improve the App. We do not publish it or use it for marketing.</p>
 
-			<h3>2.8 What we do <em>not</em> collect</h3>
+			<h3>2.7 What we do <em>not</em> collect</h3>
 			<ul>
 				<li>
 					We do <strong>not</strong> collect your phone number, address, or any government identifiers. We do not ask you for your real name
@@ -423,7 +411,7 @@
 
 			<h3>3.3 Notification listener (optional)</h3>
 			<p>
-				When you create a focus task or a schedule, you choose how notifications are handled while that session is running. There are three
+				When you create a focus task, you choose how notifications are handled while that session is running. There are three
 				options, and the default is <strong>Off</strong>:
 			</p>
 			<ul>
@@ -453,7 +441,7 @@
 					<a href="terms.html">Terms &amp; Conditions</a> before turning it on, and do not use it if you may need to be reachable.
 				</p>
 			</div>
-			<p>You make this choice for each focus task and each schedule when you create it, and you can revoke Notification Access in Android Settings at any time.</p>
+			<p>You make this choice for each focus task when you create it, and you can revoke Notification Access in Android Settings at any time.</p>
 
 			<h3>3.4 Wellness features (optional)</h3>
 			<p>
@@ -544,16 +532,7 @@
 						<td><code>RECEIVE_BOOT_COMPLETED</code></td>
 						<td>
 							To restore your setup after you reboot your device: restarting blocking if a focus task was active when the device shut
-							down, restarting an enabled wellness feature, and re-registering your schedules so they still fire. No data is sent at
-							boot.
-						</td>
-					</tr>
-					<tr>
-						<td>Alarms (no permission required)</td>
-						<td>
-							To start your schedules at the time you set, the App registers them with Android&rsquo;s alarm clock. This uses the same
-							mechanism as a normal alarm and needs no special permission, but your device may show an alarm indicator while a schedule
-							is pending.
+							down, and restarting an enabled wellness feature. No data is sent at boot.
 						</td>
 					</tr>
 					<tr>
@@ -584,21 +563,26 @@
 			<ul>
 				<li>
 					<strong>Encrypted storage</strong> &mdash; your authentication token and email are stored using <code>expo-secure-store</code>,
-					which uses Android&rsquo;s platform-provided encrypted storage. Your app preferences are kept here too: which apps you selected,
-					your chosen language, your wellness-feature settings, the notification-handling choice you pick for each focus task, and a cached
-					copy of your subscription status so the App knows what to show before it can reach our server.
+					which uses Android&rsquo;s platform-provided encrypted storage.
+				</li>
+				<li>
+					<strong>App preferences</strong> &mdash; which apps you selected, your chosen language, your wellness-feature settings, the
+					notification-handling choice and the optional custom block-screen message you set for each focus task, the custom messages you
+					set for the wellness reminders, and a cached copy of your subscription status (so the App knows what to show before it can reach
+					our server) are stored in the App&rsquo;s private storage area, accessible only to the App. None of this contains your password
+					or authentication token. Your custom messages are shown only on your device and are never sent to our servers.
 				</li>
 				<li>
 					<strong>App-private storage</strong> &mdash; blocking session state (such as the package names you chose to block, session
-					identifier, start time, and your maximum block-time setting), your wellness-feature settings, and your schedules are stored in
+					identifier, start time, your maximum block-time setting, and the session&rsquo;s custom block-screen message) and your
+					wellness-feature settings are stored in
 					Android <code>SharedPreferences</code> in the App&rsquo;s private storage area, accessible only to the App. The blocking engine
 					keeps its own copy here so that blocking keeps working even if you force-close the App or restart your device.
 				</li>
 				<li>
 					<strong>A copy of your authentication token</strong> is also kept in that app-private area, because the blocking engine has to
-					reach our server without the rest of the App running &mdash; to check whether your task is complete, and to create and start the
-					task when a schedule fires. It is kept while a focus task is active, and for as long as you have any schedule saved. It is cleared
-					when you sign out or delete the App.
+					reach our server without the rest of the App running &mdash; to check whether your task is complete. It is kept only while a
+					focus task is active and is cleared when that task ends, or when you delete the App.
 				</li>
 			</ul>
 
@@ -629,10 +613,6 @@
 					<code>BrainClean &mdash; Eye care active</code> / <code>Usage monitoring active</code> /
 					<code>Eye care &amp; usage monitoring active</code> &mdash; shown while an optional wellness feature is switched on, naming
 					whichever is running. It disappears when you switch the feature off.
-				</li>
-				<li>
-					<code>Scheduled task started</code> &mdash; shown once when one of your schedules fires, naming the task and how long it will
-					block for.
 				</li>
 			</ul>
 			<p>
@@ -723,7 +703,7 @@
 				that does not. Besides the event name and a small set of non-identifying properties (such as a task or subscription identifier), each
 				event includes device context: the app version, device model, operating-system name and version, screen size, language, and timezone,
 				plus the network context recorded by the server listed above. The App does <strong>not</strong> include the names of apps you block,
-				your app-usage timings, or your notification content in analytics &mdash; those never leave your device (see sections&nbsp;2.8
+				your app-usage timings, or your notification content in analytics &mdash; those never leave your device (see sections&nbsp;2.7
 				and&nbsp;3).
 			</p>
 			<p>
@@ -748,7 +728,7 @@
 				it is also deleted.
 			</p>
 			<p>
-				Locally stored data (your authentication token, email, selected apps, schedules, wellness settings, and other preferences described in
+				Locally stored data (your authentication token, email, selected apps, wellness settings, and other preferences described in
 				section&nbsp;5.1) is removed from your device when you sign out, delete your account, or uninstall the App.
 			</p>
 			<p>
@@ -783,11 +763,7 @@
 					section&nbsp;3.4 immediately.
 				</li>
 				<li>
-					<strong>Disable or delete your schedules</strong> at any time from the Schedules tab, which cancels the pending alarm so no
-					further sessions start automatically.
-				</li>
-				<li>
-					<strong>Choose notification blocking</strong> for each focus task or schedule when you create it, including leaving it
+					<strong>Choose notification blocking</strong> for each focus task when you create it, including leaving it
 					&ldquo;Off&rdquo;, and revoke Notification Access in Android Settings at any time.
 				</li>
 			</ul>

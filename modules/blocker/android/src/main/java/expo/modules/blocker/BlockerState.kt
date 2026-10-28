@@ -9,7 +9,7 @@ class BlockerState private constructor(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     // customMessage: the per-session message shown on the block overlay (the
-    // task's or schedule's own message). Empty falls back to the default.
+    // task's own message). Empty falls back to the default.
     fun startSession(packages: List<String>, sessionId: String, authToken: String, baseUrl: String, maxBlockTimeMs: Long, notificationBlockMode: Int, minimumDurationMs: Long, customMessage: String = "") {
         prefs.edit()
             .putBoolean(KEY_IS_ACTIVE, true)

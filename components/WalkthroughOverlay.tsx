@@ -92,14 +92,6 @@ const STEPS: WalkthroughStep[] = [
 		tooltipPosition: 'bottom',
 	},
 	{
-		key: 'schedules-fab',
-		route: '/(main)/(tabs)/schedules',
-		titleKey: 'walkthrough.schedules',
-		descriptionKey: 'walkthrough.schedulesDesc',
-		tooltipPosition: 'top',
-		requiresAuth: true,
-	},
-	{
 		key: 'settings-permissions',
 		route: '/(main)/(tabs)/settings',
 		titleKey: 'walkthrough.grantPerms',

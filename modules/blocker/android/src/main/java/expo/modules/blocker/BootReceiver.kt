@@ -21,12 +21,6 @@ class BootReceiver : BroadcastReceiver() {
             WellnessService.start(context)
         }
 
-        val scheduleState = ScheduleState.getInstance(context)
-        if (scheduleState.hasAnyEnabledSchedule()) {
-            Log.i(TAG, "Boot completed, re-registering schedule alarms")
-            ScheduleAlarmReceiver.rescheduleAll(context)
-        }
-
         ServiceGuardReceiver.scheduleIfNeeded(context)
     }
 

@@ -33,7 +33,7 @@ interface UiState {
   isAppSelected: (packageName: string) => boolean;
   // Per-task notification blocking mode, chosen at task creation and keyed by
   // task id. 0 = off, 1 = blocked apps only, 2 = all. Read when a task starts
-  // blocking. (Schedules carry their own mode natively, per schedule.)
+  // blocking.
   taskNotificationModes: Record<string, number>;
   setTaskNotificationMode: (taskId: string, mode: number) => void;
   // Timestamp (ms) the user confirmed they padlocked BrainClean in the recents

@@ -1,4 +1,3 @@
-import { clearAuthState } from '@/modules/blocker'
 import { analytics } from '@/services/analytics'
 import { registerLogoutHandler } from '@/services/api/authEvents'
 import { useUiStore } from '@/store/uiStore'
@@ -62,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, [])
 
 	// 2. Protect Routes (The Redirect Logic)
-	// Unauthenticated users can access (main) routes — Tasks/Schedules show
+	// Unauthenticated users can access (main) routes — Tasks shows
 	// a login prompt inline. Only redirect authenticated users OFF auth pages.
 	useEffect(() => {
 		if (isLoading) return
@@ -101,10 +100,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		ui.setIsPremium(false)
 		ui.setSubscriptionState('NONE')
 		ui.setSubscriptionExpiresAt(null)
-		// Clear the token persisted on the Kotlin side (schedule config).
-		try {
-			clearAuthState()
-		} catch {}
 		setToken(null)
 		setEmail(null)
 		setTokenExpiresAt(null)

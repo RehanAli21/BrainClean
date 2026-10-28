@@ -25,6 +25,10 @@ class BlockerModule : Module() {
 
         Events("onBlockedAppDetected", "onServiceStopped")
 
+        OnCreate {
+            appContext.reactContext?.let { LegacyScheduleCleanup.run(it) }
+        }
+
         AsyncFunction("getInstalledApps") {
             val context = appContext.reactContext ?: return@AsyncFunction emptyList<Map<String, Any?>>()
             val pm = context.packageManager
@@ -306,90 +310,6 @@ class BlockerModule : Module() {
                 Log.e("BlockerModule", "Failed to open App Info fallback", e)
                 return@Function false
             }
-        }
-
-        Function("addSchedule") { hour: Int, minute: Int, durationHours: Int, durationMinutes: Int, repeatDays: List<Int>, label: String, notificationBlockMode: Int, customMessage: String ->
-            val context = appContext.reactContext ?: return@Function ""
-            val state = ScheduleState.getInstance(context)
-            val id = java.util.UUID.randomUUID().toString()
-            val schedule = ScheduleData(
-                id = id,
-                hour = hour,
-                minute = minute,
-                durationHours = durationHours,
-                durationMinutes = durationMinutes,
-                repeatDays = repeatDays.toSet(),
-                label = label,
-                enabled = true,
-                notificationBlockMode = notificationBlockMode,
-                customMessage = customMessage
-            )
-            state.addSchedule(schedule)
-            ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
-            ServiceGuardReceiver.scheduleIfNeeded(context)
-            ScheduleNotification.show(context)
-            Log.i("BlockerModule", "Schedule added: id=$id, time=$hour:$minute")
-            id
-        }
-
-        Function("removeSchedule") { id: String ->
-            val context = appContext.reactContext ?: return@Function
-            val state = ScheduleState.getInstance(context)
-            ScheduleAlarmReceiver.cancelAlarm(context, id)
-            state.removeSchedule(id)
-            Log.i("BlockerModule", "Schedule removed: id=$id")
-        }
-
-        Function("toggleSchedule") { id: String, enabled: Boolean ->
-            val context = appContext.reactContext ?: return@Function
-            val state = ScheduleState.getInstance(context)
-            state.updateScheduleEnabled(id, enabled)
-            if (enabled) {
-                val schedule = state.getSchedule(id)
-                if (schedule != null) ScheduleAlarmReceiver.scheduleAlarm(context, schedule)
-                ScheduleNotification.show(context)
-            } else {
-                ScheduleAlarmReceiver.cancelAlarm(context, id)
-            }
-            ServiceGuardReceiver.scheduleIfNeeded(context)
-            Log.i("BlockerModule", "Schedule toggled: id=$id, enabled=$enabled")
-        }
-
-        Function("getSchedules") {
-            val context = appContext.reactContext ?: return@Function emptyList<Map<String, Any?>>()
-            val state = ScheduleState.getInstance(context)
-            state.getAllSchedules().map { schedule ->
-                mapOf(
-                    "id" to schedule.id,
-                    "hour" to schedule.hour,
-                    "minute" to schedule.minute,
-                    "durationHours" to schedule.durationHours,
-                    "durationMinutes" to schedule.durationMinutes,
-                    "repeatDays" to schedule.repeatDays.toList(),
-                    "label" to schedule.label,
-                    "enabled" to schedule.enabled,
-                    "notificationBlockMode" to schedule.notificationBlockMode,
-                    "customMessage" to schedule.customMessage
-                )
-            }
-        }
-
-        Function("syncScheduleConfig") { authToken: String, baseUrl: String, selectedApps: List<String> ->
-            val context = appContext.reactContext ?: return@Function
-            val state = ScheduleState.getInstance(context)
-            state.setAuthConfig(authToken, baseUrl, selectedApps.toSet())
-        }
-
-        Function("canScheduleExactAlarms") {
-            val context = appContext.reactContext ?: return@Function false
-            ScheduleAlarmReceiver.canScheduleExactAlarms(context)
-        }
-
-        // Called on logout / account deletion so the auth token does not
-        // outlive the session in plaintext SharedPreferences.
-        Function("clearAuthState") {
-            val context = appContext.reactContext ?: return@Function Unit
-            ScheduleState.getInstance(context).clearAuthConfig()
         }
 
         Function("syncLocalizedStrings") { strings: Map<String, String> ->

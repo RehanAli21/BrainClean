@@ -1,50 +1,130 @@
-# Welcome to your Expo app 👋
+# BrainClean
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Finish the task first, then get your apps back.**
 
-## Get started
+BrainClean is an Android app for digital wellness. You create a task, such as "Read 10 pages", pick the apps that distract you, and start it. Those apps stay blocked until the task's minimum time has passed and you mark it done. Blocking keeps running if you force-close the app or reboot the phone.
 
-1. Install dependencies
+The app works fully offline. It has no accounts, no backend, no analytics and no network requests. Everything stays on the device.
 
-   ```bash
-   npm install
-   ```
+<p>
+  <a href="https://play.google.com/store/apps/details?id=com.brainclean.app"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Google%20Play-Download-34A853?logo=googleplay&logoColor=white&style=for-the-badge" /></a>
+  <a href="https://chromewebstore.google.com/detail/brainclean-focus-tasks-si/jdlhflckkkabcgohfnpbmgkpedcapfng"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome%20Web%20Store-Add%20extension-4285F4?logo=googlechrome&logoColor=white&style=for-the-badge" /></a>
+</p>
 
-2. Start the app
+> **There's also a browser extension.** [BrainClean for Chrome](https://chromewebstore.google.com/detail/brainclean-focus-tasks-si/jdlhflckkkabcgohfnpbmgkpedcapfng) brings the same focus tasks, eye-care breaks and doom-scroll breaker to the desktop by blocking websites instead of apps.
 
-   ```bash
-   npx expo start
-   ```
+![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
+![Expo SDK 54](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo)
+![React Native 0.81](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)
+![Kotlin](https://img.shields.io/badge/Kotlin-native%20module-7F52FF?logo=kotlin&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
-In the output, you'll find options to open the app in a
+<p align="center">
+  <img src="screenshots/10-new-task.png" width="200" alt="Create a task" />
+  <img src="screenshots/14-task-active.png" width="200" alt="Active task" />
+  <img src="screenshots/15-block-overlay.png" width="200" alt="Blocked app overlay" />
+  <img src="screenshots/02-wellness-doom-scroll.png" width="200" alt="Wellness features" />
+</p>
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Features
 
-## Get a fresh project
+- **Task-gated blocking.** Pick apps, start a task, and they stay locked until you finish it. You can set a minimum duration, and an optional maximum ends the session automatically.
+- **Survives being killed.** Blocking runs in a Kotlin foreground service that keeps going after the app is force-closed, after a reboot and while the phone is in Doze mode.
+- **Can't be beaten by changing the clock.** Durations use `SystemClock.elapsedRealtime`, so changing the device time doesn't end a session early.
+- **Notification blocking.** For each task you can silence notifications from blocked apps only, from all apps, or from none.
+- **Wellness tools.**
+  - **Eye-care breaks:** a full-screen countdown reminds you to look away from the screen on an interval you set.
+  - **Auto-block:** apps are locked automatically after a daily usage limit.
+- **Private by design.** No accounts and no network calls. Blocking state stays in on-device storage and is excluded from Android backup.
+- **15 languages**, including Arabic and Urdu (right-to-left), Chinese, Japanese, Korean and Hindi.
+- **Dark and light themes**, plus a built-in tutorial and walkthrough.
+- **Fixes for aggressive OEM skins.** On Xiaomi, Transsion, Oppo, Vivo, Huawei and Samsung phones, the app detects the brand and guides you to stop the system from killing it.
 
-When you're ready, run:
+## Architecture
 
-```bash
-npm run reset-project
+The main design decision is that **React Native is the remote control and Kotlin is the engine.**
+
+```
+┌─────────────────────────────┐        ┌──────────────────────────────────────┐
+│  React Native / Expo (UI)   │        │  Kotlin native layer (enforcement)   │
+│                             │ bridge │                                      │
+│  • Task list (Zustand +     │ ─────▶ │  BlockerService  (foreground svc)    │
+│    AsyncStorage)            │        │   ├─ AppMonitor   UsageStats @250ms  │
+│  • Preferences, i18n, theme │ ◀───── │   ├─ BlockerOverlay  system window   │
+│  • Expo Router screens      │ events │   └─ NotificationBlockerService      │
+│                             │        │  BlockerState  (SharedPreferences)   │
+│  Dies on force-close        │        │  BootReceiver · ServiceGuardReceiver │
+└─────────────────────────────┘        │  WellnessService                     │
+                                       │  Survives app kill & reboot          │
+                                       └──────────────────────────────────────┘
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- **Kotlin makes every enforcement decision.** `stopBlocking()` refuses to end a session before the minimum duration. The service ends it by itself when the maximum is reached. None of this logic lives in JavaScript, which can be killed or bypassed.
+- **Blocking state lives in SharedPreferences, not JS.** `BlockerState` is the single source of truth. On boot, `BootReceiver` reads it and restarts the service without React Native.
+- **Keep-alive in layers.** `START_STICKY`, a partial wake lock, and `ServiceGuardReceiver`, an alarm that fires during Doze every ~2 minutes and relaunches the service if the OS killed it.
+- **Reconciliation.** The JS task list is history, not enforcement. If the app was dead when a session ended, `reconcile()` brings the records back in line with what Kotlin did.
+- **A small, explicit bridge** built with the Expo Modules API ([`modules/blocker`](modules/blocker)).
+- **No AccessibilityService.** Detection uses `UsageStatsManager` polling, which avoids the Play Store policy risk of using accessibility APIs for blocking.
 
-## Learn more
+## Tech stack
 
-To learn more about developing your project with Expo, look at the following resources:
+| Layer            | Tools                                                                     |
+| ---------------- | ------------------------------------------------------------------------- |
+| UI               | React Native 0.81, React 19 (React Compiler), Expo SDK 54, Expo Router    |
+| State            | Zustand (persisted to AsyncStorage)                                       |
+| Validation       | Zod                                                                       |
+| i18n             | i18next / react-i18next (15 locales)                                      |
+| Native           | Kotlin, Expo Modules API, foreground services, `UsageStatsManager`, `NotificationListenerService`, `AlarmManager` |
+| Language & build | TypeScript (strict), EAS Build, custom dev client, Expo config plugins     |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Project structure
 
-## Join the community
+```
+app/                 Expo Router screens: (setup) permissions wizard, (main) tabs
+components/          Reusable UI components
+hooks/               useBlocker, useTasks, useWellness, usePermissions, ...
+store/               Zustand stores: tasks, UI preferences
+modules/blocker/     Native module: TS bridge + Kotlin services
+i18n/locales/        15 translation files
+plugins/             Expo config plugins (manifest, backup rules)
+legal/               Privacy policy and terms
+```
 
-Join our community of developers creating universal apps.
+## Getting started
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+> Android only. Expo Go is **not** supported because the app ships a custom native module, so you need a development build.
+
+**Prerequisites:** Node.js 20+, JDK 17, Android SDK, and a device or emulator running Android 7.0+ (API 24).
+
+```bash
+npm install
+npm run android        # builds the custom dev client and installs it
+npm start              # starts Metro for later sessions
+```
+
+Useful commands:
+
+```bash
+npx tsc --noEmit       # type-check
+npx expo lint          # lint
+```
+
+On first launch the setup wizard asks for **Usage Access**, **Display over other apps** and a **battery optimization exemption**. All three are required for blocking to work.
+
+## The BrainClean family
+
+| Product        | Platform | Get it                                                                                                                  |
+| -------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| BrainClean     | Android  | [Google Play](https://play.google.com/store/apps/details?id=com.brainclean.app)                                         |
+| BrainClean Web | Chrome   | [Chrome Web Store](https://chromewebstore.google.com/detail/brainclean-focus-tasks-si/jdlhflckkkabcgohfnpbmgkpedcapfng) |
+
+## Privacy
+
+BrainClean makes no network requests. Tasks, preferences and blocking state stay on the device. See [`legal/privacy.html`](legal/privacy.html).
+
+## License
+
+[MIT](LICENSE) © 2026 Rehan

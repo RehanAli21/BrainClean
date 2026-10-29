@@ -280,7 +280,7 @@ Notification Access is optional and requested only when the user picks a notific
 ## Key Conventions
 
 - **Path alias**: `@/` maps to project root (configured in both `tsconfig.json` and `babel.config.js` module-resolver)
-- **TypeScript strict mode** is enabled with `"ignoreDeprecations": "6.0"` for baseUrl compatibility
+- **TypeScript strict mode** is enabled. No `baseUrl` (deprecated in TS 6) — `paths` resolves relative to `tsconfig.json`
 - **Dark theme is primary** — design and test dark mode first
 - **Portrait orientation only** (set in `app.json`)
 - **New Architecture** is enabled (`newArchEnabled: true`)

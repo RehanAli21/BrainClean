@@ -1,11 +1,12 @@
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { useTheme } from '@/hooks/useTheme'
 import { useBlocker } from '@/hooks/useBlocker'
-import { usePermissions } from '@/hooks/usePermissions'
+import { ensureNotificationPermission, usePermissions } from '@/hooks/usePermissions'
 import { reconcileTasks, useTasksHydrated } from '@/hooks/useTasks'
 import { isBlocking as nativeIsBlocking } from '@/modules/blocker'
 import { isTaskActive, maxBlockTimeMs, useTaskStore } from '@/store/taskStore'
 import { useUiStore } from '@/store/uiStore'
+import type { Task } from '@/types/task'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -53,6 +54,7 @@ export default function TaskDetailScreen() {
 	const [actionError, setActionError] = useState('')
 	const [now, setNow] = useState(Date.now)
 	const deleteCooldown = useRef(false)
+	const [starting, setStarting] = useState(false)
 
 	const isActive = task ? isTaskActive(task) : false
 	const eligibleAt = task?.startedAt ? new Date(task.startedAt).getTime() + task.minimumDurationSeconds * 1000 : 0
@@ -84,8 +86,17 @@ export default function TaskDetailScreen() {
 		markCompleted(task.id)
 	}
 
-	const handleStart = () => {
-		if (!task) return
+	const handleStart = async () => {
+		if (!task || starting) return
+		setStarting(true)
+		try {
+			await startTask(task)
+		} finally {
+			setTimeout(() => setStarting(false), 1000)
+		}
+	}
+
+	const startTask = async (task: Task) => {
 		if (!allGranted) {
 			setActionError(t('taskDetail.permsNotGranted'))
 			return
@@ -107,6 +118,7 @@ export default function TaskDetailScreen() {
 		}
 
 		setActionError('')
+		await ensureNotificationPermission()
 		try {
 			startBlocking(
 				selectedApps,
@@ -286,6 +298,8 @@ export default function TaskDetailScreen() {
 					<PrimaryButton
 						title={t('taskDetail.startTask')}
 						onPress={handleStart}
+						isLoading={starting}
+						disabled={starting}
 					/>
 				) : null}
 
@@ -304,7 +318,7 @@ export default function TaskDetailScreen() {
 							color={theme.primary}
 						/>
 						<Text style={[styles.infoBannerText, { color: theme.primary }]}>
-							{t('taskDetail.remaining', { duration: formatDuration(Math.ceil(remainingMs / 1000)) })}
+							{t('taskDetail.remaining', { duration: formatDuration(Math.ceil(remainingMs / 60000) * 60) })}
 						</Text>
 					</View>
 				) : null}

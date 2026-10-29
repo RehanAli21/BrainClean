@@ -1,7 +1,7 @@
 import { CustomMessageField } from '@/components/CustomMessageField'
 import { useTheme } from '@/hooks/useTheme'
 import { useBlocker } from '@/hooks/useBlocker'
-import { usePermissions } from '@/hooks/usePermissions'
+import { ensureNotificationPermission, usePermissions } from '@/hooks/usePermissions'
 import { useWellness } from '@/hooks/useWellness'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -103,19 +103,21 @@ export default function WellnessScreen() {
 		return () => { unregisterRef('wellness-eyeblinker'); unregisterRef('wellness-doomscroll') }
 	}, [])
 
-	const handleEyeBlinkerToggle = (v: boolean) => {
+	const handleEyeBlinkerToggle = async (v: boolean) => {
 		if (v && !allGranted) {
 			router.push('/(setup)/permissions')
 			return
 		}
+		if (v) await ensureNotificationPermission()
 		updateEyeBlinker(v, eyeBlinkerIntervalMinutes, eyeBlinkerDurationSeconds)
 	}
 
-	const handleAutoBlockToggle = (v: boolean) => {
+	const handleAutoBlockToggle = async (v: boolean) => {
 		if (v && !allGranted) {
 			router.push('/(setup)/permissions')
 			return
 		}
+		if (v) await ensureNotificationPermission()
 		updateAutoBlock(v, autoBlockUsageLimitMinutes, autoBlockDurationSeconds)
 	}
 

@@ -16,7 +16,6 @@ class ServiceGuardReceiver : BroadcastReceiver() {
 
         val blockerState = BlockerState.getInstance(context)
         val wellnessState = WellnessState.getInstance(context)
-        val scheduleState = ScheduleState.getInstance(context)
 
         var anyActive = false
 
@@ -40,16 +39,10 @@ class ServiceGuardReceiver : BroadcastReceiver() {
             }
         }
 
-        if (scheduleState.hasAnyEnabledSchedule()) {
-            anyActive = true
-            Log.i(TAG, "Enabled schedules found — ensuring alarms are registered")
-            ScheduleAlarmReceiver.rescheduleAll(context)
-        }
-
         if (anyActive) {
             schedule(context)
         } else {
-            Log.i(TAG, "No active services or schedules — cancelling guard alarm")
+            Log.i(TAG, "No active services — cancelling guard alarm")
             cancel(context)
         }
     }
@@ -99,8 +92,8 @@ class ServiceGuardReceiver : BroadcastReceiver() {
         }
 
         // A service ending must NOT cancel the shared guard while another feature
-        // (wellness, schedules, or the other service) is still active. Only cancel
-        // when nothing needs keeping alive.
+        // (the other service) is still active. Only cancel when nothing needs
+        // keeping alive.
         fun cancelIfIdle(context: Context) {
             if (!isAnythingActive(context)) {
                 cancel(context)
@@ -110,8 +103,7 @@ class ServiceGuardReceiver : BroadcastReceiver() {
         private fun isAnythingActive(context: Context): Boolean {
             val blockerActive = BlockerState.getInstance(context).isActive()
             val wellnessActive = WellnessState.getInstance(context).isAnyFeatureEnabled()
-            val schedulesActive = ScheduleState.getInstance(context).hasAnyEnabledSchedule()
-            return blockerActive || wellnessActive || schedulesActive
+            return blockerActive || wellnessActive
         }
 
         private fun buildPendingIntent(context: Context): PendingIntent {

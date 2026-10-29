@@ -4,9 +4,7 @@ import { TutorialOverlay } from '@/components/TutorialOverlay'
 import { registerRef, unregisterRef } from '@/components/walkthroughRegistry'
 import { useTheme } from '@/hooks/useTheme'
 import { SUPPORTED_LANGUAGES } from '@/i18n'
-import { useAuth } from '@/context/AuthContext'
 import { useBlocker } from '@/hooks/useBlocker'
-import { useRouter } from 'expo-router'
 import { useOemAutoStart } from '@/hooks/useOemAutoStart'
 import { usePermissions } from '@/hooks/usePermissions'
 import {
@@ -14,14 +12,11 @@ import {
 	requestOverlayPermission,
 	requestUsageStatsPermission,
 } from '@/modules/blocker'
-import { userService } from '@/services/api/users'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-	ActivityIndicator,
-	Alert,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
@@ -34,17 +29,11 @@ import {
 export default function SettingsScreen() {
 	const theme = useTheme()
 	const { t, i18n } = useTranslation()
-	const router = useRouter()
-	const { token, email, logout } = useAuth()
-	const isLoggedIn = !!token
 	const { permissions, recheck } = usePermissions()
 	const { manufacturer, requiresAutoStart } = useOemAutoStart()
 	const { isBlocking } = useBlocker()
 	const themeMode = useUiStore(s => s.themeMode)
 	const setThemeMode = useUiStore(s => s.setThemeMode)
-	const subscriptionState = useUiStore(s => s.subscriptionState)
-	const subscriptionExpiresAt = useUiStore(s => s.subscriptionExpiresAt)
-	const [deleting, setDeleting] = useState(false)
 	const [showTutorial, setShowTutorial] = useState(false)
 	const [showLanguagePicker, setShowLanguagePicker] = useState(false)
 	const permsRef = useRef<View | null>(null)
@@ -53,38 +42,6 @@ export default function SettingsScreen() {
 		registerRef('settings-permissions', permsRef)
 		return () => { unregisterRef('settings-permissions') }
 	}, [])
-
-	const handleLogout = () => {
-		Alert.alert(t('settings.logout'), t('settings.logoutConfirm'), [
-			{ text: t('common.cancel'), style: 'cancel' },
-			{ text: t('settings.logout'), style: 'destructive', onPress: logout },
-		])
-	}
-
-	const handleDeleteAccount = () => {
-		Alert.alert(
-			t('settings.deleteAccount'),
-			t('settings.deleteConfirm'),
-			[
-				{ text: t('common.cancel'), style: 'cancel' },
-				{
-					text: t('common.delete'),
-					style: 'destructive',
-					onPress: async () => {
-						setDeleting(true)
-						try {
-							await userService.deleteAccount()
-							await logout()
-						} catch (err: any) {
-							setDeleting(false)
-							const msg = err.response?.data?.message
-							Alert.alert(t('common.error'), msg || (!err.response ? t('common.networkError') : t('settings.deleteFailed')))
-						}
-					},
-				},
-			],
-		)
-	}
 
 	return (
 		<KeyboardAvoidingView
@@ -95,7 +52,7 @@ export default function SettingsScreen() {
 				contentContainerStyle={styles.content}>
 				<Text style={[styles.title, { color: theme.text }]}>{t('settings.title')}</Text>
 
-				{isLoggedIn && isBlocking ? (
+				{isBlocking ? (
 					<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
 						<Ionicons
 							name='lock-closed'
@@ -106,52 +63,6 @@ export default function SettingsScreen() {
 							{t('settings.locked')}
 						</Text>
 					</View>
-				) : null}
-
-				{isLoggedIn && subscriptionState === 'IN_GRACE_PERIOD' ? (
-					<View style={[styles.lockBanner, { backgroundColor: '#F59E0B1A', borderColor: '#F59E0B' }]}>
-						<Ionicons name='warning-outline' size={18} color='#F59E0B' />
-						<Text style={[styles.lockBannerText, { color: '#F59E0B' }]}>
-							{t('subscription.gracePeriod')}
-						</Text>
-					</View>
-				) : null}
-
-				{isLoggedIn && subscriptionState === 'CANCELED' && subscriptionExpiresAt && new Date(subscriptionExpiresAt) > new Date() ? (
-					<View style={[styles.lockBanner, { backgroundColor: '#F59E0B1A', borderColor: '#F59E0B' }]}>
-						<Ionicons name='time-outline' size={18} color='#F59E0B' />
-						<Text style={[styles.lockBannerText, { color: '#F59E0B' }]}>
-							{t('subscription.canceled', { date: new Date(subscriptionExpiresAt).toLocaleDateString() })}
-						</Text>
-					</View>
-				) : null}
-
-				{isLoggedIn && subscriptionState === 'PENDING' ? (
-					<View style={[styles.lockBanner, { backgroundColor: theme.primary + '1A', borderColor: theme.primary }]}>
-						<ActivityIndicator size='small' color={theme.primary} />
-						<Text style={[styles.lockBannerText, { color: theme.primary }]}>
-							{t('subscription.pending')}
-						</Text>
-					</View>
-				) : null}
-
-				{isLoggedIn ? (
-					<>
-						<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.profile')}</Text>
-						<View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-							<View style={styles.row}>
-								<Ionicons
-									name='mail-outline'
-									size={20}
-									color={theme.icon}
-								/>
-								<View style={styles.rowText}>
-									<Text style={[styles.label, { color: theme.icon }]}>{t('settings.email')}</Text>
-									<Text style={[styles.value, { color: theme.text }]}>{email ?? t('settings.notAvailable')}</Text>
-								</View>
-							</View>
-						</View>
-					</>
 				) : null}
 
 				<Text style={[styles.sectionTitle, { color: theme.icon }]}>{t('settings.language')}</Text>
@@ -266,53 +177,6 @@ export default function SettingsScreen() {
 				</TouchableOpacity>
 
 				<TutorialOverlay visible={showTutorial} onClose={() => setShowTutorial(false)} />
-
-				{isLoggedIn ? (
-					<>
-						<TouchableOpacity
-							style={[styles.logoutButton, { borderColor: theme.accent }, isBlocking && styles.disabled]}
-							onPress={handleLogout}
-							activeOpacity={0.7}
-							disabled={isBlocking}>
-							<Ionicons
-								name='log-out-outline'
-								size={20}
-								color={theme.accent}
-							/>
-							<Text style={[styles.logoutText, { color: theme.accent }]}>{t('settings.logout')}</Text>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							style={[styles.deleteButton, { backgroundColor: theme.accent }, isBlocking && styles.disabled]}
-							onPress={handleDeleteAccount}
-							activeOpacity={0.7}
-							disabled={deleting || isBlocking}>
-							{deleting ? (
-								<ActivityIndicator
-									size='small'
-									color='#FFFFFF'
-								/>
-							) : (
-								<>
-									<Ionicons
-										name='trash-outline'
-										size={20}
-										color='#FFFFFF'
-									/>
-									<Text style={styles.deleteText}>{t('settings.deleteAccount')}</Text>
-								</>
-							)}
-						</TouchableOpacity>
-					</>
-				) : (
-					<TouchableOpacity
-						style={[styles.loginButton, { backgroundColor: theme.primary }]}
-						onPress={() => router.push('/auth/login')}
-						activeOpacity={0.8}>
-						<Ionicons name='log-in-outline' size={20} color='#FFFFFF' />
-						<Text style={styles.loginButtonText}>{t('loginRequired.loginButton')}</Text>
-					</TouchableOpacity>
-				)}
 			</ScrollView>
 		</KeyboardAvoidingView>
 	)
@@ -417,27 +281,6 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 	},
 	tutorialButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-	logoutButton: {
-		borderWidth: 1,
-		borderRadius: 12,
-		height: 52,
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		gap: 8,
-		marginTop: 8,
-	},
-	logoutText: { fontSize: 16, fontWeight: '600' },
-	deleteButton: {
-		borderRadius: 12,
-		height: 52,
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		gap: 8,
-		marginTop: 12,
-	},
-	deleteText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 	permRow: { gap: 8 },
 	permInfo: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 	permTitle: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
@@ -472,18 +315,4 @@ const styles = StyleSheet.create({
 	},
 	lockBannerText: { flex: 1, fontSize: 13, lineHeight: 18 },
 	disabled: { opacity: 0.4 },
-	loginButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 8,
-		height: 52,
-		borderRadius: 12,
-		marginTop: 8,
-	},
-	loginButtonText: {
-		color: '#FFFFFF',
-		fontSize: 16,
-		fontWeight: '600',
-	},
 })

@@ -7,7 +7,7 @@ const MAX_LEN = 150
 
 /**
  * A labelled multiline input for the per-feature custom block-screen message,
- * shown inline on the task, schedule, and wellness feature UIs. Empty means the
+ * shown inline on the task and wellness feature UIs. Empty means the
  * overlay uses its built-in default.
  */
 export function CustomMessageField({

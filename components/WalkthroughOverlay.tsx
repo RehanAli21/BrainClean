@@ -1,9 +1,8 @@
-import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/hooks/useTheme'
 import { useUiStore } from '@/store/uiStore'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { getRef, setWalkthroughActive } from './walkthroughRegistry'
@@ -18,7 +17,6 @@ interface WalkthroughStep {
 	titleKey: string
 	descriptionKey: string
 	tooltipPosition: 'top' | 'bottom'
-	requiresAuth?: boolean
 }
 
 const STEPS: WalkthroughStep[] = [
@@ -42,7 +40,6 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.createTask',
 		descriptionKey: 'walkthrough.createTaskDesc',
 		tooltipPosition: 'top',
-		requiresAuth: true,
 	},
 	{
 		key: 'tasks-date',
@@ -50,7 +47,6 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.filterDate',
 		descriptionKey: 'walkthrough.filterDateDesc',
 		tooltipPosition: 'bottom',
-		requiresAuth: true,
 	},
 	{
 		key: 'newtask-name',
@@ -58,7 +54,6 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.taskName',
 		descriptionKey: 'walkthrough.taskNameDesc',
 		tooltipPosition: 'bottom',
-		requiresAuth: true,
 	},
 	{
 		key: 'newtask-duration',
@@ -66,7 +61,6 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.duration',
 		descriptionKey: 'walkthrough.durationDesc',
 		tooltipPosition: 'bottom',
-		requiresAuth: true,
 	},
 	{
 		key: 'newtask-notif',
@@ -74,7 +68,6 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.notifModes',
 		descriptionKey: 'walkthrough.notifModesDesc',
 		tooltipPosition: 'top',
-		requiresAuth: true,
 	},
 	{
 		key: 'newtask-create',
@@ -82,7 +75,6 @@ const STEPS: WalkthroughStep[] = [
 		titleKey: 'walkthrough.createButton',
 		descriptionKey: 'walkthrough.createButtonDesc',
 		tooltipPosition: 'top',
-		requiresAuth: true,
 	},
 	{
 		key: 'apps-search',
@@ -92,27 +84,11 @@ const STEPS: WalkthroughStep[] = [
 		tooltipPosition: 'bottom',
 	},
 	{
-		key: 'schedules-fab',
-		route: '/(main)/(tabs)/schedules',
-		titleKey: 'walkthrough.schedules',
-		descriptionKey: 'walkthrough.schedulesDesc',
-		tooltipPosition: 'top',
-		requiresAuth: true,
-	},
-	{
 		key: 'settings-permissions',
 		route: '/(main)/(tabs)/settings',
 		titleKey: 'walkthrough.grantPerms',
 		descriptionKey: 'walkthrough.grantPermsDesc',
 		tooltipPosition: 'top',
-	},
-	{
-		key: 'tasks-feedback',
-		route: '/(main)/(tabs)/tasks',
-		titleKey: 'walkthrough.feedback',
-		descriptionKey: 'walkthrough.feedbackDesc',
-		tooltipPosition: 'top',
-		requiresAuth: true,
 	},
 ]
 
@@ -132,16 +108,12 @@ export function WalkthroughOverlay({ visible, onClose }: Props) {
 	const theme = useTheme()
 	const { t } = useTranslation()
 	const router = useRouter()
-	const { token } = useAuth()
 	const setTutorialSeen = useUiStore(s => s.setTutorialSeen)
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [targetRect, setTargetRect] = useState<TargetRect | null>(null)
 	const measureTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-	const activeSteps = useMemo(
-		() => (token ? STEPS : STEPS.filter(s => !s.requiresAuth)),
-		[token],
-	)
+	const activeSteps = STEPS
 
 	const step = activeSteps[currentIndex]
 

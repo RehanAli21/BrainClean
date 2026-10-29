@@ -11,18 +11,18 @@ export async function getInstalledApps(): Promise<AppInfo[]> {
 export function startBlocking(
   packageNames: string[],
   sessionId: string,
-  authToken: string,
-  baseUrl: string,
   maxBlockTimeMs: number,
   notificationBlockMode: number,
   minimumDurationMs: number,
   customMessage: string,
 ): void {
-  BlockerModule.startBlocking(packageNames, sessionId, authToken, baseUrl, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage);
+  BlockerModule.startBlocking(packageNames, sessionId, maxBlockTimeMs, notificationBlockMode, minimumDurationMs, customMessage);
 }
 
-export function stopBlocking(): void {
-  BlockerModule.stopBlocking();
+// Returns false (session keeps running) if its minimum duration hasn't
+// elapsed yet — Kotlin enforces this on the monotonic clock.
+export function stopBlocking(): boolean {
+  return BlockerModule.stopBlocking();
 }
 
 export function isBlocking(): boolean {
@@ -109,64 +109,6 @@ export function getWellnessConfig(): WellnessConfig {
 
 export function isWellnessServiceRunning(): boolean {
   return BlockerModule.isWellnessServiceRunning();
-}
-
-export interface ScheduleInfo {
-  id: string;
-  hour: number;
-  minute: number;
-  durationHours: number;
-  durationMinutes: number;
-  repeatDays: number[];
-  label: string;
-  enabled: boolean;
-  notificationBlockMode: number;
-  customMessage: string;
-}
-
-export function addSchedule(
-  hour: number,
-  minute: number,
-  durationHours: number,
-  durationMinutes: number,
-  repeatDays: number[],
-  label: string,
-  notificationBlockMode: number,
-  customMessage: string,
-): string {
-  return BlockerModule.addSchedule(hour, minute, durationHours, durationMinutes, repeatDays, label, notificationBlockMode, customMessage);
-}
-
-export function removeSchedule(id: string): void {
-  BlockerModule.removeSchedule(id);
-}
-
-export function toggleSchedule(id: string, enabled: boolean): void {
-  BlockerModule.toggleSchedule(id, enabled);
-}
-
-export function getSchedules(): ScheduleInfo[] {
-  return BlockerModule.getSchedules();
-}
-
-export function syncScheduleConfig(
-  authToken: string,
-  baseUrl: string,
-  selectedApps: string[],
-): void {
-  BlockerModule.syncScheduleConfig(authToken, baseUrl, selectedApps);
-}
-
-// True when the OS allows exact alarms (auto-granted via USE_EXACT_ALARM;
-// false only if the user explicitly revoked it in system settings).
-export function canScheduleExactAlarms(): boolean {
-  return BlockerModule.canScheduleExactAlarms();
-}
-
-// Clears the auth token persisted on the Kotlin side (schedule config).
-// Call on logout and account deletion.
-export function clearAuthState(): void {
-  BlockerModule.clearAuthState();
 }
 
 // Pushes translated strings for native UI (overlays, notifications).
